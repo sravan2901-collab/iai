@@ -1,0 +1,42 @@
+import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "AksharAI - Multilingual AI Literacy Assistant"
+    API_V1_STR: str = "/api"
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "aksharai_super_secret_jwt_key_2026_change_in_production")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    
+    # Database
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", 
+        "sqlite:///./aksharai_dev.db"
+    )
+    
+    # Sarvam AI Credentials
+    SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "mock_sarvam_api_key")
+    SARVAM_STT_ENDPOINT: str = "https://api.sarvam.ai/speech-to-text"
+    SARVAM_TTS_ENDPOINT: str = "https://api.sarvam.ai/text-to-speech"
+
+    # SMTP Email Configuration
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SENDER_EMAIL: str = os.getenv("SENDER_EMAIL", "no-reply@aksharai.com")
+    
+    # CORS
+    BACKEND_CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "*"
+    ]
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
+settings = Settings()

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AksharAI - Learner Login</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <!-- Babel CDN for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #0b132b;
+      color: #f8fafc;
+    }
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div id="root" class="w-full max-w-md"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function LoginApp() {
+      const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+      });
+      const [submittedUser, setSubmittedUser] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [errorMsg, setErrorMsg] = useState('');
+
+      const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setErrorMsg('');
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrorMsg('');
+
+        setTimeout(() => {
+          setLoading(false);
+          const mockJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aksharai_jwt_token_milestone1";
+          localStorage.setItem("aksharai_token", mockJwtToken);
+          setSubmittedUser({
+            fullName: formData.email.split('@')[0],
+            email: formData.email,
+            token: mockJwtToken,
+            tier: "FOUNDATIONAL"
+          });
+        }, 800);
+      };
+
+      if (submittedUser) {
+        return (
+          <div className="glass-panel rounded-2xl p-8 text-center space-y-6 border border-emerald-500/40">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mx-auto flex items-center justify-center text-3xl">
+              ✓
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-emerald-400">
+                Login Successful!
+              </h2>
+              <p className="text-xs text-slate-300">
+                JWT Token issued & session active.
+              </p>
+            </div>
+            <div className="bg-slate-900/80 p-4 rounded-xl text-left font-mono text-xs space-y-2 border border-slate-700">
+              <p><span className="text-slate-500">Email:</span> <span className="text-slate-300">{submittedUser.email}</span></p>
+              <p><span className="text-slate-500">Literacy Level:</span> <span className="text-emerald-400 font-bold">{submittedUser.tier}</span></p>
+              <p className="truncate"><span className="text-slate-500">JWT Token:</span> <span className="text-teal-400">{submittedUser.token}</span></p>
+            </div>
+            <button
+              onClick={() => setSubmittedUser(null)}
+              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/30"
+            >
+              Back to Login
+            </button>
+          </div>
+        );
+      }
+
+      return (
+        <div className="glass-panel rounded-2xl p-6 sm:p-8 space-y-6 border border-slate-700/80">
+          
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 mx-auto flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-emerald-500/20">
+              A
+            </div>
+            <h2 className="text-2xl font-bold text-slate-100">
+              Learner Login
+            </h2>
+            <p className="text-xs text-slate-400">
+              AksharAI - AI-Powered Multilingual Literacy Assistant
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {errorMsg && (
+            <div className="p-3 bg-rose-950/50 border border-rose-500/40 rounded-xl text-xs text-rose-300 font-semibold text-center">
+              ⚠️ {errorMsg}
+            </div>
+          )}
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-xs text-slate-300 block mb-1 font-medium">Email Address</label>
+              <input
+                type="email"
+                name="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="learner@example.com"
+                className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-300 block mb-1 font-medium">Password</label>
+              <input
+                type="password"
+                name="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/30"
+            >
+              {loading ? "Logging in..." : "Login (JWT Auth)"}
+            </button>
+          </form>
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<LoginApp />);
+  </script>
+</body>
+</html>
