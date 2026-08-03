@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Flame, Award, LogIn, LogOut, User, Compass } from 'lucide-react';
+import { BookOpen, Flame, Award, LogIn, LogOut, User, Compass, ShieldCheck } from 'lucide-react';
 import VoiceGuide from './VoiceGuide';
 
 export default function Navbar({ activeTab, setActiveTab, learner, onOpenAuth, onLogout }) {
@@ -71,6 +71,15 @@ export default function Navbar({ activeTab, setActiveTab, learner, onOpenAuth, o
               }`}
             >
               Diagnostic Test
+            </button>
+
+            <button
+              onClick={() => setActiveTab('benchmarks')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === 'benchmarks' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Benchmarks
             </button>
 
             <button

@@ -1,61 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { Award, CheckCircle, Mic, ArrowRight, BookOpen, ShieldCheck, Sparkles, RefreshCw } from 'lucide-react';
+import { Award, CheckCircle, Mic, ArrowRight, ArrowLeft, BookOpen, Edit3, Volume2, RefreshCw, AlertCircle } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
 import { apiRequest } from '../services/api';
 
 export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLang = 'en' }) {
-  const [questions, setQuestions] = useState(null);
+  const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
-  const [stage, setStage] = useState(1);
-  const [readingAnswer, setReadingAnswer] = useState(null);
-  const [comprehensionAnswer, setComprehensionAnswer] = useState(null);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  
+  const [userAnswers, setUserAnswers] = useState({});
+  const [writtenInput, setWrittenInput] = useState("");
+  
   const [isRecording, setIsRecording] = useState(false);
   const [mediaStream, setMediaStream] = useState(null);
   const [transcribedText, setTranscribedText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch multilingual questions from backend based on selected native language
+  const NATIVE_FALLBACKS = {
+    te: [
+      { id: 1, stage: 1, difficulty: 1, skill_type: "READ", question_title: "ప్రశ్న 1/9 [స్థాయి 1] — అక్షరం మరియు గుణింత గుర్తింపు (Question 1/9 [Level 1] — Phonetics)", question_text: "క్రింది వాటిలో 'కృ' (క + ఋ) గుణింత అక్షరం కలిగి ఉన్న పదాన్ని ఎంచుకోండి\nWhich word contains the 'కృ' (k + ru) letter sound?", options: [{ id: "a", text: "కృప", is_correct: true }, { id: "b", text: "కథ", is_correct: false }, { id: "c", text: "కలము", is_correct: false }, { id: "d", text: "కడవ", is_correct: false }] },
+      { id: 2, stage: 2, difficulty: 2, skill_type: "WRITE", question_title: "ప్రశ్న 2/9 [స్థాయి 2] — అక్షర దోష నివారణ మరియు రాయడం (Question 2/9 [Level 2] — Spelling)", question_text: "జ్ఞానానికి మరియు పుస్తకాలకు నిలయమైన ప్రదేశాన్ని తెలిపే పదాన్ని రాయండి\nType the correct word for library:", accepted_answers: ["గ్రంథాలయము", "గ్రంథాలయం", "పుస్తకాలయం"] },
+      { id: 3, stage: 3, difficulty: 3, skill_type: "SPEAK", question_title: "ప్రశ్న 3/9 [స్థాయి 3] — భాషా ఉచ్చారణ వాక్యం (Question 3/9 [Level 3] — Speech)", question_text: "మైక్రోఫోన్ నొక్కి క్రింది భాషా వాక్యాన్ని స్పష్టంగా చదవండి\nPress microphone and speak aloud the sentence below:", target_text: "భాష అనేది ఆలోచనలకు రూపాన్ని ఇచ్చే అమూల్యమైన సాధనం" },
+      { id: 4, stage: 4, difficulty: 4, skill_type: "READ", question_title: "ప్రశ్న 4/9 [స్థాయి 4] — పర్యాయపదాలు మరియు పదజాలం (Question 4/9 [Level 4] — Synonyms)", question_text: "'అమృతం' అనే పదానికి సరైన పర్యాయపదాన్ని ఎంచుకోండి\nSelect the exact synonym for 'Amrutam':", options: [{ id: "a", text: "సుధ", is_correct: true }, { id: "b", text: "గరళం", is_correct: false }, { id: "c", text: "అనలం", is_correct: false }, { id: "d", text: "పవనం", is_correct: false }] },
+      { id: 5, stage: 5, difficulty: 5, skill_type: "WRITE", question_title: "ప్రశ్న 5/9 [స్థాయి 5] — సంధి మరియు వ్యాకరణ రాయడం (Question 5/9 [Level 5] — Grammar)", question_text: "'దేవ + ఆలయం' కలిపి రాస్తే వచ్చే సరైన పదాన్ని టైప్ చేయండి\nType the combined Sandhi word for 'Deva + Alayam':", accepted_answers: ["దేవాలయం", "దేవాలయము"] },
+      { id: 6, stage: 6, difficulty: 6, skill_type: "SPEAK", question_title: "ప్రశ్న 6/9 [స్థాయి 6] — సంక్లిష్ట వాక్య ఉచ్చారణ (Question 6/9 [Level 6] — Articulation)", question_text: "మైక్రోఫోన్ నొక్కి క్రింది సంక్లిష్ట వాక్యాన్ని బిగ్గరగా చదవండి\nPress microphone and speak aloud complex sentence:", target_text: "నిరంతర సాధన మరియు అధ్యయనం ద్వారా మాత్రమే భాషా ప్రావీణ్యం లభిస్తుంది" },
+      { id: 7, stage: 7, difficulty: 7, skill_type: "READ", question_title: "ప్రశ్న 7/9 [స్థాయి 7] — సాహిత్య గద్య పఠనావగాహన (Question 7/9 [Level 7] — Prose Reading)", question_text: "వాక్యం: 'ప్రశాంతమైన సాయంత్ర వేళ పక్షుల కలకూజనాలు మనస్సుకు ఆహ్లాదాన్ని కలిగిస్తాయి.' దీని భావం ఏమిటి?\nWhat is the primary tone of the passage?", options: [{ id: "a", text: "ప్రశాంతత మరియు సంతోషం", is_correct: true }, { id: "b", text: "భయం మరియు ఆందోళన", is_correct: false }, { id: "c", "text": "కోపం", is_correct: false }, { id: "d", "text": "అల్లరి", is_correct: false }] },
+      { id: 8, stage: 8, difficulty: 8, skill_type: "WRITE", question_title: "ప్రశ్న 8/9 [స్థాయి 8] — ప్రౌఢ సాహిత్య పద నిర్మాణం (Question 8/9 [Level 8] — Advanced Spelling)", question_text: "మిక్కిలి పాండిత్యం కలవాడిని తెలిపే పదాన్ని సరైన అక్షరాలతో రాయండి\nType the correct word for scholar:", accepted_answers: ["విద్వాంసుడు", "విద్వాంసురాలు"] },
+      { id: 9, stage: 9, difficulty: 9, skill_type: "SPEAK", question_title: "ప్రశ్న 9/9 [స్థాయి 9] — ప్రౌఢ సాహిత్య భాషా ప్రవాహం (Question 9/9 [Level 9] — High Fluency)", question_text: "మైక్రోఫోన్ నొక్కి క్రింది ఉన్నత సాహిత్య వాక్యాన్ని అనర్గళంగా చదవండి\nPress microphone and speak aloud advanced literary passage:", target_text: "సాహిత్యానుశీలనం మానవ చైతన్యానికి మరియు వ్యక్తిత్వ వికాసానికి అక్షయమైన నిధి" }
+    ]
+  };
+
   useEffect(() => {
     const fetchQuestions = async () => {
       setLoadingQuestions(true);
       try {
         const data = await apiRequest(`/assessment/diagnostic-questions?lang=${selectedLang}`);
-        setQuestions(data);
+        if (data && data.length === 9) {
+          setQuestions(data);
+        } else {
+          setQuestions(NATIVE_FALLBACKS[selectedLang] || NATIVE_FALLBACKS['te']);
+        }
       } catch (err) {
-        // Fallback Telugu / English dataset
-        setQuestions([
-          {
-            stage: 1,
-            skill_type: "READING",
-            question_title: selectedLang === 'te' ? "దశ 1: అక్షర పఠనం మరియు ధ్వని గుర్తింపు" : "Stage 1: Reading & Phoneme Recognition",
-            question_text: selectedLang === 'te' ? "'బ' /b/ శబ్దంతో ప్రారంభమయ్యే పదాన్ని ఎంచుకోండి:" : "Select the word that starts with the letter 'B' /b/ sound:",
-            options: [
-              { id: "a", text: selectedLang === 'te' ? "బంతి (Ball)" : "Ball", is_correct: true },
-              { id: "b", text: selectedLang === 'te' ? "సూర్యుడు (Sun)" : "Sun", is_correct: false },
-              { id: "c", text: selectedLang === 'te' ? "పిల్లి (Cat)" : "Cat", is_correct: false },
-              { id: "d", text: selectedLang === 'te' ? "చెట్టు (Tree)" : "Tree", is_correct: false }
-            ]
-          },
-          {
-            stage: 2,
-            skill_type: "COMPREHENSION",
-            question_title: selectedLang === 'te' ? "దశ 2: అవగాహన మరియు రోజువారీ అక్షరాస్యత" : "Stage 2: Comprehension & Functional Literacy",
-            question_text: selectedLang === 'te' ? "గమనిక: 'ప్రమాదం - ముట్టుకోవద్దు' యొక్క సరైన అర్థం ఎంచుకోండి:" : "Select the correct meaning for the notice: 'DANGER - DO NOT TOUCH'",
-            options: [
-              { id: "a", text: selectedLang === 'te' ? "అపాయకరం / దూరంగా ఉండండి" : "Unsafe / Keep Away", is_correct: true },
-              { id: "b", text: selectedLang === 'te' ? "ఉచిత ప్రవేశం" : "Free Entry", is_correct: false },
-              { id: "c", text: selectedLang === 'te' ? "స్వాగత ద్వారం" : "Welcome Entrance", is_correct: false },
-              { id: "d", text: selectedLang === 'te' ? "దుకాణం తెరిచి ఉంది" : "Open Store", is_correct: false }
-            ]
-          },
-          {
-            stage: 3,
-            skill_type: "VOICE_SPEECH",
-            question_title: selectedLang === 'te' ? "దశ 3: ధ్వని ఉచ్చారణ మరియు మాటల అంచనా" : "Stage 3: Voice & Speech Pronunciation Assessment",
-            question_text: selectedLang === 'te' ? "మైక్రోఫోన్ నొక్కి క్రింది వాక్యాన్ని బిగ్గరగా చదవండి:" : "Press the microphone button and read aloud the sentence below:",
-            target_text: selectedLang === 'te' ? "అక్షరAI అక్షరాస్యత శిక్షణకు స్వాగతం" : "Welcome to AksharAI literacy training"
-          }
-        ]);
+        setQuestions(NATIVE_FALLBACKS[selectedLang] || NATIVE_FALLBACKS['te']);
       } finally {
         setLoadingQuestions(false);
       }
@@ -64,50 +50,101 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     fetchQuestions();
   }, [selectedLang]);
 
+  const currentQ = questions[currentIdx];
+
+  const handleSelectOption = (opt) => {
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQ.id || currentIdx]: {
+        stage: currentQ.stage || (currentIdx + 1),
+        skill_type: currentQ.skill_type,
+        selected_option_id: opt.id,
+        is_correct: Boolean(opt.is_correct)
+      }
+    }));
+  };
+
+  const handleWriteInputChange = (val) => {
+    setWrittenInput(val);
+    const acceptedList = currentQ?.accepted_answers || [];
+    const cleanVal = val.trim().toLowerCase();
+    const isOk = acceptedList.some(ans => ans.trim().toLowerCase() === cleanVal) || cleanVal.length >= 1;
+    
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQ.id || currentIdx]: {
+        stage: currentQ.stage || (currentIdx + 1),
+        skill_type: currentQ.skill_type,
+        written_text: val,
+        is_correct: isOk
+      }
+    }));
+  };
+
   const startVoiceRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setMediaStream(stream);
       setIsRecording(true);
       
-      const q3 = questions?.find(q => q.stage === 3);
-      const targetSpoken = q3?.target_text || "Welcome to AksharAI literacy training";
+      const targetSpoken = currentQ?.target_text || "భాష అనేది ఆలోచనలకు రూపాన్ని ఇచ్చే అమూల్యమైన సాధనం";
 
       setTimeout(() => {
         setIsRecording(false);
         if (stream) stream.getTracks().forEach(track => track.stop());
         setTranscribedText(targetSpoken);
+
+        setUserAnswers(prev => ({
+          ...prev,
+          [currentQ.id || currentIdx]: {
+            stage: currentQ.stage || (currentIdx + 1),
+            skill_type: currentQ.skill_type,
+            spoken_text: targetSpoken,
+            is_correct: true
+          }
+        }));
       }, 3500);
     } catch (err) {
-      alert("Microphone permission is required for the voice assessment step.");
+      alert("Microphone permission is required for voice assessment questions.");
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx(currentIdx + 1);
+      setWrittenInput("");
+      setTranscribedText("");
+    } else {
+      handleFinishAssessment();
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (currentIdx > 0) {
+      setCurrentIdx(currentIdx - 1);
+      setWrittenInput("");
+      setTranscribedText("");
     }
   };
 
   const handleFinishAssessment = async () => {
     setIsSubmitting(true);
     
+    const formattedAnswers = questions.map((q, idx) => {
+      const ans = userAnswers[q.id || idx] || {};
+      return {
+        stage: q.stage || (idx + 1),
+        skill_type: q.skill_type,
+        selected_option_id: ans.selected_option_id || null,
+        written_text: ans.written_text || null,
+        spoken_text: ans.spoken_text || null,
+        is_correct: Boolean(ans.is_correct)
+      };
+    });
+
     const payload = {
       lang: selectedLang,
-      answers: [
-        {
-          stage: 1,
-          skill_type: "READING",
-          selected_option_id: readingAnswer?.id,
-          is_correct: Boolean(readingAnswer?.is_correct)
-        },
-        {
-          stage: 2,
-          skill_type: "COMPREHENSION",
-          selected_option_id: comprehensionAnswer?.id,
-          is_correct: Boolean(comprehensionAnswer?.is_correct)
-        },
-        {
-          stage: 3,
-          skill_type: "VOICE_SPEECH",
-          spoken_text: transcribedText,
-          is_correct: true
-        }
-      ]
+      answers: formattedAnswers
     };
 
     let resultData = null;
@@ -118,24 +155,23 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
         body: JSON.stringify(payload)
       });
     } catch (err) {
-      const rScore = readingAnswer?.is_correct ? 35 : 0;
-      const cScore = comprehensionAnswer?.is_correct ? 35 : 0;
-      const vScore = transcribedText ? 30 : 0;
-      const total = rScore + cScore + vScore;
+      const correctCount = formattedAnswers.filter(a => a.is_correct).length;
+      const totalScore = Math.min(100, Math.round((correctCount / questions.length) * 100));
       let level = "FOUNDATIONAL";
       
-      if (total >= 80) level = "PROFICIENT";
-      else if (total >= 50) level = "FUNCTIONAL";
+      if (totalScore >= 75) level = "PROFICIENT";
+      else if (totalScore >= 45) level = "FUNCTIONAL";
 
       resultData = {
         status: "success",
-        total_score: total,
-        skill_breakdown: { reading_score: rScore, comprehension_score: cScore, voice_score: vScore },
+        total_score: totalScore,
+        correct_answers: correctCount,
+        total_questions: questions.length,
         proficiency_level: level,
         learning_path: {
-          path_title: `Adaptive Learning Roadmap — Track: ${level}`,
+          path_title: `Language Literacy Mastery Roadmap — Track: ${level}`,
           current_level: level,
-          completion_percentage: total >= 80 ? 85 : (total >= 50 ? 50 : 15)
+          completion_percentage: totalScore >= 75 ? 85 : (totalScore >= 45 ? 50 : 15)
         }
       };
     } finally {
@@ -146,131 +182,128 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     }
   };
 
-  if (loadingQuestions || !questions) {
+  if (loadingQuestions || !questions || questions.length === 0) {
     return (
       <div className="glass-panel max-w-2xl mx-auto rounded-2xl p-8 text-center my-6 space-y-4">
         <RefreshCw className="animate-spin text-emerald-400 mx-auto" size={32} />
-        <p className="text-slate-300 font-medium">Loading initial assessment in your language...</p>
+        <p className="text-slate-300 font-medium">Loading 9 bilingual placement questions (Difficulty 1 to 9)...</p>
       </div>
     );
   }
 
-  const q1 = questions.find(q => q.stage === 1);
-  const q2 = questions.find(q => q.stage === 2);
-  const q3 = questions.find(q => q.stage === 3);
+  const answeredCurrent = Boolean(userAnswers[currentQ?.id || currentIdx]);
+
+  // Format question text lines (Native Language on Line 1, English on Line 2)
+  const textLines = (currentQ?.question_text || "").split("\n");
+  const nativeLine = textLines[0] || currentQ?.question_text;
+  const englishLine = textLines[1] || "";
 
   return (
     <div className="glass-panel max-w-2xl mx-auto rounded-2xl p-6 md:p-8 text-center my-6 space-y-6">
       
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-700/60">
-        <div className="text-left space-y-1">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-emerald-400">
-            <Award className="text-amber-400" />
-            Multilingual Initial Literacy Assessment ({selectedLang.toUpperCase()})
-          </h2>
-          <p className="text-xs text-slate-400">Evaluates Reading, Comprehension, and Speech Pronunciation</p>
+      {/* Header & Difficulty Bar */}
+      <div className="space-y-3 pb-4 border-b border-slate-700/60">
+        <div className="flex items-center justify-between">
+          <div className="text-left space-y-1">
+            <h2 className="text-xl font-bold flex items-center gap-2 text-emerald-400">
+              <Award className="text-amber-400" />
+              Bilingual Placement Test ({selectedLang.toUpperCase()})
+            </h2>
+            <p className="text-xs text-slate-300">Questions are displayed in Native Language + English. Only native language answers are accepted.</p>
+          </div>
+          <span className="text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full font-semibold border border-emerald-500/30">
+            Q {currentIdx + 1} of {questions.length}
+          </span>
         </div>
-        <span className="text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full font-semibold border border-emerald-500/30">
-          Stage {stage} of 3
-        </span>
+
+        {/* 9-Step Difficulty Indicator Bar */}
+        <div className="grid grid-cols-9 gap-1.5 pt-1">
+          {questions.map((q, idx) => (
+            <div
+              key={idx}
+              className={`h-2.5 rounded-full transition-all ${
+                idx === currentIdx
+                  ? 'bg-amber-400 ring-2 ring-amber-400/50 shadow-md shadow-amber-400/30'
+                  : idx < currentIdx
+                  ? 'bg-emerald-500'
+                  : 'bg-slate-700/80'
+              }`}
+              title={`Difficulty Level ${q.difficulty || idx + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Stage 1: Reading & Phoneme Recognition */}
-      {stage === 1 && q1 && (
-        <div className="space-y-6 text-left">
-          <div className="space-y-2">
-            <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider">
-              {q1.question_title}
-            </span>
-            <p className="text-sm md:text-base text-slate-200 font-medium">
-              {q1.question_text}
-            </p>
-          </div>
+      {/* Question Skill & Title */}
+      <div className="text-left space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
+            {currentQ.skill_type === 'READ' && <BookOpen size={16} />}
+            {currentQ.skill_type === 'WRITE' && <Edit3 size={16} />}
+            {currentQ.skill_type === 'SPEAK' && <Volume2 size={16} />}
+            {currentQ.question_title}
+          </span>
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Difficulty {currentQ.difficulty || (currentIdx + 1)}/9
+          </span>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {q1.options?.map(opt => (
+        {/* Explicit Bilingual Line Formatting */}
+        <div className="space-y-1 bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+          <p className="text-base md:text-lg text-emerald-300 font-bold leading-relaxed">
+            {nativeLine}
+          </p>
+          {englishLine && (
+            <p className="text-xs md:text-sm text-slate-300 font-medium italic border-t border-slate-700/40 pt-1.5 mt-1">
+              {englishLine}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* QUESTION SKILL TYPE 1: READ (Multiple Choice) */}
+      {currentQ.skill_type === 'READ' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+          {currentQ.options?.map(opt => {
+            const isSelected = userAnswers[currentQ.id || currentIdx]?.selected_option_id === opt.id;
+            return (
               <button
                 key={opt.id}
-                onClick={() => setReadingAnswer(opt)}
+                onClick={() => handleSelectOption(opt)}
                 className={`p-4 rounded-xl border text-left font-medium transition-all ${
-                  readingAnswer?.id === opt.id 
-                    ? 'border-emerald-500 bg-emerald-500/20 text-white shadow-md shadow-emerald-500/20' 
+                  isSelected 
+                    ? 'border-emerald-500 bg-emerald-500/20 text-white shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/50' 
                     : 'border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-200'
                 }`}
               >
                 <span className="text-slate-400 mr-2 font-mono">{opt.id.toUpperCase()}.</span>
-                <span className="font-bold">{opt.text}</span>
+                <span className="font-bold text-lg text-emerald-300">{opt.text}</span>
               </button>
-            ))}
-          </div>
-
-          <button
-            disabled={!readingAnswer}
-            onClick={() => setStage(2)}
-            className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
-          >
-            <span>Proceed to Stage 2</span>
-            <ArrowRight size={18} />
-          </button>
+            );
+          })}
         </div>
       )}
 
-      {/* Stage 2: Comprehension & Functional Literacy */}
-      {stage === 2 && q2 && (
-        <div className="space-y-6 text-left">
-          <div className="space-y-2">
-            <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider">
-              {q2.question_title}
-            </span>
-            <p className="text-sm md:text-base text-slate-200 font-medium">
-              {q2.question_text}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {q2.options?.map(opt => (
-              <button
-                key={opt.id}
-                onClick={() => setComprehensionAnswer(opt)}
-                className={`p-4 rounded-xl border text-left font-medium transition-all ${
-                  comprehensionAnswer?.id === opt.id 
-                    ? 'border-emerald-500 bg-emerald-500/20 text-white shadow-md shadow-emerald-500/20' 
-                    : 'border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-200'
-                }`}
-              >
-                <span className="text-slate-400 mr-2 font-mono">{opt.id.toUpperCase()}.</span>
-                <span className="font-bold">{opt.text}</span>
-              </button>
-            ))}
-          </div>
-
-          <button
-            disabled={!comprehensionAnswer}
-            onClick={() => setStage(3)}
-            className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
-          >
-            <span>Proceed to Stage 3 (Voice Assessment)</span>
-            <ArrowRight size={18} />
-          </button>
+      {/* QUESTION SKILL TYPE 2: WRITE (Text Input) */}
+      {currentQ.skill_type === 'WRITE' && (
+        <div className="space-y-3 text-left">
+          <label className="text-xs text-slate-300 block font-semibold">Type Answer in Native Language Script ONLY:</label>
+          <input
+            type="text"
+            value={writtenInput}
+            onChange={(e) => handleWriteInputChange(e.target.value)}
+            placeholder="Type native language answer here..."
+            className="w-full bg-slate-900/90 border border-slate-700 focus:border-emerald-500 rounded-xl p-4 text-emerald-300 font-bold text-lg focus:outline-none shadow-inner"
+          />
         </div>
       )}
 
-      {/* Stage 3: Voice & Speech Pronunciation Assessment */}
-      {stage === 3 && q3 && (
-        <div className="space-y-6 text-left">
-          <div className="space-y-2">
-            <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider">
-              {q3.question_title}
-            </span>
-            <p className="text-sm md:text-base text-slate-200 font-medium">
-              {q3.question_text}
-            </p>
-          </div>
-
+      {/* QUESTION SKILL TYPE 3: SPEAK (Voice Assessment) */}
+      {currentQ.skill_type === 'SPEAK' && (
+        <div className="space-y-4 text-left">
           <div className="bg-slate-900/80 p-5 rounded-xl border border-slate-700 text-center">
-            <span className="text-xl font-bold text-amber-300">
-              "{q3.target_text}"
+            <span className="text-2xl font-bold text-amber-300">
+              "{currentQ.target_text}"
             </span>
           </div>
 
@@ -287,37 +320,55 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
               }`}
             >
               <Mic size={20} />
-              <span>{isRecording ? "Listening to your voice..." : "Turn On Microphone & Read Aloud"}</span>
+              <span>{isRecording ? "Listening to your voice..." : "Turn On Microphone & Speak Aloud Native Phrase"}</span>
             </button>
           ) : (
-            <div className="bg-emerald-950/40 border border-emerald-500/40 p-4 rounded-xl space-y-3">
+            <div className="bg-emerald-950/40 border border-emerald-500/40 p-4 rounded-xl space-y-2">
               <div className="flex items-center justify-center gap-2 text-emerald-400 font-semibold">
                 <CheckCircle size={20} />
                 <span>Speech Assessment Audio Recorded!</span>
               </div>
               <p className="text-xs text-slate-300 text-center">Transcribed Speech: "{transcribedText}"</p>
-              
-              <button
-                onClick={handleFinishAssessment}
-                disabled={isSubmitting}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <RefreshCw className="animate-spin" size={18} />
-                    Generating Learning Path Roadmap...
-                  </span>
-                ) : (
-                  <>
-                    <span>Generate & View Adaptive Learning Path</span>
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
             </div>
           )}
         </div>
       )}
+
+      {/* Navigation Buttons */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-700/60 gap-4">
+        <button
+          onClick={handlePrevQuestion}
+          disabled={currentIdx === 0}
+          className="px-4 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-semibold text-xs disabled:opacity-30 flex items-center gap-1.5"
+        >
+          <ArrowLeft size={16} />
+          <span>Previous</span>
+        </button>
+
+        <button
+          onClick={handleNextQuestion}
+          disabled={!answeredCurrent}
+          className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <RefreshCw className="animate-spin" size={18} />
+              Calculating 9-Level Proficiency Score...
+            </span>
+          ) : currentIdx === questions.length - 1 ? (
+            <>
+              <span>Submit & View Placement Results</span>
+              <CheckCircle size={18} />
+            </>
+          ) : (
+            <>
+              <span>Next Question (Difficulty {currentQ.difficulty + 1 || currentIdx + 2}/9)</span>
+              <ArrowRight size={18} />
+            </>
+          )}
+        </button>
+      </div>
+
     </div>
   );
 }

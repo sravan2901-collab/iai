@@ -4,138 +4,172 @@ from app.database import get_db
 from app import models
 from app.auth import get_optional_current_learner
 from typing import Optional
-from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/learning-path", tags=["Learning Path"])
+router = APIRouter(prefix="/api/learning-path", tags=["Adaptive Learning Path Generator"])
 
 LANGUAGE_CONTENT = {
     "en": {
+        "path_title": "English Language Literacy Roadmap",
         "milestones": [
             {
-                "step": 1,
-                "title": "Milestone 1: Foundational Phonics & Letter Recognition",
-                "category": "Everyday Essentials",
+                "id": 1,
+                "milestone_number": 1,
+                "title": "Phonemes & Alphabet Fundamentals",
+                "description": "Master letter-sound associations, long/short vowels, and consonant blends.",
+                "progress_percentage": 100,
+                "is_completed": True,
+                "status": "COMPLETED",
                 "lessons": [
-                    {"lesson_id": 1, "title": "Greetings & Everyday Phrases", "content_type": "Voice Practice", "target_text": "Hello, how are you today?"},
-                    {"lesson_id": 2, "title": "Numbers One to Ten", "content_type": "Voice Practice", "target_text": "One Two Three Four Five Six Seven Eight Nine Ten"}
+                    {"id": 1, "title": "Vowel Sounds & Phoneme Synthesis", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "Consonant Blends & Syllables", "status": "COMPLETED", "score": 90}
                 ]
             },
             {
-                "step": 2,
-                "title": "Milestone 2: Functional Reading & Financial Literacy",
-                "category": "Digital & Healthcare Literacy",
+                "id": 2,
+                "milestone_number": 2,
+                "title": "Vocabulary & Sentence Grammar",
+                "description": "Expand vocabulary, master verb tenses, prefixes, suffixes, and sentence construction.",
+                "progress_percentage": 40,
+                "is_completed": False,
+                "status": "IN_PROGRESS",
                 "lessons": [
-                    {"lesson_id": 3, "title": "ATM PIN Security Guidelines", "content_type": "Functional Reading", "target_text": "Never share your ATM PIN with anyone"},
-                    {"lesson_id": 4, "title": "Reading Digital Payment Receipts", "content_type": "Functional Reading", "target_text": "Payment successful One Hundred Rupees"}
+                    {"id": 3, "title": "Noun-Verb Agreement & Tenses", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "Prefixes, Suffixes & Root Words", "status": "IN_PROGRESS", "score": 0}
                 ]
             },
             {
-                "step": 3,
-                "title": "Milestone 3: Workplace Literacy & Voice Fluency",
-                "category": "Workplace Communication",
+                "id": 3,
+                "milestone_number": 3,
+                "title": "Advanced Literary Fluency & Expression",
+                "description": "Comprehend complex literary passages and express thoughts fluently.",
+                "progress_percentage": 0,
+                "is_completed": False,
+                "status": "LOCKED",
                 "lessons": [
-                    {"lesson_id": 5, "title": "Workplace Safety & Polite Communication", "content_type": "Voice Practice", "target_text": "Thank you for your assistance today"},
-                    {"lesson_id": 6, "title": "Customer Service Conversation", "content_type": "Voice Practice", "target_text": "Please provide me with a receipt"}
+                    {"id": 5, "title": "Prose & Passage Comprehension", "status": "LOCKED", "score": 0},
+                    {"id": 6, "title": "Fluent Speech & Public Articulation", "status": "LOCKED", "score": 0}
+                ]
+            }
+        ]
+    },
+    "te": {
+        "path_title": "తెలుగు భాషా అక్షరాస్యత కార్యాచరణ సాధన",
+        "milestones": [
+            {
+                "id": 1,
+                "milestone_number": 1,
+                "title": "అక్షరాలు, వర్ణమాల మరియు గుణింతాలు",
+                "description": "అచ్చులు, హల్లులు, గుణింతపు గుర్తులు మరియు ఒత్తుల ఉచ్చారణలో నైపుణ్యం సాధించండి.",
+                "progress_percentage": 100,
+                "is_completed": True,
+                "status": "COMPLETED",
+                "lessons": [
+                    {"id": 1, "title": "అచ్చులు మరియు హల్లుల ఉచ్చారణ", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "గుణింతాలు మరియు ఒత్తుల సాధన", "status": "COMPLETED", "score": 90}
+                ]
+            },
+            {
+                "id": 2,
+                "milestone_number": 2,
+                "title": "పదజాలం, సంధులు మరియు వాక్య నిర్మాణం",
+                "description": "పర్యాయపదాలు, నానార్థాలు, సంధులు మరియు వ్యాకరణ వాక్య నిర్మాణం నేర్చుకోండి.",
+                "progress_percentage": 40,
+                "is_completed": False,
+                "status": "IN_PROGRESS",
+                "lessons": [
+                    {"id": 3, "title": "తెలుగు సంధులు మరియు సమాసాలు", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "వాక్య నిర్మాణం మరియు వ్యాకరణం", "status": "IN_PROGRESS", "score": 0}
+                ]
+            },
+            {
+                "id": 3,
+                "milestone_number": 3,
+                "title": "సాహిత్య గద్య పఠనం మరియు భావ వ్యక్తీకరణ",
+                "description": "ఉన్నత సాహిత్య గద్యాలను చదవడం మరియు అనర్గళంగా మాట్లాడటం.",
+                "progress_percentage": 0,
+                "is_completed": False,
+                "status": "LOCKED",
+                "lessons": [
+                    {"id": 5, "title": "సాహిత్య గద్య పఠనం మరియు అర్థ గ్రహణ", "status": "LOCKED", "score": 0},
+                    {"id": 6, "title": "అనర్గళ భాషా ప్రసంగం", "status": "LOCKED", "score": 0}
+                ]
+            }
+        ]
+    },
+    "hi": {
+        "path_title": "हिन्दी भाषा साक्षरता मार्गदर्शिका",
+        "milestones": [
+            {
+                "id": 1,
+                "milestone_number": 1,
+                "title": "वर्णमाला, स्वर एवं मात्रा ज्ञान",
+                "description": "स्वर, व्यंजन, मात्राएँ एवं वर्ण संयोजन में दक्षता प्राप्त करें।",
+                "progress_percentage": 100,
+                "is_completed": True,
+                "status": "COMPLETED",
+                "lessons": [
+                    {"id": 1, "title": "स्वर एवं व्यंजन उच्चारण", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "मात्राएँ एवं संयुक्त अक्षर", "status": "COMPLETED", "score": 90}
+                ]
+            },
+            {
+                "id": 2,
+                "milestone_number": 2,
+                "title": "शब्दावली, संधि एवं वाक्य व्याकरण",
+                "description": "पर्यायवाची, विलोम शब्द, संधि एवं व्याकरणिक वाक्य रचना सीखें।",
+                "progress_percentage": 40,
+                "is_completed": False,
+                "status": "IN_PROGRESS",
+                "lessons": [
+                    {"id": 3, "title": "हिंदी संधि एवं समास", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "शुद्ध वाक्य रचना एवं व्याकरण", "status": "IN_PROGRESS", "score": 0}
+                ]
+            },
+            {
+                "id": 3,
+                "milestone_number": 3,
+                "title": "उच्च साहित्यिक वाचन एवं अभिव्यक्ति",
+                "description": "साहित्यिक गद्यांश वाचन और धाराप्रवाह वाचन में दक्षता।",
+                "progress_percentage": 0,
+                "is_completed": False,
+                "status": "LOCKED",
+                "lessons": [
+                    {"id": 5, "title": "साहित्यिक गद्यांश वाचन एवं बोध", "status": "LOCKED", "score": 0},
+                    {"id": 6, "title": "धाराप्रवाह भाषा अभिव्यक्ति", "status": "LOCKED", "score": 0}
                 ]
             }
         ]
     }
 }
 
-class GeneratePathRequest(BaseModel):
-    proficiency_level: str
-    lang: Optional[str] = None
-
-class StatusUpdateRequest(BaseModel):
-    status: str
-
 @router.get("/active")
 def get_active_learning_path(
-    lang: Optional[str] = "en",
-    db: Session = Depends(get_db),
-    current_learner: Optional[models.Learner] = Depends(get_optional_current_learner)
+    lang: Optional[str] = Query("en"),
+    current_learner: Optional[models.Learner] = Depends(get_optional_current_learner),
+    db: Session = Depends(get_db)
 ):
-    target_lang = lang or "en"
-    if target_lang not in LANGUAGE_CONTENT:
-        target_lang = "en"
-    
-    learning_path = None
-    literacy_level = "FOUNDATIONAL"
+    target_lang = lang if lang in LANGUAGE_CONTENT else "en"
+    content = LANGUAGE_CONTENT[target_lang]
 
     if current_learner:
-        learning_path = db.query(models.LearningPath).filter(
-            models.LearningPath.learner_id == current_learner.learner_id,
-            models.LearningPath.status == "ACTIVE"
-        ).first()
-
-        profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == current_learner.learner_id).first()
-        if profile and profile.literacy_level:
-            literacy_level = profile.literacy_level
-
-    milestones_data = LANGUAGE_CONTENT[target_lang]["milestones"]
-    level = learning_path.current_level if learning_path else literacy_level
-    target_level = learning_path.target_proficiency if learning_path else "ALPHABET_SOUNDS"
-    
-    if level == "FOUNDATIONAL":
-        completion = 15
-    elif level == "FUNCTIONAL":
-        completion = 50
-    else:
-        completion = 85
-
-    milestones = []
-    for m in milestones_data:
-        ms_status = "LOCKED"
-        ms_completion = 0
-        if m["step"] == 1:
-            ms_status = "UNLOCKED"
-            ms_completion = 100 if level in ["FUNCTIONAL", "PROFICIENT"] else 30
-        elif m["step"] == 2:
-            ms_status = "UNLOCKED" if level in ["FUNCTIONAL", "PROFICIENT"] else "LOCKED"
-            ms_completion = 100 if level == "PROFICIENT" else (40 if level == "FUNCTIONAL" else 0)
-        elif m["step"] == 3:
-            ms_status = "UNLOCKED" if level == "PROFICIENT" else "LOCKED"
-            ms_completion = 20 if level == "PROFICIENT" else 0
-            
-        lessons = []
-        for l in m["lessons"]:
-            l_status = "LOCKED"
-            if m["step"] == 1:
-                if l["lesson_id"] == 1:
-                    l_status = "COMPLETED" if level != "FOUNDATIONAL" else "ACTIVE"
-                else:
-                    l_status = "COMPLETED" if level != "FOUNDATIONAL" else "UNLOCKED"
-            elif m["step"] == 2:
-                if l["lesson_id"] == 3:
-                    l_status = "ACTIVE" if level == "FUNCTIONAL" else ("COMPLETED" if level == "PROFICIENT" else "LOCKED")
-                else:
-                    l_status = "UNLOCKED" if level in ["FUNCTIONAL", "PROFICIENT"] else "LOCKED"
-            elif m["step"] == 3:
-                l_status = "ACTIVE" if level == "PROFICIENT" else "LOCKED"
-                
-            lessons.append({
-                "lesson_id": l["lesson_id"],
-                "title": l["title"],
-                "content_type": l["content_type"],
-                "target_text": l["target_text"],
-                "status": l_status
-            })
-            
-        milestones.append({
-            "step": m["step"],
-            "title": m["title"],
-            "category": m["category"],
-            "status": ms_status,
-            "completion": ms_completion,
-            "lessons": lessons
-        })
+        path = db.query(models.LearningPath).filter(models.LearningPath.learner_id == current_learner.learner_id).first()
+        if path:
+            return {
+                "path_id": path.path_id,
+                "learner_id": current_learner.learner_id,
+                "target_lang": target_lang,
+                "title": content["path_title"],
+                "current_tier": path.current_tier or "FOUNDATIONAL",
+                "completion_percentage": path.completion_percentage or 35.0,
+                "milestones": content["milestones"]
+            }
 
     return {
-        "path_id": learning_path.path_id if learning_path else 1,
-        "path_title": f"Adaptive Learning Roadmap — Track: {level}",
-        "language": {"lang_id": target_lang, "lang_name": "English", "iso_code": target_lang},
-        "current_level": level,
-        "target_level": target_level,
-        "completion_percentage": completion,
-        "milestones": milestones
+        "path_id": 999,
+        "learner_id": 0,
+        "target_lang": target_lang,
+        "title": content["path_title"],
+        "current_tier": "FOUNDATIONAL",
+        "completion_percentage": 35.0,
+        "milestones": content["milestones"]
     }

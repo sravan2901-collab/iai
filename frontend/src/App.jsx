@@ -3,8 +3,10 @@ import Navbar from './components/Navbar';
 import DiagnosticTest from './components/DiagnosticTest';
 import PronunciationCoach from './components/PronunciationCoach';
 import LearningPath from './components/LearningPath';
+import LearnerProfileView from './components/LearnerProfileView';
+import ProficiencyBenchmarks from './components/ProficiencyBenchmarks';
 import AuthModal from './components/AuthModal';
-import { BookOpen, ShieldCheck, HeartPulse, Briefcase, Award, CheckCircle, ArrowRight, Play, User, LogIn, Globe } from 'lucide-react';
+import { BookOpen, Type, Sparkles, Feather, Award, CheckCircle, ArrowRight, Play, User, LogIn, Globe } from 'lucide-react';
 import { getAuthToken, removeAuthToken, apiRequest } from './services/api';
 
 const LANG_MAP = {
@@ -13,7 +15,9 @@ const LANG_MAP = {
   3: 'ta',
   4: 'te',
   5: 'bn',
-  6: 'mr'
+  6: 'mr',
+  7: 'kn',
+  8: 'es'
 };
 
 export default function App() {
@@ -24,6 +28,8 @@ export default function App() {
   const [learner, setLearner] = useState({
     isLoggedIn: false,
     name: 'Guest Learner',
+    email: '',
+    native_lang_id: 1,
     literacy_level: 'FOUNDATIONAL',
     streak_count: 0,
     total_points: 0,
@@ -38,7 +44,9 @@ export default function App() {
           const userLang = LANG_MAP[data.native_lang_id] || data.current_lang_id || 'en';
           setLearner({
             isLoggedIn: true,
-            name: data.username || data.email,
+            name: data.first_name || data.username || data.email,
+            email: data.email,
+            native_lang_id: data.native_lang_id || 1,
             literacy_level: data.literacy_level || 'FOUNDATIONAL',
             streak_count: data.streak_count || 1,
             total_points: data.total_points || 50,
@@ -58,6 +66,8 @@ export default function App() {
     setLearner({
       isLoggedIn: true,
       name: userData.username,
+      email: userData.email || '',
+      native_lang_id: userData.native_lang_id || 1,
       literacy_level: userData.literacy_level || 'FOUNDATIONAL',
       streak_count: 1,
       total_points: 50,
@@ -71,6 +81,8 @@ export default function App() {
     setLearner({
       isLoggedIn: false,
       name: 'Guest Learner',
+      email: '',
+      native_lang_id: 1,
       literacy_level: 'FOUNDATIONAL',
       streak_count: 0,
       total_points: 0,
@@ -80,38 +92,49 @@ export default function App() {
     setActiveTab('catalog');
   };
 
+  const handleProfileUpdate = (updatedProfile) => {
+    const userLang = LANG_MAP[updatedProfile.native_lang_id] || 'en';
+    setLearner(prev => ({
+      ...prev,
+      name: updatedProfile.first_name || prev.name,
+      native_lang_id: updatedProfile.native_lang_id || prev.native_lang_id,
+      literacy_level: updatedProfile.literacy_level || prev.literacy_level,
+      preferred_lang: userLang
+    }));
+  };
+
   const categories = [
     {
       id: 1,
-      title: 'Phonics & Everyday Language',
+      title: 'Phonemes & Alphabet Fundamentals',
       icon: BookOpen,
       color: 'from-emerald-500 to-teal-600',
-      description: 'Alphabet sound associations, greetings, and basic daily vocabulary',
+      description: 'Alphabet sound associations, long/short vowels, and syllable stress',
       lessonsCount: 4
     },
     {
       id: 2,
-      title: 'Financial & Digital Literacy',
-      icon: ShieldCheck,
+      title: 'Vocabulary & Word Formation',
+      icon: Type,
       color: 'from-blue-500 to-indigo-600',
-      description: 'ATM interfaces, digital payment receipts, and bank passbooks',
-      lessonsCount: 3
+      description: 'Prefixes, suffixes, root words, synonyms, and antonym mastery',
+      lessonsCount: 4
     },
     {
       id: 3,
-      title: 'Healthcare & Prescription Reading',
-      icon: HeartPulse,
+      title: 'Sentence Grammar & Syntax',
+      icon: Sparkles,
       color: 'from-rose-500 to-pink-600',
-      description: 'Medicine names, dosages, and doctor instruction slips',
+      description: 'Noun-verb agreement, tenses, conjunctions, and complex sentence structure',
       lessonsCount: 3
     },
     {
       id: 4,
-      title: 'Workplace Communication',
-      icon: Briefcase,
+      title: 'Advanced Literary Fluency & Expression',
+      icon: Feather,
       color: 'from-amber-500 to-orange-600',
-      description: 'Customer interactions and workplace safety guidelines',
-      lessonsCount: 2
+      description: 'Prose & passage reading comprehension, articulate speech, and literary expression',
+      lessonsCount: 3
     }
   ];
 
@@ -119,34 +142,34 @@ export default function App() {
     {
       lesson_id: 1,
       category_id: 1,
-      title: 'Greetings & Everyday Phrases',
+      title: 'Vowel Sounds & Phoneme Synthesis',
       content_type: 'Voice Practice',
-      target_text: 'Hello, how are you today?',
+      target_text: 'Language unlocks knowledge, wisdom, and human expression',
       difficulty_level: 'FOUNDATIONAL'
     },
     {
       lesson_id: 2,
-      category_id: 1,
-      title: 'Numbers One to Ten',
-      content_type: 'Voice Practice',
-      target_text: 'One Two Three Four Five Six Seven Eight Nine Ten',
-      difficulty_level: 'FOUNDATIONAL'
+      category_id: 2,
+      title: 'Prefixes, Suffixes & Root Words',
+      content_type: 'Language Practice',
+      target_text: 'Understanding root words enhances vocabulary comprehension',
+      difficulty_level: 'FUNCTIONAL'
     },
     {
       lesson_id: 3,
-      category_id: 2,
-      title: 'ATM PIN Security Guidelines',
-      content_type: 'Functional Reading',
-      target_text: 'Never share your ATM PIN with anyone',
+      category_id: 3,
+      title: 'Noun-Verb Agreement & Tenses',
+      content_type: 'Grammar Practice',
+      target_text: 'She had written an eloquent essay before sunrise',
       difficulty_level: 'FUNCTIONAL'
     },
     {
       lesson_id: 4,
-      category_id: 2,
-      title: 'Reading Digital Payment Receipts',
-      content_type: 'Functional Reading',
-      target_text: 'Payment successful One Hundred Rupees',
-      difficulty_level: 'FUNCTIONAL'
+      category_id: 4,
+      title: 'Literary Prose & Passage Reading',
+      content_type: 'Literature Practice',
+      target_text: 'Mastery over language transforms thought into eloquent communication',
+      difficulty_level: 'PROFICIENT'
     }
   ];
 
@@ -196,7 +219,7 @@ export default function App() {
             </div>
             <h2 className="text-2xl font-bold text-white">{learner.name}</h2>
             <p className="text-xs md:text-sm text-slate-300">
-              Speak aloud, receive real-time pronunciation feedback, and progress in your literacy journey.
+              Master language phonetics, vocabulary, grammar, and literary expression with AI-driven voice guidance.
             </p>
           </div>
 
@@ -215,6 +238,8 @@ export default function App() {
                 <option value="ta" className="bg-slate-900 text-white">Tamil (தமிழ்)</option>
                 <option value="bn" className="bg-slate-900 text-white">Bengali (বাংলা)</option>
                 <option value="mr" className="bg-slate-900 text-white">Marathi (मराठी)</option>
+                <option value="kn" className="bg-slate-900 text-white">Kannada (ಕನ್ನಡ)</option>
+                <option value="es" className="bg-slate-900 text-white">Spanish (Español)</option>
               </select>
             </div>
 
@@ -228,15 +253,25 @@ export default function App() {
               </button>
             ) : (
               <button
-                onClick={() => setActiveTab('diagnostic')}
+                onClick={() => setActiveTab('dashboard')}
                 className="glass-button px-5 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 text-emerald-300"
               >
-                <Award size={18} />
-                <span>Take Placement Test</span>
+                <User size={18} />
+                <span>Learner Profile</span>
               </button>
             )}
           </div>
         </div>
+
+        {/* Learner Profile Dashboard View */}
+        {activeTab === 'dashboard' && (
+          <LearnerProfileView learner={learner} onProfileUpdate={handleProfileUpdate} />
+        )}
+
+        {/* Learner Proficiency Benchmarks View */}
+        {activeTab === 'benchmarks' && (
+          <ProficiencyBenchmarks selectedLang={learner.preferred_lang} />
+        )}
 
         {/* Tab 1: Diagnostic Test View */}
         {activeTab === 'diagnostic' && (
@@ -281,7 +316,7 @@ export default function App() {
           <div className="space-y-6">
             <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
               <BookOpen size={20} className="text-emerald-400" />
-              Learning Modules & Practice Lessons
+              Language Literacy Curriculum Modules
             </h3>
 
             {/* Category Cards */}
@@ -311,7 +346,7 @@ export default function App() {
 
             {/* Sample Lessons List */}
             <div className="space-y-3 pt-4">
-              <h4 className="text-md font-bold text-slate-300">Recommended Practice Lessons</h4>
+              <h4 className="text-md font-bold text-slate-300">Recommended Language Literacy Practice Lessons</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {sampleLessons.map(les => (
                   <div 

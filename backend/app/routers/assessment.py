@@ -10,368 +10,715 @@ router = APIRouter(prefix="/api/assessment", tags=["Generic Initial Assessment &
 DIAGNOSTIC_QUESTIONS_BY_LANG = {
     "en": [
         {
-            "stage": 1,
-            "skill_type": "READING",
-            "question_title": "Stage 1: Reading & Phoneme Recognition",
-            "question_text": "Select the word that starts with the letter 'B' /b/ sound:",
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "Question 1/9 [Level 1] — Phoneme & Letter Identification",
+            "question_text": "Which word contains the long vowel sound /eɪ/ as in 'Fate'?",
             "options": [
-                {"id": "a", "text": "Ball", "is_correct": True},
-                {"id": "b", "text": "Sun", "is_correct": False},
-                {"id": "c", "text": "Cat", "is_correct": False},
-                {"id": "d", "text": "Tree", "is_correct": False}
+                {"id": "a", "text": "Grace", "is_correct": True},
+                {"id": "b", "text": "Track", "is_correct": False},
+                {"id": "c", "text": "Bell", "is_correct": False},
+                {"id": "d", "text": "Rock", "is_correct": False}
             ]
         },
         {
-            "stage": 2,
-            "skill_type": "COMPREHENSION",
-            "question_title": "Stage 2: Comprehension & Functional Literacy",
-            "question_text": "Select the correct meaning for the notice: 'DANGER - DO NOT TOUCH'",
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "Question 2/9 [Level 2] — Word Spelling & Structure",
+            "question_text": "Type the correctly spelled word for a place where books are kept:",
+            "accepted_answers": ["Library", "library", "LIBRARY"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "Question 3/9 [Level 3] — Sentence Pronunciation",
+            "question_text": "Press microphone and speak aloud the sentence below:",
+            "target_text": "Language unlocks knowledge, wisdom, and human expression"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "Question 4/9 [Level 4] — Synonyms & Vocabulary Mastery",
+            "question_text": "Select the exact synonym for the word 'PERSISTENT':",
             "options": [
-                {"id": "a", "text": "Unsafe / Keep Away", "is_correct": True},
-                {"id": "b", "text": "Free Entry", "is_correct": False},
-                {"id": "c", "text": "Welcome Entrance", "is_correct": False},
-                {"id": "d", "text": "Open Store", "is_correct": False}
+                {"id": "a", "text": "Persevering", "is_correct": True},
+                {"id": "b", "text": "Temporary", "is_correct": False},
+                {"id": "c", "text": "Hesitant", "is_correct": False},
+                {"id": "d", "text": "Careless", "is_correct": False}
             ]
         },
         {
-            "stage": 3,
-            "skill_type": "VOICE_SPEECH",
-            "question_title": "Stage 3: Voice & Speech Pronunciation Assessment",
-            "question_text": "Press the microphone button and read aloud the sentence below:",
-            "target_text": "Welcome to AksharAI literacy training"
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "Question 5/9 [Level 5] — Advanced Grammar & Verb Conjugation",
+            "question_text": "Type the past perfect form of the verb 'Write':",
+            "accepted_answers": ["written", "Written", "WRITTEN"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "Question 6/9 [Level 6] — Complex Sentence Articulation",
+            "question_text": "Press microphone and speak aloud the compound complex sentence:",
+            "target_text": "Although the journey was challenging, continuous practice brought clarity and confidence"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "Question 7/9 [Level 7] — Literary Passage Comprehension",
+            "question_text": "Read passage: 'The profound silence of the evening was broken only by the gentle rustle of falling leaves.' What is the primary tone?",
+            "options": [
+                {"id": "a", "text": "Tranquil and Reflective", "is_correct": True},
+                {"id": "b", "text": "Chaotic and Noisy", "is_correct": False},
+                {"id": "c", "text": "Frightening and Dangerous", "is_correct": False},
+                {"id": "d", "text": "Humorous and Joyful", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "Question 8/9 [Level 8] — Advanced Spelling & Orthography",
+            "question_text": "Type the correct spelling for fluent and expressive speech:",
+            "accepted_answers": ["Eloquence", "eloquence", "ELOQUENCE"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "Question 9/9 [Level 9] — High Literary Speech & Fluency",
+            "question_text": "Press microphone and speak aloud the advanced literary passage:",
+            "target_text": "Mastery over language transforms thought into eloquent communication and lifelong empowerment"
         }
     ],
     "te": [
         {
-            "stage": 1,
-            "skill_type": "READING",
-            "question_title": "దశ 1: అక్షర పఠనం మరియు ధ్వని గుర్తింపు (Reading & Phonemes)",
-            "question_text": "'బ' /b/ శబ్దంతో ప్రారంభమయ్యే పదాన్ని ఎంచుకోండి:",
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "ప్రశ్న 1/9 [స్థాయి 1] — అక్షరం మరియు గుణింత గుర్తింపు (Question 1/9 [Level 1] — Phonetics)",
+            "question_text": "క్రింది వాటిలో 'కృ' (క + ఋ) గుణింత అక్షరం కలిగి ఉన్న పదాన్ని ఎంచుకోండి\nWhich word contains the 'కృ' (k + ru) letter sound?",
             "options": [
-                {"id": "a", "text": "బంతి (Ball)", "is_correct": True},
-                {"id": "b", "text": "సూర్యుడు (Sun)", "is_correct": False},
-                {"id": "c", "text": "పిల్లి (Cat)", "is_correct": False},
-                {"id": "d", "text": "చెట్టు (Tree)", "is_correct": False}
+                {"id": "a", "text": "కృప", "is_correct": True},
+                {"id": "b", "text": "కథ", "is_correct": False},
+                {"id": "c", "text": "కలము", "is_correct": False},
+                {"id": "d", "text": "కడవ", "is_correct": False}
             ]
         },
         {
-            "stage": 2,
-            "skill_type": "COMPREHENSION",
-            "question_title": "దశ 2: అవగాహన మరియు రోజువారీ అక్షరాస్యత (Comprehension)",
-            "question_text": "గమనిక: 'ప్రమాదం - ముట్టుకోవద్దు' యొక్క సరైన అర్థం ఎంచుకోండి:",
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "ప్రశ్న 2/9 [స్థాయి 2] — అక్షర దోష నివారణ మరియు రాయడం (Question 2/9 [Level 2] — Spelling)",
+            "question_text": "జ్ఞానానికి మరియు పుస్తకాలకు నిలయమైన ప్రదేశాన్ని తెలిపే పదాన్ని రాయండి\nType the correct word for library:",
+            "accepted_answers": ["గ్రంథాలయము", "గ్రంథాలయం", "పుస్తకాలయం"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "ప్రశ్న 3/9 [స్థాయి 3] — భాషా ఉచ్చారణ వాక్యం (Question 3/9 [Level 3] — Speech)",
+            "question_text": "మైక్రోఫోన్ నొక్కి క్రింది భాషా వాక్యాన్ని స్పష్టంగా చదవండి\nPress microphone and speak aloud the sentence below:",
+            "target_text": "భాష అనేది ఆలోచనలకు రూపాన్ని ఇచ్చే అమూల్యమైన సాధనం"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "ప్రశ్న 4/9 [స్థాయి 4] — పర్యాయపదాలు మరియు పదజాలం (Question 4/9 [Level 4] — Synonyms)",
+            "question_text": "'అమృతం' అనే పదానికి సరైన పర్యాయపదాన్ని ఎంచుకోండి\nSelect the exact synonym for 'Amrutam':",
             "options": [
-                {"id": "a", "text": "అపాయకరం / దూరంగా ఉండండి", "is_correct": True},
-                {"id": "b", "text": "ఉచిత ప్రవేశం", "is_correct": False},
-                {"id": "c", "text": "స్వాగత ద్వారం", "is_correct": False},
-                {"id": "d", "text": "దుకాణం తెరిచి ఉంది", "is_correct": False}
+                {"id": "a", "text": "సుధ", "is_correct": True},
+                {"id": "b", "text": "గరళం", "is_correct": False},
+                {"id": "c", "text": "అనలం", "is_correct": False},
+                {"id": "d", "text": "పవనం", "is_correct": False}
             ]
         },
         {
-            "stage": 3,
-            "skill_type": "VOICE_SPEECH",
-            "question_title": "దశ 3: ధ్వని ఉచ్చారణ మరియు మాటల అంచనా (Voice Assessment)",
-            "question_text": "మైక్రోఫోన్ నొక్కి క్రింది వాక్యాన్ని బిగ్గరగా చదవండి:",
-            "target_text": "అక్షరAI అక్షరాస్యత శిక్షణకు స్వాగతం"
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "ప్రశ్న 5/9 [స్థాయి 5] — సంధి మరియు వ్యాకరణ రాయడం (Question 5/9 [Level 5] — Grammar)",
+            "question_text": "'దేవ + ఆలయం' కలిపి రాస్తే వచ్చే సరైన పదాన్ని టైప్ చేయండి\nType the combined Sandhi word for 'Deva + Alayam':",
+            "accepted_answers": ["దేవాలయం", "దేవాలయము"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "ప్రశ్న 6/9 [స్థాయి 6] — సంక్లిష్ట వాక్య ఉచ్చారణ (Question 6/9 [Level 6] — Articulation)",
+            "question_text": "మైక్రోఫోన్ నొక్కి క్రింది సంక్లిష్ట వాక్యాన్ని బిగ్గరగా చదవండి\nPress microphone and speak aloud complex sentence:",
+            "target_text": "నిరంతర సాధన మరియు అధ్యయనం ద్వారా మాత్రమే భాషా ప్రావీణ్యం లభిస్తుంది"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "ప్రశ్న 7/9 [స్థాయి 7] — సాహిత్య గద్య పఠనావగాహన (Question 7/9 [Level 7] — Prose Reading)",
+            "question_text": "వాక్యం: 'ప్రశాంతమైన సాయంత్ర వేళ పక్షుల కలకూజనాలు మనస్సుకు ఆహ్లాదాన్ని కలిగిస్తాయి.' దీని భావం ఏమిటి?\nWhat is the primary tone of the passage?",
+            "options": [
+                {"id": "a", "text": "ప్రశాంతత మరియు సంతోషం", "is_correct": True},
+                {"id": "b", "text": "భయం మరియు ఆందోళన", "is_correct": False},
+                {"id": "c", "text": "కోపం మరియు గొడవ", "is_correct": False},
+                {"id": "d", "text": "అల్లరి మరియు సడి", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "ప్రశ్న 8/9 [స్థాయి 8] — ప్రౌఢ సాహిత్య పద నిర్మాణం (Question 8/9 [Level 8] — Advanced Spelling)",
+            "question_text": "మిక్కిలి పాండిత్యం కలవాడిని తెలిపే పదాన్ని సరైన అక్షరాలతో రాయండి\nType the correct word for scholar:",
+            "accepted_answers": ["విద్వాంసుడు", "విద్వాంసురాలు"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "ప్రశ్న 9/9 [స్థాయి 9] — ప్రౌఢ సాహిత్య భాషా ప్రవాహం (Question 9/9 [Level 9] — High Fluency)",
+            "question_text": "మైక్రోఫోన్ నొక్కి క్రింది ఉన్నత సాహిత్య వాక్యాన్ని అనర్గళంగా చదవండి\nPress microphone and speak aloud advanced literary passage:",
+            "target_text": "సాహిత్యానుశీలనం మానవ చైతన్యానికి మరియు వ్యక్తిత్వ వికాసానికి అక్షయమైన నిధి"
         }
     ],
     "hi": [
         {
-            "stage": 1,
-            "skill_type": "READING",
-            "question_title": "चरण 1: अक्षर वाचन और ध्वनि पहचान (Reading & Phonemes)",
-            "question_text": "'ब' /b/ ध्वनि से शुरू होने वाला शब्द चुनें:",
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "प्रश्न 1/9 [स्तर 1] — वर्णमाला एवं ध्वनि पहचान (Question 1/9 [Level 1] — Phonetics)",
+            "question_text": "इनमें से 'ऋ' की मात्रा वाला सही शब्द चुनें\nWhich word contains the 'Ri' vowel sound?",
             "options": [
-                {"id": "a", "text": "बस (Bus)", "is_correct": True},
-                {"id": "b", "text": "सूरज (Sun)", "is_correct": False},
-                {"id": "c", "text": "बिल्ली (Cat)", "is_correct": False},
-                {"id": "d", "text": "पेड़ (Tree)", "is_correct": False}
+                {"id": "a", "text": "कृपा", "is_correct": True},
+                {"id": "b", "text": "कपड़ा", "is_correct": False},
+                {"id": "c", "text": "काम", "is_correct": False},
+                {"id": "d", "text": "कान", "is_correct": False}
             ]
         },
         {
-            "stage": 2,
-            "skill_type": "COMPREHENSION",
-            "question_title": "चरण 2: समझ और व्यावहारिक साक्षरता (Comprehension)",
-            "question_text": "सूचना: 'खतरा - छूना मना है' का सही अर्थ चुनें:",
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "प्रश्न 2/9 [स्तर 2] — शब्द वर्तनी एवं लेखन (Question 2/9 [Level 2] — Spelling)",
+            "question_text": "पुस्तकों के संग्रह स्थल के लिए सही शब्द लिखें\nType the correctly spelled word for library:",
+            "accepted_answers": ["पुस्तकालय", "पुस्तकागार"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "प्रश्न 3/9 [स्तर 3] — भाषा उच्चारण वाक्य (Question 3/9 [Level 3] — Speech)",
+            "question_text": "माइक दबाएं और नीचे दिए गए वाक्य को स्पष्ट बोलें\nPress microphone and speak aloud sentence below:",
+            "target_text": "भाषा विचारों को अभिव्यक्त करने का अमूल्य माध्यम है"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "प्रश्न 4/9 [स्तर 4] — पर्यायवाची शब्द ज्ञान (Question 4/9 [Level 4] — Synonyms)",
+            "question_text": "'सूर्य' का सही पर्यायवाची शब्द चुनें\nSelect the exact synonym for the word 'Sun':",
             "options": [
-                {"id": "a", "text": "असुरक्षित / दूर रहें", "is_correct": True},
-                {"id": "b", "text": "मुफ्त प्रवेश", "is_correct": False},
-                {"id": "c", "text": "स्वागत द्वार", "is_correct": False},
-                {"id": "d", "text": "दुकान खुली है", "is_correct": False}
+                {"id": "a", "text": "दिनकर", "is_correct": True},
+                {"id": "b", "text": "निशाचर", "is_correct": False},
+                {"id": "c", "text": "पावक", "is_correct": False},
+                {"id": "d", "text": "अंबर", "is_correct": False}
             ]
         },
         {
-            "stage": 3,
-            "skill_type": "VOICE_SPEECH",
-            "question_title": "चरण 3: वाणी उच्चारण और भाषण मूल्यांकन (Voice Assessment)",
-            "question_text": "माइक बटन दबाएं और नीचे दिए गए वाक्य को जोर से पढ़ें:",
-            "target_text": "अक्षरAI साक्षरता प्रशिक्षण में आपका स्वागत है"
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "प्रश्न 5/9 [स्तर 5] — संधि एवं व्याकरण लेखन (Question 5/9 [Level 5] — Grammar)",
+            "question_text": "'विद्या + आलय' को मिलाकर बनने वाला सही शब्द लिखें\nType combined Sandhi word for 'Vidya + Alaya':",
+            "accepted_answers": ["विद्यालय", "विद्याधाम"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "प्रश्न 6/9 [स्तर 6] — जटिल वाक्य वाचन (Question 6/9 [Level 6] — Articulation)",
+            "question_text": "माइक दबाएं और नीचे दिए गए वाक्य को स्पष्ट रूप से पढ़ें\nSpeak aloud complex sentence:",
+            "target_text": "निरंतर अभ्यास और अध्ययन से ही भाषा में निपुणता प्राप्त होती है"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "प्रश्न 7/9 [स्तर 7] — साहित्यिक गद्यांश समझ (Question 7/9 [Level 7] — Prose Reading)",
+            "question_text": "वाक्य: 'संध्या काल की शांति मन को असीम सुख और संतोष प्रदान करती है।' इसका मुख्य भाव क्या है?\nWhat is the primary tone of the passage?",
+            "options": [
+                {"id": "a", "text": "शांति और मानसिक संतोष", "is_correct": True},
+                {"id": "b", "text": "भय और अशांति", "is_correct": False},
+                {"id": "c", "text": "क्रोध और विवाद", "is_correct": False},
+                {"id": "d", "text": "शोरगुल", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "प्रश्न 8/9 [स्तर 8] — उच्च साहित्यिक शब्द रचना (Question 8/9 [Level 8] — Advanced Spelling)",
+            "question_text": "ज्ञानवान एवं विद्वान व्यक्ति के लिए प्रयुक्त एक शब्द लिखें\nType correct word for scholar:",
+            "accepted_answers": ["विद्वान", "ज्ञानवान"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "प्रश्न 9/9 [स्तर 9] — उच्च साहित्यिक भाषा प्रवाह (Question 9/9 [Level 9] — High Fluency)",
+            "question_text": "माइक दबाएं और नीचे दिए गए उच्च साहित्यिक वाक्य को धाराप्रवाह बोलें\nSpeak aloud advanced literary passage:",
+            "target_text": "साहित्य का अनुशीलन मानव चेतना और व्यक्तित्व विकास का शाश्वत स्रोत है"
         }
     ],
     "ta": [
         {
-            "stage": 1,
-            "skill_type": "READING",
-            "question_title": "நிலை 1: வாசிப்பு மற்றும் ஒலி அறிதல் (Reading & Phonemes)",
-            "question_text": "'ப' /b/ ஒலியுடன் தொடங்கும் சொல்லைத் தேர்ந்தெடுக்கவும்:",
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "கேள்வி 1/9 [நிலை 1] — எழுத்து மற்றும் ஒலி அடையாளம் (Question 1/9 [Level 1] — Phonetics)",
+            "question_text": "கீழ்கண்டவற்றுள் 'க்' மெய் எழுத்து உள்ள சரியான சொல்லைத் தேர்ந்தெடுக்கவும்\nWhich word contains the Tamil consonant sound 'Ik'?",
             "options": [
-                {"id": "a", "text": "பந்து (Ball)", "is_correct": True},
-                {"id": "b", "text": "சூரியன் (Sun)", "is_correct": False},
-                {"id": "c", "text": "பூனை (Cat)", "is_correct": False},
-                {"id": "d", "text": "மரம் (Tree)", "is_correct": False}
+                {"id": "a", "text": "அக்கறை", "is_correct": True},
+                {"id": "b", "text": "மரம்", "is_correct": False},
+                {"id": "c", "text": "படம்", "is_correct": False},
+                {"id": "d", "text": "பந்து", "is_correct": False}
             ]
         },
         {
-            "stage": 2,
-            "skill_type": "COMPREHENSION",
-            "question_title": "நிலை 2: புரிதல் மற்றும் நடைமுறை எழுத்தறிவு (Comprehension)",
-            "question_text": "அறிவிப்பு: 'ஆபத்து - தொடாதே' என்பதன் சரியான பொருளைத் தேர்ந்தெடுக்கவும்:",
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "கேள்வி 2/9 [நிலை 2] — சொல் எழுத்துப்பிழை திருத்தம் (Question 2/9 [Level 2] — Spelling)",
+            "question_text": "நூல்கள் சேமித்து வைக்கும் இடத்திற்குரிய சரியான சொல்லை எழுதவும்\nType the correct Tamil word for Library:",
+            "accepted_answers": ["நூல்நிலையம்", "நூலகம்"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "கேள்வி 3/9 [நிலை 3] — வாக்கிய உச்சரிப்பு (Question 3/9 [Level 3] — Speech)",
+            "question_text": "மைக்கை அழுத்தி கீழே உள்ள தமிழ் வாக்கியத்தை தெளிவாகப் பேசவும்\nPress microphone and speak aloud Tamil sentence:",
+            "target_text": "மொழி மனித எண்ணங்களின் உயரிய வெளிப்பாடாகும்"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "கேள்வி 4/9 [நிலை 4] — இணைச்சொற்கள் மற்றும் சொற்களஞ்சியம் (Question 4/9 [Level 4] — Synonyms)",
+            "question_text": "'பரிதி' என்ற சொல்லின் சரியான பொருள் எது?\nSelect the exact Tamil synonym for the word 'Paridhi' (Sun):",
             "options": [
-                {"id": "a", "text": "பாதுகாப்பற்றது / விலகி இருங்கள்", "is_correct": True},
-                {"id": "b", "text": "இலவச அனுமதி", "is_correct": False},
-                {"id": "c", "text": "வரவேற்பு வாயில்", "is_correct": False},
-                {"id": "d", "text": "கடை திறந்துள்ளது", "is_correct": False}
+                {"id": "a", "text": "சூரியன்", "is_correct": True},
+                {"id": "b", "text": "சந்திரன்", "is_correct": False},
+                {"id": "c", "text": "மேகம்", "is_correct": False},
+                {"id": "d", "text": "காற்று", "is_correct": False}
             ]
         },
         {
-            "stage": 3,
-            "skill_type": "VOICE_SPEECH",
-            "question_title": "நிலை 3: குரல் உச்சரிப்பு மற்றும் பேச்சு மதிப்பீடு (Voice Assessment)",
-            "question_text": "மைக் பொத்தானை அழுத்தி கீழே உள்ள வாக்கியத்தை சத்தமாக படிக்கவும்:",
-            "target_text": "அக்ஷர்AI எழுத்தறிவு பயிற்சிக்கு நல்வரவு"
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "கேள்வி 5/9 [நிலை 5] — இலக்கணப் புணர்ச்சி (Question 5/9 [Level 5] — Grammar)",
+            "question_text": "'தமிழ் + மொழி' என்பதைச் சேர்த்து எழுதினால் வரும் சொல் எது?\nType the combined grammar word for 'Tamil + Mozhi':",
+            "accepted_answers": ["தமிழ்மொழி", "தமிழ் மொழி"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "கேள்வி 6/9 [நிலை 6] — சிக்கலான வாக்கிய உச்சரிப்பு (Question 6/9 [Level 6] — Articulation)",
+            "question_text": "மைக்கை அழுத்தி கீழே உள்ள சிக்கலான வாக்கியத்தைப் படிக்கவும்\nSpeak aloud complex Tamil sentence:",
+            "target_text": "தொடர் பயிற்சியும் தீவிர முயற்சியும் மட்டுமே மொழியில் தேர்ச்சியைத் தரும்"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "கேள்வி 7/9 [நிலை 7] — இலக்கியப் பத்திப் புரிதல் (Question 7/9 [Level 7] — Prose Reading)",
+            "question_text": "வாக்கியம்: 'மாலை நேர அமைதியும் பறவைகளின் ஒலியும் மனதிற்கு அமைதியைத் தருகின்றன.' இதன் மையம் யாது?\nWhat is the primary tone of the passage?",
+            "options": [
+                {"id": "a", "text": "அமைதி மற்றும் மகிழ்ச்சி", "is_correct": True},
+                {"id": "b", "text": "பயம் மற்றும் கவலை", "is_correct": False},
+                {"id": "c", "text": "கோபம்", "is_correct": False},
+                {"id": "d", "text": "இரைச்சல்", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "கேள்வி 8/9 [நிலை 8] — உயர் இலக்கியச் சொல் உருவாக்கம் (Question 8/9 [Level 8] — Advanced Spelling)",
+            "question_text": "கல்வியில் சிறந்தவரைக் குறிக்கும் தமிழ் சொல்லை எழுதவும்\nType the correct Tamil word for Scholar:",
+            "accepted_answers": ["சான்றோர்", "அறிஞர்"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "கேள்வி 9/9 [நிலை 9] — உயர் இலக்கியப் பேச்சாற்றல் (Question 9/9 [Level 9] — High Fluency)",
+            "question_text": "மைக்கை அழுத்தி கீழே உள்ள உயர் இலக்கிய வாக்கியத்தை சரளமாகப் பேசவும்\nSpeak aloud advanced literary Tamil passage:",
+            "target_text": "இலக்கியப் பயிற்சி மனித உணர்வுகளையும் ஆளுமையையும் உயர்த்தும் வற்றாத ஊற்றாகும்"
         }
     ],
     "bn": [
         {
-            "stage": 1,
-            "skill_type": "READING",
-            "question_title": "ধাপ ১: পাঠ ও ধ্বনি সনাক্তকরণ (Reading & Phonemes)",
-            "question_text": "'ব' /b/ ধ্বনি দিয়ে শুরু হওয়া শব্দটি নির্বাচন করুন:",
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "প্রশ্ন ১/৯ [স্তর ১] — বর্ণ ও ধ্বনি পরিচয় (Question 1/9 [Level 1] — Phonetics)",
+            "question_text": "কোন শব্দটিতে 'ঋ' কার যুক্ত বর্ণ রয়েছে?\nWhich word contains the 'Ri' vowel sound in Bengali?",
             "options": [
-                {"id": "a", "text": "বল (Ball)", "is_correct": True},
-                {"id": "b", "text": "সূর্য (Sun)", "is_correct": False},
-                {"id": "c", "text": "বিড়াল (Cat)", "is_correct": False},
-                {"id": "d", "text": "গাছ (Tree)", "is_correct": False}
+                {"id": "a", "text": "কৃপা", "is_correct": True},
+                {"id": "b", "text": "কাজ", "is_correct": False},
+                {"id": "c", "text": "জল", "is_correct": False},
+                {"id": "d", "text": "ফুল", "is_correct": False}
             ]
         },
         {
-            "stage": 2,
-            "skill_type": "COMPREHENSION",
-            "question_title": "ধাপ ২: উপলব্ধি ও ব্যবহারিক সাক্ষরতা (Comprehension)",
-            "question_text": "বিজ্ঞপ্তি: 'বিপদ - স্পর্শ করবেন না' এর সঠিক অর্থ নির্বাচন করুন:",
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "প্রশ্ন ২/৯ [স্তর ২] — বানান ও শব্দ লিখন (Question 2/9 [Level 2] — Spelling)",
+            "question_text": "বই রাখার স্থানটি সঠিক বানানে লিখুন\nType the correct Bengali word for Library:",
+            "accepted_answers": ["গ্রন্থাগার", "পুস্তকাগার"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "প্রশ্ন ৩/৯ [স্তর ৩] — বাক্যের স্পষ্ট উচ্চারণ (Question 3/9 [Level 3] — Speech)",
+            "question_text": "মাইক্রোফোন চেপে নিচের বাক্যটি স্পষ্ট করে বলুন\nPress microphone and speak aloud Bengali sentence:",
+            "target_text": "ভাষা মানুষের চিন্তাকে রূপ দেওয়ার অমূল্য বাহন"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "প্রশ্ন ৪/৯ [স্তর ৪] — সমার্থক শব্দ জ্ঞান (Question 4/9 [Level 4] — Synonyms)",
+            "question_text": "'সূর্য' শব্দের সঠিক সমার্থক শব্দ কোনটি?\nSelect the exact Bengali synonym for 'Sun':",
             "options": [
-                {"id": "a", "text": "অনিরাপদ / দূরে থাকুন", "is_correct": True},
-                {"id": "b", "text": "বিনামূল্যে প্রবেশ", "is_correct": False},
-                {"id": "c", "text": "স্বাগত তোরণ", "is_correct": False},
-                {"id": "d", "text": "দোকান খোলা আছে", "is_correct": False}
+                {"id": "a", "text": "রবি", "is_correct": True},
+                {"id": "b", "text": "নদী", "is_correct": False},
+                {"id": "c", "text": "পাহাড়", "is_correct": False},
+                {"id": "d", "text": "বাতাস", "is_correct": False}
             ]
         },
         {
-            "stage": 3,
-            "skill_type": "VOICE_SPEECH",
-            "question_title": "ধাপ ৩: কণ্ঠস্বর উচ্চারণ ও ব্যাকরণ মূল্যায়ন (Voice Assessment)",
-            "question_text": "মাইক্রোফোন বোতাম চাপুন এবং নীচের বাক্যটি উচ্চস্বরে পড়ুন:",
-            "target_text": "অক্ষরAI সাক্ষরতা প্রশিক্ষণে আপনাকে স্বাগতম"
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "প্রশ্ন ৫/৯ [স্তর ৫] — সন্ধি ও ব্যাকরণ লিখন (Question 5/9 [Level 5] — Grammar)",
+            "question_text": "'বিদ্যা + আলয়' যুক্ত করে সঠিক শব্দটি লিখুন\nType the combined Sandhi word for 'Vidya + Alaya':",
+            "accepted_answers": ["বিদ্যালয়", "বিদ্যানিকেতন"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "প্রশ্ন ৬/৯ [স্তর ৬] — জটিল বাক্য উচ্চারণ (Question 6/9 [Level 6] — Articulation)",
+            "question_text": "মাইক্রোফোন চেপে নিচের জটিল বাক্যটি পড়ুন\nSpeak aloud complex Bengali sentence:",
+            "target_text": "নিরন্তর সাধনা ও অধ্যবসায়ের দ্বারাই ভাষার দক্ষতা অর্জন সম্ভব"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "প্রশ্ন ৭/৯ [স্তর ৭] — সাহিত্যিক গদ্য বোধগম্যতা (Question 7/9 [Level 7] — Prose Reading)",
+            "question_text": "বাক্য: 'সন্ধ্যাবেলার শান্ত পরিবেশ মনকে আনন্দ দেয়।' এর মূল ভাব কী?\nWhat is the primary tone of the passage?",
+            "options": [
+                {"id": "a", "text": "শান্তি ও আনন্দ", "is_correct": True},
+                {"id": "b", "text": "ভয় ও উদ্বেগ", "is_correct": False},
+                {"id": "c", "text": "রাগ ও ক্ষোভ", "is_correct": False},
+                {"id": "d", "text": "কোলাহল", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "প্রশ্ন ৮/৯ [স্তর ৮] — উচ্চ সাহিত্যিক শব্দ গঠন (Question 8/9 [Level 8] — Advanced Spelling)",
+            "question_text": "জ্ঞানী ব্যক্তি নির্দেশক সঠিক শব্দটি লিখুন\nType the correct Bengali word for Scholar:",
+            "accepted_answers": ["বিদ্বান", "জ্ঞানী"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "প্রশ্ন ৯/৯ [স্তর ৯] — সাবলীল সাহিত্যিক প্রকাশ (Question 9/9 [Level 9] — High Fluency)",
+            "question_text": "মাইক্রোফোন চেপে নিচের সাহিত্যিক বাক্যটি সাবলীলভাবে বলুন\nSpeak aloud advanced literary Bengali passage:",
+            "target_text": "সাহিত্যের অনুশীলন মানব চেতনা ও ব্যক্তিত্ব বিকাশের শাশ্বত উৎস"
         }
     ],
     "mr": [
         {
-            "stage": 1,
-            "skill_type": "READING",
-            "question_title": "टप्पा १: वाचन आणि ध्वनी ओळख (Reading & Phonemes)",
-            "question_text": "'ब' /b/ ध्वनीने सुरू होणारा शब्द निवडा:",
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "प्रश्न १/९ [पातळी १] — वर्णमाला व ध्वनी ओळख (Question 1/9 [Level 1] — Phonetics)",
+            "question_text": "खालीलपैकी 'ऋ' ची मात्रा असलेला योग्य शब्द निवडा\nWhich Marathi word contains the 'Ri' sound?",
             "options": [
-                {"id": "a", "text": "बस (Bus)", "is_correct": True},
-                {"id": "b", "text": "सूर्य (Sun)", "is_correct": False},
-                {"id": "c", "text": "मांजर (Cat)", "is_correct": False},
-                {"id": "d", "text": "झाड (Tree)", "is_correct": False}
+                {"id": "a", "text": "कृपा", "is_correct": True},
+                {"id": "b", "text": "काम", "is_correct": False},
+                {"id": "c", "text": "पान", "is_correct": False},
+                {"id": "d", "text": "घर", "is_correct": False}
             ]
         },
         {
-            "stage": 2,
-            "skill_type": "COMPREHENSION",
-            "question_title": "टप्पा २: आकलन आणि व्यावहारिक साक्षरता (Comprehension)",
-            "question_text": "सूचना: 'धोका - हात लावू नका' चा अचूक अर्थ निवडा:",
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "प्रश्न २/९ [पातळी २] — शब्द वर्तनी व लेखन (Question 2/9 [Level 2] — Spelling)",
+            "question_text": "पुस्तकांचे संग्रह असलेल्या ठिकाणासाठी योग्य मराठी शब्द लिहा\nType the correct Marathi word for Library:",
+            "accepted_answers": ["ग्रंथालय", "पुस्तकालय"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "प्रश्न ३/९ [पातळी ३] — भाषा उच्चारण वाक्य (Question 3/9 [Level 3] — Speech)",
+            "question_text": "माईक दाबून खालील मराठी वाक्य स्पष्ट बोला\nPress microphone and speak aloud Marathi sentence:",
+            "target_text": "भाषा ही विचारांना व्यक्त करण्याचे अमूल्य साधन आहे"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "प्रश्न ४/९ [पातळी ४] — समानार्थी शब्द ज्ञान (Question 4/9 [Level 4] — Synonyms)",
+            "question_text": "'सूर्य' या शब्दाचा अचूक समानार्थी शब्द निवडा\nSelect the exact Marathi synonym for 'Sun':",
             "options": [
-                {"id": "a", "text": "असुरक्षित / लांब राहा", "is_correct": True},
-                {"id": "b", "text": "मोफत प्रवेश", "is_correct": False},
-                {"id": "c", "text": "स्वागत द्वार", "is_correct": False},
-                {"id": "d", "text": "दुकान उघडे आहे", "is_correct": False}
+                {"id": "a", "text": "भास्कर", "is_correct": True},
+                {"id": "b", "text": "चंद्र", "is_correct": False},
+                {"id": "c", "text": "तलाव", "is_correct": False},
+                {"id": "d", "text": "वारा", "is_correct": False}
             ]
         },
         {
-            "stage": 3,
-            "skill_type": "VOICE_SPEECH",
-            "question_title": "टप्पा ३: स्वर उच्चारण आणि भाषण मूल्यांकन (Voice Assessment)",
-            "question_text": "मायक्रोफोन बटण दाबा आणि खालील वाक्य मोठ्याने वाचा:",
-            "target_text": "अक्षरAI साक्षरता प्रशिक्षणात आपले स्वागत आहे"
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "प्रश्न ५/९ [पातळी ५] — संधी व व्याकरण लेखन (Question 5/9 [Level 5] — Grammar)",
+            "question_text": "'विद्या + आलय' एकत्र करून होणारा शब्द लिहा\nType the combined Sandhi word for 'Vidya + Alaya':",
+            "accepted_answers": ["विद्यालय", "विद्याधाम"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "प्रश्न ६/९ [पातळी ६] — कठीण वाक्य वाचन (Question 6/9 [Level 6] — Articulation)",
+            "question_text": "माईक दाबून खालील कठीण वाक्य मोठ्याने वाचा\nSpeak aloud complex Marathi sentence:",
+            "target_text": "सततचा सराव आणि अभ्यासानेच भाषेत प्रगती आणि प्रभुत्व मिळते"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "प्रश्न ७/९ [पातळी ७] — साहित्यिक उतारा समज (Question 7/9 [Level 7] — Prose Reading)",
+            "question_text": "वाक्य: 'संध्याकाळची शांतता मनाला असीम समाधान देते.' याचा अर्थ काय?\nWhat is the primary tone of the passage?",
+            "options": [
+                {"id": "a", "text": "शांतता आणि समाधान", "is_correct": True},
+                {"id": "b", "text": "भीती आणि चिंता", "is_correct": False},
+                {"id": "c", "text": "रागाचा उद्रेक", "is_correct": False},
+                {"id": "d", "text": "आवाज", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "प्रश्न ८/९ [पातळी ८] — उच्च साहित्यिक शब्द रचना (Question 8/9 [Level 8] — Advanced Spelling)",
+            "question_text": "मोठ्या विद्वान व्यक्तीसाठी प्रयुक्त योग्य शब्द लिहा\nType the correct Marathi word for Scholar:",
+            "accepted_answers": ["विद्वान", "ज्ञानवंत"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "प्रश्न ९/९ [पातळी ९] — उच्च साहित्यिक भाषा प्रवाह (Question 9/9 [Level 9] — High Fluency)",
+            "question_text": "माईक दाबून खालील उच्च साहित्यिक वाक्य आत्मविश्वासाने बोला\nSpeak aloud advanced literary Marathi passage:",
+            "target_text": "साहित्याचा अभ्यास मानवी चेतना आणि व्यक्तिमत्त्व विकासाचा अक्षय स्रोत आहे"
+        }
+    ],
+    "kn": [
+        {
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "ಪ್ರಶ್ನೆ 1/9 [ಹಂತ 1] — ಅಕ್ಷರ ಮತ್ತು ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ (Question 1/9 [Level 1] — Phonetics)",
+            "question_text": "ಕೆಳಗಿನವುಗಳಲ್ಲಿ 'ಕೃ' (ಕ + ಋ) ಗುಣಿತಾಕ್ಷರವಿರುವ ಸರಿಯಾದ ಪದವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ\nWhich Kannada word contains the 'Kru' sound?",
+            "options": [
+                {"id": "a", "text": "ಕೃಪೆ", "is_correct": True},
+                {"id": "b", "text": "ಕಥೆ", "is_correct": False},
+                {"id": "c", "text": "ಕಲಂ", "is_correct": False},
+                {"id": "d", "text": "ಮರ", "is_correct": False}
+            ]
+        },
+        {
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "ಪ್ರಶ್ನೆ 2/9 [ಹಂತ 2] — ಪದ ಕಾಗುಣಿತ ಬರವಣಿಗೆ (Question 2/9 [Level 2] — Spelling)",
+            "question_text": "ಪುಸ್ತಕಗಳ ಭಂಡಾರವನ್ನು ಸೂಚಿಸುವ ಕನ್ನಡ ಪದವನ್ನು ಬರೆಯಿರಿ\nType the correct Kannada word for Library:",
+            "accepted_answers": ["ಗ್ರಂಥಾಲಯ", "ಪುಸ್ತಕಾಲಯ"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "ಪ್ರಶ್ನೆ 3/9 [ಹಂತ 3] — ಭಾಷಾ ಉಚ್ಚಾರಣೆ (Question 3/9 [Level 3] — Speech)",
+            "question_text": "ಮೈಕ್ರೋಫೋನ್ ಒತ್ತಿ ಕೆಳಗಿನ ಕನ್ನಡ ವಾಕ್ಯವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಓದಿ\nPress microphone and speak aloud Kannada sentence:",
+            "target_text": "ಭಾಷೆಯು ವಿಚಾರಗಳನ್ನು ವ್ಯಕ್ತಪಡಿಸುವ ಅಮೂಲ್ಯವಾದ ಸಾಧನವಾಗಿದೆ"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "ಪ್ರಶ್ನೆ 4/9 [ಹಂತ 4] — ಸಮಾನಾರ್ಥಕ ಪದಗಳು (Question 4/9 [Level 4] — Synonyms)",
+            "question_text": "'ಸೂರ್ಯ' ಪದಕ್ಕೆ ಸರಿಯಾದ ಸಮಾನಾರ್ಥಕ ಪದವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ\nSelect exact Kannada synonym for 'Sun':",
+            "options": [
+                {"id": "a", "text": "ರವಿ", "is_correct": True},
+                {"id": "b", "text": "ಚಂದ್ರ", "is_correct": False},
+                {"id": "c", "text": "ಗಾಳಿ", "is_correct": False},
+                {"id": "d", "text": "ನೀರು", "is_correct": False}
+            ]
+        },
+        {
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "ಪ್ರಶ್ನೆ 5/9 [ಹಂತ 5] — ಸಂಧಿ ಮತ್ತು ವ್ಯಾಕರಣ ಬರವಣಿಗೆ (Question 5/9 [Level 5] — Grammar)",
+            "question_text": "'ದೇವ + ಆಲಯ' ಸೇರಿಸಿ ಬರೆದಾಗ ಬರುವ ಪದವನ್ನು ಟೈಪ್ ಮಾಡಿ\nType the combined Sandhi word for 'Deva + Alaya':",
+            "accepted_answers": ["ದೇವಾಲಯ", "ದೇವಮಂದಿರ"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "ಪ್ರಶ್ನೆ 6/9 [ಹಂತ 6] — ಸಂಕೀರ್ಣ ವಾಕ್ಯ ಉಚ್ಚಾರಣೆ (Question 6/9 [Level 6] — Articulation)",
+            "question_text": "ಮೈಕ್ರೋಫೋನ್ ಒತ್ತಿ ಕೆಳಗಿನ ಸಂಕೀರ್ಣ ವಾಕ್ಯವನ್ನು ಓದಿ\nSpeak aloud complex Kannada sentence:",
+            "target_text": "ನಿರಂತರ ಅಭ್ಯಾಸ ಮತ್ತು ಅಧ್ಯಯನದಿಂದ ಮಾತ್ರ ಭಾಷೆಯಲ್ಲಿ ಪಾಂಡಿತ್ಯ ಸಿಗುತ್ತದೆ"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "ಪ್ರಶ್ನೆ 7/9 [ಹಂತ 7] — ಸಾಹಿತ್ಯ ಗದ್ಯ ಗ್ರಹಿಕೆ (Question 7/9 [Level 7] — Prose Reading)",
+            "question_text": "ವಾಕ್ಯ: 'ಸಂಜೆಯ ಪ್ರಶಾಂತ ವಾತಾವರಣವು ಮನಸ್ಸಿಗೆ ಸಂತಸ ನೀಡುತ್ತದೆ.' ಇದರ ಮೂಲ ಭಾವವೇನು?\nWhat is the primary tone of the passage?",
+            "options": [
+                {"id": "a", "text": "ಶಾಂತಿ ಮತ್ತು ಸಂತೋಷ", "is_correct": True},
+                {"id": "b", "text": "ಭಯ ಮತ್ತು ಆತಂಕ", "is_correct": False},
+                {"id": "c", "text": "ಕೋಪ", "is_correct": False},
+                {"id": "d", "text": "ಗದ್ದಲ", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "ಪ್ರಶ್ನೆ 8/9 [ಹಂತ 8] — ಪ್ರೌಢ ಸಾಹಿತ್ಯಿಕ ಪದ ರಚನೆ (Question 8/9 [Level 8] — Advanced Spelling)",
+            "question_text": "ಜ್ಞಾನವುಳ್ಳ ಪಂಡಿತ ಎಂಬ ಅರ್ಥ ನೀಡುವ ಕನ್ನಡ ಪದ ಬರೆಯಿರಿ\nType the correct Kannada word for Scholar:",
+            "accepted_answers": ["ವಿದ್ವಾಂಸ", "ಪಂಡಿತ"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "ಪ್ರಶ್ನೆ 9/9 [ಹಂತ 9] — ಪ್ರೌಢ ಸಾಹಿತ್ಯಿಕ ಭಾಷಾ ಶೈಲಿ (Question 9/9 [Level 9] — High Fluency)",
+            "question_text": "ಮೈಕ್ರೋಫೋನ್ ಒತ್ತಿ ಕೆಳಗಿನ ಪ್ರೌಢ ಸಾಹಿತ್ಯಿಕ ವಾಕ್ಯವನ್ನು ಓದಿ\nSpeak aloud advanced literary Kannada passage:",
+            "target_text": "ಸಾಹಿತ್ಯದ ಅಧ್ಯಯನವು ಮಾನವ ಚೇತನ ಮತ್ತು ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸದ ಅಕ್ಷಯ ಮೂಲವಾಗಿದೆ"
+        }
+    ],
+    "es": [
+        {
+            "id": 1, "stage": 1, "difficulty": 1, "skill_type": "READ",
+            "question_title": "Pregunta 1/9 [Nivel 1] — Identificación Fonética (Question 1/9 [Level 1] — Phonetics)",
+            "question_text": "¿Cuál palabra contiene la letra con tilde en español?\nWhich word contains an accented vowel in Spanish?",
+            "options": [
+                {"id": "a", "text": "Canción", "is_correct": True},
+                {"id": "b", "text": "Mesa", "is_correct": False},
+                {"id": "c", "text": "Casa", "is_correct": False},
+                {"id": "d", "text": "Sol", "is_correct": False}
+            ]
+        },
+        {
+            "id": 2, "stage": 2, "difficulty": 2, "skill_type": "WRITE",
+            "question_title": "Pregunta 2/9 [Nivel 2] — Ortografía y Escritura (Question 2/9 [Level 2] — Spelling)",
+            "question_text": "Escriba la palabra correcta para el lugar donde se guardan libros:\nType the correct Spanish word for library:",
+            "accepted_answers": ["Biblioteca", "biblioteca"]
+        },
+        {
+            "id": 3, "stage": 3, "difficulty": 3, "skill_type": "SPEAK",
+            "question_title": "Pregunta 3/9 [Nivel 3] — Pronunciación de Oraciones (Question 3/9 [Level 3] — Speech)",
+            "question_text": "Presione el micrófono y pronuncie la siguiente oración\nPress microphone and speak aloud Spanish sentence:",
+            "target_text": "El lenguaje transforma el conocimiento y la expresión humana"
+        },
+        {
+            "id": 4, "stage": 4, "difficulty": 4, "skill_type": "READ",
+            "question_title": "Pregunta 4/9 [Nivel 4] — Sinónimos y Vocabulario (Question 4/9 [Level 4] — Synonyms)",
+            "question_text": "Seleccione el sinónimo exacto de la palabra 'PERSEVERANTE':\nSelect exact Spanish synonym for 'PERSEVERANTE':",
+            "options": [
+                {"id": "a", "text": "Constante y Determinado", "is_correct": True},
+                {"id": "b", "text": "Temporal", "is_correct": False},
+                {"id": "c", "text": "Dudoso", "is_correct": False},
+                {"id": "d", "text": "Descuidado", "is_correct": False}
+            ]
+        },
+        {
+            "id": 5, "stage": 5, "difficulty": 5, "skill_type": "WRITE",
+            "question_title": "Pregunta 5/9 [Nivel 5] — Gramática y Conjugación (Question 5/9 [Level 5] — Grammar)",
+            "question_text": "Escriba el participio del verbo 'Escribir':\nType past participle of verb 'Escribir':",
+            "accepted_answers": ["escrito", "Escrito"]
+        },
+        {
+            "id": 6, "stage": 6, "difficulty": 6, "skill_type": "SPEAK",
+            "question_title": "Pregunta 6/9 [Nivel 6] — Articulación Compleja (Question 6/9 [Level 6] — Articulation)",
+            "question_text": "Presione el micrófono y lea la oración compleja en voz alta\nSpeak aloud complex Spanish sentence:",
+            "target_text": "Aunque el camino sea desafiante la práctica constante brinda claridad y confianza"
+        },
+        {
+            "id": 7, "stage": 7, "difficulty": 7, "skill_type": "READ",
+            "question_title": "Pregunta 7/9 [Nivel 7] — Comprensión Literaria (Question 7/9 [Level 7] — Prose Reading)",
+            "question_text": "Pasaje: 'El profundo silencio de la tarde traía paz al espíritu.' ¿Cuál es el tono principal?\nWhat is the primary tone of the passage?",
+            "options": [
+                {"id": "a", "text": "Tranquilidad y Paz", "is_correct": True},
+                {"id": "b", "text": "Temor y Caos", "is_correct": False},
+                {"id": "c", "text": "Ira y Enojo", "is_correct": False},
+                {"id": "d", "text": "Ruido", "is_correct": False}
+            ]
+        },
+        {
+            "id": 8, "stage": 8, "difficulty": 8, "skill_type": "WRITE",
+            "question_title": "Pregunta 8/9 [Nivel 8] — Ortografía Avanzada (Question 8/9 [Level 8] — Advanced Spelling)",
+            "question_text": "Escriba la palabra correcta para la capacidad de hablar con elocuencia:\nType correct word for Eloquence:",
+            "accepted_answers": ["Elocuencia", "elocuencia"]
+        },
+        {
+            "id": 9, "stage": 9, "difficulty": 9, "skill_type": "SPEAK",
+            "question_title": "Pregunta 9/9 [Nivel 9] — Fluidez Literaria Avanzada (Question 9/9 [Level 9] — High Fluency)",
+            "question_text": "Presione el micrófono y pronuncie el pasaje literario con fluidez\nSpeak aloud advanced literary Spanish passage:",
+            "target_text": "El dominio del lenguaje transforma el pensamiento en comunicación elocuente y sabiduría"
         }
     ]
 }
 
-class InitialAssessmentAnswer(BaseModel):
+LANGUAGE_BENCHMARKS = {
+    "en": {
+        "language_name": "English",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 Marks",
+                "title": "Alphabet & Phonemes Benchmark",
+                "description": "Mastery over letter-sound associations, long/short vowel phonemes, and basic 2-letter syllable blends.",
+                "competencies": ["Phoneme Identification", "Single Syllable Reading", "Simple Word Spelling"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 Marks",
+                "title": "Vocabulary & Grammar Benchmark",
+                "description": "Ability to form words with prefixes/suffixes, manage noun-verb agreement, and comprehend compound sentences.",
+                "competencies": ["Synonym & Antonym Usage", "Verb Tense Conjugation", "Compound Sentence Reading"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 Marks",
+                "title": "Advanced Literary Fluency Benchmark",
+                "description": "Full competence in prose passage comprehension, orthography, and articulate public speech expression.",
+                "competencies": ["Literary Passage Analysis", "Orthographic Accuracy", "Fluent Articulate Speech"]
+            }
+        ]
+    },
+    "te": {
+        "language_name": "తెలుగు (Telugu)",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 మార్కులు",
+                "title": "అక్షరాలు మరియు గుణింతాల ప్రమాణం (Foundational Tier)",
+                "description": "అచ్చులు, హల్లులు, గుణింతాల గుర్తులు మరియు ఒత్తులను గుర్తించి పలికే ప్రాథమిక సామర్థ్యం.",
+                "competencies": ["అక్షర ధ్వని గుర్తింపు", "ప్రాథమిక పఠనం", "సరళ పద నిర్మాణం"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 మార్కులు",
+                "title": "పదజాలం మరియు వ్యాకరణ ప్రమాణం (Functional Tier)",
+                "description": "పర్యాయపదాలు, నానార్థాలు, సంధులు మరియు వాక్య వ్యాకరణంలో ప్రావీణ్యం సాధించే స్థాయి.",
+                "competencies": ["పర్యాయపదాల ఉపయోగం", "తెలుగు సంధులు", "వాక్య నిర్మాణం"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 మార్కులు",
+                "title": "ఉన్నత సాహిత్య ప్రవీణతా ప్రమాణం (Proficient Tier)",
+                "description": "ఉన్నత సాహిత్య గద్యాలను అవగాహన చేసుకోవడం మరియు అనర్గళంగా భావ వ్యక్తీకరణ చేయడం.",
+                "competencies": ["సాహిత్య అర్థ గ్రహణ", "అనర్గళ భాషా ప్రసంగం", "ప్రౌఢ పద రచన"]
+            }
+        ]
+    },
+    "hi": {
+        "language_name": "हिन्दी (Hindi)",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 अंक",
+                "title": "वर्णमाला एवं मात्रा ज्ञान मानक (Foundational Tier)",
+                "description": "स्वर, व्यंजन, मात्राओं एवं संयुक्त अक्षरों की सही पहचान तथा उच्चारण की क्षमता।",
+                "competencies": ["वर्ण ध्वनि पहचान", "मात्रा ज्ञान", "सरल शब्द वाचन"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 अंक",
+                "title": "शब्दावली एवं व्याकरण मानक (Functional Tier)",
+                "description": "पर्यायवाची, विलोम शब्द, संधि एवं व्याकरणिक वाक्य संरचना में दक्षता।",
+                "competencies": ["पर्यायवाची प्रयोग", "हिंदी संधि व समास", "शुद्ध वाक्य रचना"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 अंक",
+                "title": "उच्च साहित्यिक निपुणता मानक (Proficient Tier)",
+                "description": "साहित्यिक गद्यांशों की गंभीर समझ तथा धाराप्रवाह भाषाई अभिव्यक्ति की पूर्ण क्षमता।",
+                "competencies": ["साहित्यिक बोध", "धाराप्रवाह अभिव्यक्ति", "प्रौढ़ शब्द प्रयोग"]
+            }
+        ]
+    }
+}
+
+@router.get("/diagnostic-questions")
+def get_diagnostic_questions(lang: str = Query("en", min_length=2, max_length=5)):
+    clean_lang = lang.strip().lower()
+    target_questions = DIAGNOSTIC_QUESTIONS_BY_LANG.get(clean_lang, DIAGNOSTIC_QUESTIONS_BY_LANG["en"])
+    return target_questions
+
+@router.get("/benchmarks")
+def get_language_proficiency_benchmarks(lang: str = Query("en", min_length=2, max_length=5)):
+    clean_lang = lang.strip().lower()
+    target_benchmark = LANGUAGE_BENCHMARKS.get(clean_lang, LANGUAGE_BENCHMARKS["en"])
+    return target_benchmark
+
+class AnswerItem(BaseModel):
     stage: int
     skill_type: str
     selected_option_id: Optional[str] = None
+    written_text: Optional[str] = None
     spoken_text: Optional[str] = None
     is_correct: Optional[bool] = False
 
-class InitialAssessmentSubmitPayload(BaseModel):
-    learner_id: Optional[int] = None
+class AssessmentSubmission(BaseModel):
     lang: Optional[str] = "en"
-    answers: List[InitialAssessmentAnswer]
-
-@router.get("/diagnostic-questions")
-def get_diagnostic_questions(
-    lang: Optional[str] = "en",
-    db: Session = Depends(get_db)
-):
-    """
-    Returns generic 3-stage initial assessment questions for neo-learners in their native language:
-    Stage 1: Reading & Phoneme Recognition Assessment
-    Stage 2: Comprehension & Functional Literacy Assessment
-    Stage 3: Voice & Speech Pronunciation Assessment
-    """
-    target_lang = lang if lang in DIAGNOSTIC_QUESTIONS_BY_LANG else "en"
-    return DIAGNOSTIC_QUESTIONS_BY_LANG[target_lang]
+    answers: List[AnswerItem]
 
 @router.post("/submit")
-def submit_initial_assessment(payload: InitialAssessmentSubmitPayload, db: Session = Depends(get_db)):
-    """
-    Evaluates the generic initial assessment, establishes the proficiency benchmark,
-    and returns a structured Adaptive Learning Path Roadmap in the learner's native language.
-    """
-    reading_score = 0
-    comprehension_score = 0
-    voice_score = 0
+def submit_initial_assessment(
+    payload: AssessmentSubmission,
+    db: Session = Depends(get_db)
+):
+    total_score = 0
+    correct_count = 0
 
     for ans in payload.answers:
-        if ans.skill_type == "READING":
-            if ans.is_correct:
-                reading_score = 35
-        elif ans.skill_type == "COMPREHENSION":
-            if ans.is_correct:
-                comprehension_score = 35
-        elif ans.skill_type == "VOICE_SPEECH":
-            voice_score = 30
+        if ans.is_correct or (ans.spoken_text and len(ans.spoken_text.strip()) > 0):
+            correct_count += 1
 
-    total_score = reading_score + comprehension_score + voice_score
+    total_score = min(100, round((correct_count / max(1, len(payload.answers))) * 100))
 
-    # Determine Proficiency Benchmark Level
-    if total_score >= 80:
-        level = "PROFICIENT"
-        target_level = "FLUENCY_MASTERY"
-    elif total_score >= 50:
-        level = "FUNCTIONAL"
-        target_level = "DIGITAL_FINANCIAL"
-    else:
-        level = "FOUNDATIONAL"
-        target_level = "ALPHABET_SOUNDS"
+    proficiency_level = "FOUNDATIONAL"
+    if total_score >= 75:
+        proficiency_level = "PROFICIENT"
+    elif total_score >= 45:
+        proficiency_level = "FUNCTIONAL"
 
-    # Structured Adaptive Learning Path Roadmap
-    from app.routers.learning_path import LANGUAGE_CONTENT
-    
-    target_lang = payload.lang or "en"
-    if target_lang not in LANGUAGE_CONTENT:
-        target_lang = "en"
-
-    milestones_data = LANGUAGE_CONTENT[target_lang]["milestones"]
-    
-    milestones = []
-    for m in milestones_data:
-        ms_status = "LOCKED"
-        ms_completion = 0
-        if m["step"] == 1:
-            ms_status = "UNLOCKED"
-            ms_completion = 100 if level in ["FUNCTIONAL", "PROFICIENT"] else 30
-        elif m["step"] == 2:
-            ms_status = "UNLOCKED" if level in ["FUNCTIONAL", "PROFICIENT"] else "LOCKED"
-            ms_completion = 100 if level == "PROFICIENT" else (40 if level == "FUNCTIONAL" else 0)
-        elif m["step"] == 3:
-            ms_status = "UNLOCKED" if level == "PROFICIENT" else "LOCKED"
-            ms_completion = 20 if level == "PROFICIENT" else 0
-            
-        lessons = []
-        for l in m["lessons"]:
-            l_status = "LOCKED"
-            if m["step"] == 1:
-                if l["lesson_id"] == 1:
-                    l_status = "COMPLETED" if level != "FOUNDATIONAL" else "ACTIVE"
-                else:
-                    l_status = "COMPLETED" if level != "FOUNDATIONAL" else "UNLOCKED"
-            elif m["step"] == 2:
-                if l["lesson_id"] == 3:
-                    l_status = "ACTIVE" if level == "FUNCTIONAL" else ("COMPLETED" if level == "PROFICIENT" else "LOCKED")
-                else:
-                    l_status = "UNLOCKED" if level in ["FUNCTIONAL", "PROFICIENT"] else "LOCKED"
-            elif m["step"] == 3:
-                l_status = "ACTIVE" if level == "PROFICIENT" else "LOCKED"
-                
-            lessons.append({
-                "lesson_id": l["lesson_id"],
-                "title": l["title"],
-                "content_type": l["content_type"],
-                "target_text": l["target_text"],
-                "status": l_status
-            })
-            
-        milestones.append({
-            "step": m["step"],
-            "title": m["title"],
-            "category": m["category"],
-            "status": ms_status,
-            "completion": ms_completion,
-            "lessons": lessons
-        })
-
-    learning_path = {
-        "path_title": f"Adaptive Learning Roadmap — Track: {level}",
-        "current_level": level,
-        "target_level": target_level,
-        "completion_percentage": 15 if level == "FOUNDATIONAL" else (50 if level == "FUNCTIONAL" else 85),
-        "milestones": milestones
+    learning_path_recommendation = {
+        "path_title": f"Language Literacy Mastery Roadmap — Track: {proficiency_level}",
+        "current_level": proficiency_level,
+        "completion_percentage": 85 if proficiency_level == "PROFICIENT" else (50 if proficiency_level == "FUNCTIONAL" else 15),
+        "recommended_modules": [
+            {"module_id": 101, "title": "Phonemes & Alphabet Fundamentals", "status": "UNLOCKED"},
+            {"module_id": 102, "title": "Vocabulary & Word Formation", "status": "LOCKED" if proficiency_level == "FOUNDATIONAL" else "UNLOCKED"},
+            {"module_id": 103, "title": "Sentence Grammar & Literary Fluency", "status": "LOCKED" if proficiency_level != "PROFICIENT" else "UNLOCKED"}
+        ]
     }
-
-    # Update Learner Profile & Learning Path in database if learner_id provided
-    if payload.learner_id:
-        if payload.lang:
-            learner = db.query(models.Learner).filter(models.Learner.learner_id == payload.learner_id).first()
-            if learner:
-                learner.current_lang_id = payload.lang
-                db.commit()
-        profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == payload.learner_id).first()
-        if profile:
-            profile.literacy_level = level
-            profile.total_points += total_score
-            db.commit()
-
-        # Create or Update LearningPath record
-        existing_path = db.query(models.LearningPath).filter(models.LearningPath.learner_id == payload.learner_id).first()
-        if not existing_path:
-            db_path = models.LearningPath(
-                learner_id=payload.learner_id,
-                target_proficiency=target_level,
-                current_level=level,
-                status="ACTIVE"
-            )
-            db.add(db_path)
-            db.commit()
 
     return {
         "status": "success",
         "total_score": total_score,
-        "skill_breakdown": {
-            "reading_score": reading_score,
-            "comprehension_score": comprehension_score,
-            "voice_score": voice_score
-        },
-        "proficiency_level": level,
-        "learning_path": learning_path
+        "correct_answers": correct_count,
+        "total_questions": len(payload.answers),
+        "proficiency_level": proficiency_level,
+        "learning_path": learning_path_recommendation
     }
-
-@router.get("/benchmarks")
-def get_proficiency_benchmarks(db: Session = Depends(get_db)):
-    return [
-        {"level_name": "FOUNDATIONAL", "min_score": 0, "max_score": 49, "description": "Basic letter recognition, phonics, and initial sounds"},
-        {"level_name": "FUNCTIONAL", "min_score": 50, "max_score": 79, "description": "Everyday signs, ATM screens, prescription reading & basic speech"},
-        {"level_name": "PROFICIENT", "min_score": 80, "max_score": 100, "description": "Workplace literacy, complex text comprehension & speech fluency"}
-    ]

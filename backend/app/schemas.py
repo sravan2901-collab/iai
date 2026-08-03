@@ -39,6 +39,13 @@ class ResetPassword(BaseModel):
     new_password: str
 
 # Learner Profile
+class LearnerProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    native_lang_id: Optional[int] = None
+    preferred_learning_style: Optional[str] = None
+    literacy_level: Optional[str] = None
+
 class LearnerProfileOut(BaseModel):
     profile_id: int
     learner_id: int

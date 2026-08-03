@@ -1,29 +1,41 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
-from typing import List
+from app.services.content_repository import MultilingualContentRepository
+from typing import List, Optional
 
 router = APIRouter(prefix="/api/curriculum", tags=["Curriculum & Lessons"])
 
-@router.get("/languages", response_model=List[schemas.LanguageOut])
+@router.get("/languages")
 def get_languages(db: Session = Depends(get_db)):
+    """
+    Returns supported languages list from database or content repository.
+    """
     languages = db.query(models.Language).all()
     if not languages:
-        # Default seed return if DB is empty
-        return [
-            {"lang_id": 1, "lang_name": "Hindi (हिन्दी)", "iso_code": "hi"},
-            {"lang_id": 2, "lang_name": "English", "iso_code": "en"},
-            {"lang_id": 3, "lang_name": "Tamil (தமிழ்)", "iso_code": "ta"},
-            {"lang_id": 4, "lang_name": "Telugu (తెలుగు)", "iso_code": "te"}
-        ]
+        return MultilingualContentRepository.get_supported_languages()
     return languages
+
+@router.get("/repository/{lang_code}")
+def get_multilingual_content_repository(lang_code: str):
+    """
+    Returns the complete multilingual content repository for a specified language code (en, hi, te, ta, mr, bn, kn, es).
+    """
+    return MultilingualContentRepository.get_content_by_language(lang_code)
+
+@router.get("/repository/{lang_code}/search")
+def search_multilingual_content(lang_code: str, q: str = Query(..., min_length=1)):
+    """
+    Searches the multilingual content repository for lessons or phrases matching query string.
+    """
+    return MultilingualContentRepository.search_content(lang_code, q)
 
 @router.get("/{lang_id}")
 def get_curriculum_by_language(lang_id: int, db: Session = Depends(get_db)):
     curriculum = db.query(models.Curriculum).filter(models.Curriculum.lang_id == lang_id).first()
     if not curriculum:
-        # Fallback to Hindi default
+        # Fallback to default curriculum
         curriculum = db.query(models.Curriculum).filter(models.Curriculum.lang_id == 1).first()
     
     if not curriculum:
