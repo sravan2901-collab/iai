@@ -65,7 +65,13 @@ export default function Navbar({ activeTab, setActiveTab, learner, onOpenAuth, o
             </button>
 
             <button
-              onClick={() => setActiveTab('diagnostic')}
+              onClick={() => {
+                if (!learner?.isLoggedIn) {
+                  onOpenAuth();
+                  return;
+                }
+                setActiveTab('diagnostic');
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'diagnostic' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
@@ -83,7 +89,13 @@ export default function Navbar({ activeTab, setActiveTab, learner, onOpenAuth, o
             </button>
 
             <button
-              onClick={() => setActiveTab('learning-path')}
+              onClick={() => {
+                if (!learner?.isLoggedIn) {
+                  onOpenAuth();
+                  return;
+                }
+                setActiveTab('learning-path');
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'learning-path' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
@@ -92,7 +104,13 @@ export default function Navbar({ activeTab, setActiveTab, learner, onOpenAuth, o
             </button>
 
             <button
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => {
+                if (!learner?.isLoggedIn) {
+                  onOpenAuth();
+                  return;
+                }
+                setActiveTab('dashboard');
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
