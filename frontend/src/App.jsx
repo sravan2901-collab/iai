@@ -230,6 +230,7 @@ export default function App() {
         activeTab={activeTab} 
         setActiveTab={changeTab} 
         learner={learner} 
+        isNewRegistration={isNewRegistration}
         onOpenAuth={() => setIsAuthOpen(true)}
         onLogout={handleLogout}
       />
