@@ -688,14 +688,57 @@ def submit_initial_assessment(
     payload: AssessmentSubmission,
     db: Session = Depends(get_db)
 ):
-    total_score = 0
-    correct_count = 0
+    lang_code = (payload.lang or "en").lower()
+    questions_list = DIAGNOSTIC_QUESTIONS_BY_LANG.get(lang_code, DIAGNOSTIC_QUESTIONS_BY_LANG["en"])
+    question_map = {q["stage"]: q for q in questions_list}
+    for q in questions_list:
+        if "id" in q:
+            question_map[q["id"]] = q
 
-    for ans in payload.answers:
-        if ans.is_correct or (ans.spoken_text and len(ans.spoken_text.strip()) > 0):
+    correct_count = 0
+    validated_details = []
+
+    for idx, ans in enumerate(payload.answers):
+        q_id = ans.stage or (idx + 1)
+        q_def = question_map.get(q_id) or (questions_list[idx] if idx < len(questions_list) else None)
+
+        is_q_correct = False
+
+        if q_def:
+            skill_type = q_def.get("skill_type", "READ")
+
+            if skill_type == "READ":
+                selected = (ans.selected_option_id or "").strip().lower()
+                correct_opt = next((opt for opt in q_def.get("options", []) if opt.get("is_correct")), None)
+                if correct_opt and selected == correct_opt.get("id", "").strip().lower():
+                    is_q_correct = True
+
+            elif skill_type == "WRITE":
+                written = (ans.written_text or "").strip().lower()
+                accepted_list = [a.strip().lower() for a in q_def.get("accepted_answers", [])]
+                if written and written in accepted_list:
+                    is_q_correct = True
+
+            elif skill_type == "SPEAK":
+                spoken = (ans.spoken_text or "").strip().lower()
+                target = (q_def.get("target_text") or "").strip().lower()
+                if spoken and (spoken in target or target in spoken or len(spoken) >= max(3, len(target) * 0.3)):
+                    is_q_correct = True
+        else:
+            # Fallback if question id not found directly
+            is_q_correct = bool(ans.is_correct)
+
+        if is_q_correct:
             correct_count += 1
 
-    total_score = min(100, round((correct_count / max(1, len(payload.answers))) * 100))
+        validated_details.append({
+            "question_id": q_id,
+            "skill_type": q_def.get("skill_type") if q_def else "READ",
+            "is_correct": is_q_correct
+        })
+
+    total_questions = len(payload.answers) if payload.answers else len(questions_list)
+    total_score = min(100, round((correct_count / max(1, total_questions)) * 100))
 
     proficiency_level = "FOUNDATIONAL"
     if total_score >= 75:
@@ -718,7 +761,8 @@ def submit_initial_assessment(
         "status": "success",
         "total_score": total_score,
         "correct_answers": correct_count,
-        "total_questions": len(payload.answers),
+        "total_questions": total_questions,
         "proficiency_level": proficiency_level,
-        "learning_path": learning_path_recommendation
+        "learning_path": learning_path_recommendation,
+        "validated_details": validated_details
     }

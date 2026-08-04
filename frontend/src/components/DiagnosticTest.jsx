@@ -68,7 +68,7 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     setWrittenInput(val);
     const acceptedList = currentQ?.accepted_answers || [];
     const cleanVal = val.trim().toLowerCase();
-    const isOk = acceptedList.some(ans => ans.trim().toLowerCase() === cleanVal) || cleanVal.length >= 1;
+    const isOk = acceptedList.some(ans => ans.trim().toLowerCase() === cleanVal);
     
     setUserAnswers(prev => ({
       ...prev,
