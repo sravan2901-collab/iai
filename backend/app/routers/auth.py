@@ -77,6 +77,16 @@ def register_learner(payload: schemas.LearnerRegister, db: Session = Depends(get
     db.add(new_reg)
     db.commit()
 
+    # Send Registration Intimation Email
+    try:
+        email_service.send_account_registration_notification(
+            recipient_email=clean_email,
+            username=clean_username,
+            first_name=payload.first_name or clean_username
+        )
+    except Exception as email_err:
+        print(f"[AUTH REGISTRATION] Could not send registration email: {email_err}")
+
     access_token = create_access_token(data={"sub": str(new_learner.learner_id), "username": new_learner.username})
 
     return {

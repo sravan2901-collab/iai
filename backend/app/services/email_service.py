@@ -39,6 +39,63 @@ class EmailService:
         except Exception as e:
             print(f"[SECURE EMAIL DISPATCHER] Error saving email record: {e}")
 
+    def send_account_registration_notification(self, recipient_email: str, username: str, first_name: str = ""):
+        clean_recipient = recipient_email.strip().lower()
+        display_name = first_name.strip() if first_name else username.strip()
+        subject = "AksharAI — Account Successfully Registered!"
+        html_content = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif; background-color: #0b132b; color: #ffffff; padding: 20px;">
+            <div style="max-width: 520px; margin: auto; background-color: #1e293b; border-radius: 12px; padding: 28px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981, #14b8a6); border-radius: 12px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #ffffff;">A</div>
+                <h2 style="color: #10b981; margin-top: 10px; font-size: 22px;">Welcome to AksharAI!</h2>
+              </div>
+              <p style="font-size: 15px; color: #e2e8f0;">Dear <strong>{display_name}</strong>,</p>
+              <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
+                This email is to confirm that a new <strong>AksharAI Neo-Learner Account</strong> has been successfully registered using your email address:
+              </p>
+              <div style="background-color: #0f172a; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #10b981;">
+                <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;">Registered Email: <strong style="color: #ffffff;">{clean_recipient}</strong></p>
+                <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;">Username: <strong style="color: #10b981;">{username}</strong></p>
+                <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;">Registration Date: <strong style="color: #cbd5e1;">{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}</strong></p>
+              </div>
+              <p style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+                You can now log in, take your initial bilingual diagnostic test, and start your personalized adaptive language literacy journey.
+              </p>
+              <hr style="border: 0; border-top: 1px solid #334155; margin: 24px 0;" />
+              <p style="font-size: 11px; color: #64748b; text-align: center;">
+                Security Notice: If you did not register this account, please contact AksharAI support or reset your password immediately.
+              </p>
+            </div>
+          </body>
+        </html>
+        """
+
+        print(f"\n[SECURE EMAIL DISPATCHER] Dispatching Account Registration Intimation Email to: {clean_recipient}")
+        self._save_sent_email(clean_recipient, subject, html_content)
+
+        if self.smtp_user and self.smtp_password and len(self.smtp_password.strip()) > 0:
+            try:
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = subject
+                msg["From"] = f"AksharAI Platform <{self.smtp_user}>"
+                msg["To"] = clean_recipient
+                msg.attach(MIMEText(html_content, "html"))
+
+                with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10) as server:
+                    server.starttls()
+                    server.login(self.smtp_user, self.smtp_password)
+                    server.sendmail(self.smtp_user, clean_recipient, msg.as_string())
+                print(f"[SECURE EMAIL DISPATCHER] SUCCESS: Sent Registration Intimation Email via SMTP to {clean_recipient}")
+                return True
+            except Exception as e:
+                print(f"[SECURE EMAIL DISPATCHER] SMTP delivery exception: {e}")
+                return False
+        else:
+            print(f"[SECURE EMAIL DISPATCHER] SMTP credentials not fully configured. Email record saved to sent_emails.json.")
+            return True
+
     def send_password_reset_otp(self, recipient_email: str, otp_code: str):
         clean_recipient = recipient_email.strip().lower()
         subject = "AksharAI - Your 6-Digit Password Reset OTP"
