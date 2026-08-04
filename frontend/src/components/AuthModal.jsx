@@ -69,7 +69,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
         setAuthToken(response.access_token);
         setSuccessMsg("Login successful! Redirecting...");
         setLoading(false);
-        onAuthSuccess(response);
+        onAuthSuccess(response, 'login');
         onClose();
         return;
       }
@@ -110,9 +110,9 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
       if (response && response.access_token) {
         setAuthToken(response.access_token);
-        setSuccessMsg("Account registered successfully!");
+        setSuccessMsg("Account registered successfully! Redirecting to Diagnostic Test...");
         setLoading(false);
-        onAuthSuccess(response);
+        onAuthSuccess(response, 'register');
         onClose();
         return;
       }

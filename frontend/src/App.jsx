@@ -63,11 +63,11 @@ export default function App() {
     }
   }, []);
 
-  const handleAuthSuccess = (userData) => {
+  const handleAuthSuccess = (userData, authType = 'login') => {
     const userLang = LANG_MAP[userData.native_lang_id] || userData.preferred_lang || 'en';
     setLearner({
       isLoggedIn: true,
-      name: userData.username,
+      name: userData.username || userData.first_name,
       email: userData.email || '',
       native_lang_id: userData.native_lang_id || 1,
       literacy_level: userData.literacy_level || 'FOUNDATIONAL',
@@ -76,6 +76,10 @@ export default function App() {
       preferred_lang: userLang
     });
     setIsAuthOpen(false);
+
+    if (authType === 'register') {
+      setActiveTab('assessment');
+    }
   };
 
   const handleLogout = () => {
