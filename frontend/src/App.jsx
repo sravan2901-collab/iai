@@ -37,6 +37,39 @@ export default function App() {
     preferred_lang: 'en'
   });
 
+  // Sync activeTab with URL Hash & enable browser Back/Forward navigation history arrows
+  useEffect(() => {
+    const getTabFromHash = () => {
+      const hash = window.location.hash.replace('#', '').trim();
+      const validTabs = ['catalog', 'diagnostic', 'benchmarks', 'learning-path', 'dashboard'];
+      return validTabs.includes(hash) ? hash : 'catalog';
+    };
+
+    const initialTab = getTabFromHash();
+    setActiveTab(initialTab);
+
+    const handleHashOrPopState = () => {
+      const currentTab = getTabFromHash();
+      setActiveTab(currentTab);
+    };
+
+    window.addEventListener('popstate', handleHashOrPopState);
+    window.addEventListener('hashchange', handleHashOrPopState);
+
+    return () => {
+      window.removeEventListener('popstate', handleHashOrPopState);
+      window.removeEventListener('hashchange', handleHashOrPopState);
+    };
+  }, []);
+
+  const changeTab = (tabKey) => {
+    setActiveTab(tabKey);
+    const targetHash = `#${tabKey}`;
+    if (window.location.hash !== targetHash) {
+      window.history.pushState({ tab: tabKey }, '', `${window.location.pathname}${targetHash}`);
+    }
+  };
+
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
@@ -80,7 +113,7 @@ export default function App() {
 
     if (authType === 'register') {
       setIsNewRegistration(true);
-      setActiveTab('diagnostic');
+      changeTab('diagnostic');
     }
   };
 
@@ -188,14 +221,14 @@ export default function App() {
       total_points: prev.total_points + 50,
       literacy_level: result.proficiency_level || result.level || prev.literacy_level
     }));
-    setActiveTab('learning-path');
+    changeTab('learning-path');
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0b132b] text-slate-100">
       <Navbar 
         activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
+        setActiveTab={changeTab} 
         learner={learner} 
         onOpenAuth={() => setIsAuthOpen(true)}
         onLogout={handleLogout}
@@ -261,7 +294,7 @@ export default function App() {
               </button>
             ) : (
               <button
-                onClick={() => setActiveTab('dashboard')}
+                onClick={() => changeTab('dashboard')}
                 className="glass-button px-5 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 text-emerald-300"
               >
                 <User size={18} />
@@ -349,7 +382,7 @@ export default function App() {
                   setIsNewRegistration(false);
                   handleDiagnosticComplete(res);
                 }}
-                onSelectLesson={(les) => { setActiveLesson(les); setActiveTab('catalog'); }}
+                onSelectLesson={(les) => { setActiveLesson(les); changeTab('catalog'); }}
               />
             </div>
           )
@@ -357,12 +390,35 @@ export default function App() {
 
         {/* Learning Path View */}
         {activeTab === 'learning-path' && (
-          <LearningPath
-            assessmentResult={assessmentResult}
-            selectedLang={learner.preferred_lang}
-            onSelectLesson={(les) => { setActiveLesson(les); setActiveTab('catalog'); }}
-            onRetakeAssessment={() => { setAssessmentResult(null); setActiveTab('diagnostic'); }}
-          />
+          !learner.isLoggedIn ? (
+            <div className="glass-panel max-w-xl mx-auto rounded-2xl p-8 text-center my-8 space-y-6 border border-slate-700 bg-slate-900/90 shadow-2xl animate-fade-in">
+              <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
+                <Lock size={32} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-white">Authentication Required</h3>
+                <p className="text-sm text-slate-300">
+                  Please log in or register an account to view your personalized learning path and progress.
+                </p>
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={() => setIsAuthOpen(true)}
+                  className="w-full py-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2"
+                >
+                  <LogIn size={18} />
+                  <span>Login / Register to Access Learning Path</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <LearningPath
+              assessmentResult={assessmentResult}
+              selectedLang={learner.preferred_lang}
+              onSelectLesson={(les) => { setActiveLesson(les); changeTab('catalog'); }}
+              onRetakeAssessment={() => changeTab('diagnostic')}
+            />
+          )
         )}
 
         {/* Tab 2: Pronunciation Practice Mode */}
