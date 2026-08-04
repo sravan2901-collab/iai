@@ -338,18 +338,18 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
         <div className="grid grid-cols-9 gap-1.5 pt-1">
           {questions.map((q, idx) => {
             const hasAns = userAnswers[idx];
-            const isAnsOk = hasAns?.is_correct;
+            const isCompleted = Boolean(hasAns) || idx < currentIdx;
             return (
               <div
                 key={idx}
                 className={`h-2.5 rounded-full transition-all ${
                   idx === currentIdx
                     ? 'bg-amber-400 ring-2 ring-amber-400/50 shadow-md shadow-amber-400/30'
-                    : hasAns
-                    ? (isAnsOk ? 'bg-emerald-500' : 'bg-rose-500/80')
+                    : isCompleted
+                    ? 'bg-emerald-500'
                     : 'bg-slate-700/80'
                 }`}
-                title={`Difficulty Level ${q.difficulty || idx + 1}`}
+                title={`Question ${idx + 1}: Difficulty Level ${q.difficulty || idx + 1}`}
               />
             );
           })}
