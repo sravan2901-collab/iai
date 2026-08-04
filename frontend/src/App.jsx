@@ -24,6 +24,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [activeLesson, setActiveLesson] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(true);
+  const [isNewRegistration, setIsNewRegistration] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState(null);
   const [learner, setLearner] = useState({
     isLoggedIn: false,
@@ -78,7 +79,8 @@ export default function App() {
     setIsAuthOpen(false);
 
     if (authType === 'register') {
-      setActiveTab('assessment');
+      setIsNewRegistration(true);
+      setActiveTab('diagnostic');
     }
   };
 
@@ -281,11 +283,53 @@ export default function App() {
 
         {/* Tab 1: Diagnostic Test View */}
         {activeTab === 'diagnostic' && (
-          <DiagnosticTest
-            selectedLang={learner.preferred_lang}
-            onComplete={handleDiagnosticComplete}
-            onSelectLesson={(les) => { setActiveLesson(les); setActiveTab('catalog'); }}
-          />
+          <div className="space-y-6">
+            {isNewRegistration && (
+              <div className="glass-panel p-6 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/40 via-slate-900/90 to-teal-950/40 space-y-4 text-left shadow-xl animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg">
+                    <CheckCircle size={22} className="text-emerald-400" />
+                    <span>Account Registered Successfully!</span>
+                  </div>
+                  <span className="text-xs px-3 py-1 bg-amber-500/20 text-amber-300 font-semibold rounded-full border border-amber-500/30">
+                    Step 1 of 2: Placement Diagnostic
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-white">Welcome, {learner.name}! Take Your Initial Placement Test</h3>
+                  <p className="text-xs md:text-sm text-slate-300 mt-1">
+                    An intimation email has been sent to <strong className="text-emerald-300">{learner.email}</strong>. 
+                    Please complete this 9-question bilingual assessment to evaluate your proficiency tier and unlock your personalized learning path.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700/60 text-xs space-y-1">
+                    <span className="font-bold text-emerald-400 block">🎯 3-Tier Skill Benchmark</span>
+                    <p className="text-slate-300">Determines your placement: Foundational, Functional, or Proficient tier.</p>
+                  </div>
+                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700/60 text-xs space-y-1">
+                    <span className="font-bold text-teal-400 block">🗣️ Multi-Skill Evaluation</span>
+                    <p className="text-slate-300">Evaluates Reading (READ), Spelling (WRITE), and Pronunciation (SPEAK).</p>
+                  </div>
+                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700/60 text-xs space-y-1">
+                    <span className="font-bold text-amber-400 block">⏱️ 3-Minute Assessment</span>
+                    <p className="text-slate-300">9 short questions across progressive difficulty levels (Level 1 to 9).</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <DiagnosticTest
+              selectedLang={learner.preferred_lang}
+              onComplete={(res) => {
+                setIsNewRegistration(false);
+                handleDiagnosticComplete(res);
+              }}
+              onSelectLesson={(les) => { setActiveLesson(les); setActiveTab('catalog'); }}
+            />
+          </div>
         )}
 
         {/* Learning Path View */}
