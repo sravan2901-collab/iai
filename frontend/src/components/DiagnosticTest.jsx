@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Award, CheckCircle, Mic, ArrowRight, ArrowLeft, BookOpen, Edit3, Volume2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Award, CheckCircle, Mic, ArrowRight, ArrowLeft, BookOpen, Edit3, Volume2, RefreshCw, AlertCircle, XCircle } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
 import { apiRequest } from '../services/api';
 
@@ -17,6 +17,17 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const NATIVE_FALLBACKS = {
+    en: [
+      { id: 1, stage: 1, difficulty: 1, skill_type: "READ", question_title: "Question 1/9 [Level 1] — Phonetics", question_text: "Which word contains the long vowel sound /eɪ/ as in 'Fate'?", options: [{ id: "a", text: "Grace", is_correct: true }, { id: "b", text: "Track", is_correct: false }, { id: "c", text: "Bell", is_correct: false }, { id: "d", text: "Rock", is_correct: false }] },
+      { id: 2, stage: 2, difficulty: 2, skill_type: "WRITE", question_title: "Question 2/9 [Level 2] — Spelling", question_text: "Type the correctly spelled word for a place where books are kept:", accepted_answers: ["Library", "library", "LIBRARY"] },
+      { id: 3, stage: 3, difficulty: 3, skill_type: "SPEAK", question_title: "Question 3/9 [Level 3] — Pronunciation", question_text: "Press microphone and speak aloud the sentence below:", target_text: "Language unlocks knowledge, wisdom, and human expression" },
+      { id: 4, stage: 4, difficulty: 4, skill_type: "READ", question_title: "Question 4/9 [Level 4] — Synonyms", question_text: "Select the exact synonym for the word 'PERSISTENT':", options: [{ id: "a", text: "Persevering", is_correct: true }, { id: "b", text: "Temporary", is_correct: false }, { id: "c", text: "Hesitant", is_correct: false }, { id: "d", text: "Careless", is_correct: false }] },
+      { id: 5, stage: 5, difficulty: 5, skill_type: "WRITE", question_title: "Question 5/9 [Level 5] — Grammar", question_text: "Type the past perfect form of the verb 'Write':", accepted_answers: ["written", "Written", "WRITTEN"] },
+      { id: 6, stage: 6, difficulty: 6, skill_type: "SPEAK", question_title: "Question 6/9 [Level 6] — Articulation", question_text: "Press microphone and speak aloud the compound complex sentence:", target_text: "Although the journey was challenging, continuous practice brought clarity and confidence" },
+      { id: 7, stage: 7, difficulty: 7, skill_type: "READ", question_title: "Question 7/9 [Level 7] — Prose Reading", question_text: "Read passage: 'The profound silence of the evening was broken only by the gentle rustle of falling leaves.' What is the primary tone?", options: [{ id: "a", text: "Tranquil and Reflective", is_correct: true }, { id: "b", text: "Chaotic and Noisy", is_correct: false }, { id: "c", text: "Frightening", is_correct: false }, { id: "d", text: "Humorous", is_correct: false }] },
+      { id: 8, stage: 8, difficulty: 8, skill_type: "WRITE", question_title: "Question 8/9 [Level 8] — Advanced Spelling", question_text: "Type the correct spelling for fluent and expressive speech:", accepted_answers: ["Eloquence", "eloquence", "ELOQUENCE"] },
+      { id: 9, stage: 9, difficulty: 9, skill_type: "SPEAK", question_title: "Question 9/9 [Level 9] — High Fluency", question_text: "Press microphone and speak aloud the advanced literary passage:", target_text: "Mastery over language transforms thought into eloquent communication and lifelong empowerment" }
+    ],
     te: [
       { id: 1, stage: 1, difficulty: 1, skill_type: "READ", question_title: "ప్రశ్న 1/9 [స్థాయి 1] — అక్షరం మరియు గుణింత గుర్తింపు (Question 1/9 [Level 1] — Phonetics)", question_text: "క్రింది వాటిలో 'కృ' (క + ఋ) గుణింత అక్షరం కలిగి ఉన్న పదాన్ని ఎంచుకోండి\nWhich word contains the 'కృ' (k + ru) letter sound?", options: [{ id: "a", text: "కృప", is_correct: true }, { id: "b", text: "కథ", is_correct: false }, { id: "c", text: "కలము", is_correct: false }, { id: "d", text: "కడవ", is_correct: false }] },
       { id: 2, stage: 2, difficulty: 2, skill_type: "WRITE", question_title: "ప్రశ్న 2/9 [స్థాయి 2] — అక్షర దోష నివారణ మరియు రాయడం (Question 2/9 [Level 2] — Spelling)", question_text: "జ్ఞానానికి మరియు పుస్తకాలకు నిలయమైన ప్రదేశాన్ని తెలిపే పదాన్ని రాయండి\nType the correct word for library:", accepted_answers: ["గ్రంథాలయము", "గ్రంథాలయం", "పుస్తకాలయం"] },
@@ -24,7 +35,7 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
       { id: 4, stage: 4, difficulty: 4, skill_type: "READ", question_title: "ప్రశ్న 4/9 [స్థాయి 4] — పర్యాయపదాలు మరియు పదజాలం (Question 4/9 [Level 4] — Synonyms)", question_text: "'అమృతం' అనే పదానికి సరైన పర్యాయపదాన్ని ఎంచుకోండి\nSelect the exact synonym for 'Amrutam':", options: [{ id: "a", text: "సుధ", is_correct: true }, { id: "b", text: "గరళం", is_correct: false }, { id: "c", text: "అనలం", is_correct: false }, { id: "d", text: "పవనం", is_correct: false }] },
       { id: 5, stage: 5, difficulty: 5, skill_type: "WRITE", question_title: "ప్రశ్న 5/9 [స్థాయి 5] — సంధి మరియు వ్యాకరణ రాయడం (Question 5/9 [Level 5] — Grammar)", question_text: "'దేవ + ఆలయం' కలిపి రాస్తే వచ్చే సరైన పదాన్ని టైప్ చేయండి\nType the combined Sandhi word for 'Deva + Alayam':", accepted_answers: ["దేవాలయం", "దేవాలయము"] },
       { id: 6, stage: 6, difficulty: 6, skill_type: "SPEAK", question_title: "ప్రశ్న 6/9 [స్థాయి 6] — సంక్లిష్ట వాక్య ఉచ్చారణ (Question 6/9 [Level 6] — Articulation)", question_text: "మైక్రోఫోన్ నొక్కి క్రింది సంక్లిష్ట వాక్యాన్ని బిగ్గరగా చదవండి\nPress microphone and speak aloud complex sentence:", target_text: "నిరంతర సాధన మరియు అధ్యయనం ద్వారా మాత్రమే భాషా ప్రావీణ్యం లభిస్తుంది" },
-      { id: 7, stage: 7, difficulty: 7, skill_type: "READ", question_title: "ప్రశ్న 7/9 [స్థాయి 7] — సాహిత్య గద్య పఠనావగాహన (Question 7/9 [Level 7] — Prose Reading)", question_text: "వాక్యం: 'ప్రశాంతమైన సాయంత్ర వేళ పక్షుల కలకూజనాలు మనస్సుకు ఆహ్లాదాన్ని కలిగిస్తాయి.' దీని భావం ఏమిటి?\nWhat is the primary tone of the passage?", options: [{ id: "a", text: "ప్రశాంతత మరియు సంతోషం", is_correct: true }, { id: "b", text: "భయం మరియు ఆందోళన", is_correct: false }, { id: "c", "text": "కోపం", is_correct: false }, { id: "d", "text": "అల్లరి", is_correct: false }] },
+      { id: 7, stage: 7, difficulty: 7, skill_type: "READ", question_title: "ప్రశ్న 7/9 [స్థాయి 7] — సాహిత్య గద్య పఠనావగాహన (Question 7/9 [Level 7] — Prose Reading)", question_text: "వాక్యం: 'ప్రశాంతమైన సాయంత్ర వేళ పక్షుల కలకూజనాలు మనస్సుకు ఆహ్లాదాన్ని కలిగిస్తాయి.' దీని భావం ఏమిటి?\nWhat is the primary tone of the passage?", options: [{ id: "a", text: "ప్రశాంతత మరియు సంతోషం", is_correct: true }, { id: "b", text: "భయం మరియు ఆందోళన", is_correct: false }, { id: "c", text: "కోపం", is_correct: false }, { id: "d", text: "అల్లరి", is_correct: false }] },
       { id: 8, stage: 8, difficulty: 8, skill_type: "WRITE", question_title: "ప్రశ్న 8/9 [స్థాయి 8] — ప్రౌఢ సాహిత్య పద నిర్మాణం (Question 8/9 [Level 8] — Advanced Spelling)", question_text: "మిక్కిలి పాండిత్యం కలవాడిని తెలిపే పదాన్ని సరైన అక్షరాలతో రాయండి\nType the correct word for scholar:", accepted_answers: ["విద్వాంసుడు", "విద్వాంసురాలు"] },
       { id: 9, stage: 9, difficulty: 9, skill_type: "SPEAK", question_title: "ప్రశ్న 9/9 [స్థాయి 9] — ప్రౌఢ సాహిత్య భాషా ప్రవాహం (Question 9/9 [Level 9] — High Fluency)", question_text: "మైక్రోఫోన్ నొక్కి క్రింది ఉన్నత సాహిత్య వాక్యాన్ని అనర్గళంగా చదవండి\nPress microphone and speak aloud advanced literary passage:", target_text: "సాహిత్యానుశీలనం మానవ చైతన్యానికి మరియు వ్యక్తిత్వ వికాసానికి అక్షయమైన నిధి" }
     ]
@@ -38,10 +49,10 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
         if (data && data.length === 9) {
           setQuestions(data);
         } else {
-          setQuestions(NATIVE_FALLBACKS[selectedLang] || NATIVE_FALLBACKS['te']);
+          setQuestions(NATIVE_FALLBACKS[selectedLang] || NATIVE_FALLBACKS['en']);
         }
       } catch (err) {
-        setQuestions(NATIVE_FALLBACKS[selectedLang] || NATIVE_FALLBACKS['te']);
+        setQuestions(NATIVE_FALLBACKS[selectedLang] || NATIVE_FALLBACKS['en']);
       } finally {
         setLoadingQuestions(false);
       }
@@ -52,27 +63,32 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
 
   const currentQ = questions[currentIdx];
 
+  // Option selection for READ questions
   const handleSelectOption = (opt) => {
+    const isCorrect = Boolean(opt.is_correct);
     setUserAnswers(prev => ({
       ...prev,
-      [currentQ.id || currentIdx]: {
+      [currentIdx]: {
         stage: currentQ.stage || (currentIdx + 1),
         skill_type: currentQ.skill_type,
         selected_option_id: opt.id,
-        is_correct: Boolean(opt.is_correct)
+        is_correct: isCorrect
       }
     }));
   };
 
+  // Text input for WRITE questions (STRICT MATCH AGAINST ACCEPTED ANSWERS)
   const handleWriteInputChange = (val) => {
     setWrittenInput(val);
     const acceptedList = currentQ?.accepted_answers || [];
     const cleanVal = val.trim().toLowerCase();
-    const isOk = acceptedList.some(ans => ans.trim().toLowerCase() === cleanVal);
+    
+    // Strict evaluation: must match one of accepted_answers exactly (case-insensitive)
+    const isOk = cleanVal.length > 0 && acceptedList.some(ans => ans.trim().toLowerCase() === cleanVal);
     
     setUserAnswers(prev => ({
       ...prev,
-      [currentQ.id || currentIdx]: {
+      [currentIdx]: {
         stage: currentQ.stage || (currentIdx + 1),
         skill_type: currentQ.skill_type,
         written_text: val,
@@ -81,57 +97,154 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     }));
   };
 
+  // Voice recording & evaluation for SPEAK questions
   const startVoiceRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setMediaStream(stream);
-      setIsRecording(true);
-      
-      const targetSpoken = currentQ?.target_text || "భాష అనేది ఆలోచనలకు రూపాన్ని ఇచ్చే అమూల్యమైన సాధనం";
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = selectedLang === 'te' ? 'te-IN' : (selectedLang === 'hi' ? 'hi-IN' : (selectedLang === 'ta' ? 'ta-IN' : 'en-US'));
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
-      setTimeout(() => {
-        setIsRecording(false);
-        if (stream) stream.getTracks().forEach(track => track.stop());
-        setTranscribedText(targetSpoken);
+        setIsRecording(true);
+        recognition.start();
 
-        setUserAnswers(prev => ({
-          ...prev,
-          [currentQ.id || currentIdx]: {
-            stage: currentQ.stage || (currentIdx + 1),
-            skill_type: currentQ.skill_type,
-            spoken_text: targetSpoken,
-            is_correct: true
-          }
-        }));
-      }, 3500);
+        recognition.onresult = (event) => {
+          const speechResult = event.results[0][0].transcript;
+          setTranscribedText(speechResult);
+          setIsRecording(false);
+
+          const target = (currentQ?.target_text || "").trim().toLowerCase();
+          const cleanSpeech = speechResult.trim().toLowerCase();
+          
+          // Verify speech match
+          const targetWords = target.split(' ').filter(w => w.length > 1);
+          const speechWords = cleanSpeech.split(' ').filter(w => w.length > 1);
+          const matches = speechWords.filter(sw => targetWords.some(tw => tw.includes(sw) || sw.includes(tw)));
+          const isMatch = (targetWords.length > 0 && (matches.length / targetWords.length) >= 0.5) || (cleanSpeech === target);
+
+          setUserAnswers(prev => ({
+            ...prev,
+            [currentIdx]: {
+              stage: currentQ.stage || (currentIdx + 1),
+              skill_type: currentQ.skill_type,
+              spoken_text: speechResult,
+              is_correct: isMatch
+            }
+          }));
+        };
+
+        recognition.onerror = () => {
+          setIsRecording(false);
+        };
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+      } else {
+        // Microphone recording fallback
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
+        setMediaStream(stream);
+        setIsRecording(true);
+
+        setTimeout(() => {
+          setIsRecording(false);
+          if (stream) stream.getTracks().forEach(track => track.stop());
+        }, 2500);
+      }
     } catch (err) {
+      setIsRecording(false);
       alert("Microphone permission is required for voice assessment questions.");
     }
   };
 
+  // Text input handler for speech verification fallback
+  const handleSpokenTextChange = (val) => {
+    setTranscribedText(val);
+    const target = (currentQ?.target_text || "").trim().toLowerCase();
+    const cleanSpeech = val.trim().toLowerCase();
+    
+    const targetWords = target.split(' ').filter(w => w.length > 1);
+    const speechWords = cleanSpeech.split(' ').filter(w => w.length > 1);
+    const matches = speechWords.filter(sw => targetWords.some(tw => tw.includes(sw) || sw.includes(tw)));
+    const isMatch = cleanSpeech.length > 0 && ((targetWords.length > 0 && (matches.length / targetWords.length) >= 0.5) || (cleanSpeech === target));
+
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentIdx]: {
+        stage: currentQ.stage || (currentIdx + 1),
+        skill_type: currentQ.skill_type,
+        spoken_text: val,
+        is_correct: isMatch
+      }
+    }));
+  };
+
+  const syncCurrentInputToAnswers = () => {
+    if (!currentQ) return;
+    if (currentQ.skill_type === 'WRITE') {
+      const acceptedList = currentQ?.accepted_answers || [];
+      const cleanVal = writtenInput.trim().toLowerCase();
+      const isOk = cleanVal.length > 0 && acceptedList.some(ans => ans.trim().toLowerCase() === cleanVal);
+      setUserAnswers(prev => ({
+        ...prev,
+        [currentIdx]: {
+          stage: currentQ.stage || (currentIdx + 1),
+          skill_type: currentQ.skill_type,
+          written_text: writtenInput,
+          is_correct: isOk
+        }
+      }));
+    } else if (currentQ.skill_type === 'SPEAK') {
+      const target = (currentQ?.target_text || "").trim().toLowerCase();
+      const cleanSpeech = transcribedText.trim().toLowerCase();
+      const targetWords = target.split(' ').filter(w => w.length > 1);
+      const speechWords = cleanSpeech.split(' ').filter(w => w.length > 1);
+      const matches = speechWords.filter(sw => targetWords.some(tw => tw.includes(sw) || sw.includes(tw)));
+      const isMatch = cleanSpeech.length > 0 && ((targetWords.length > 0 && (matches.length / targetWords.length) >= 0.5) || (cleanSpeech === target));
+
+      setUserAnswers(prev => ({
+        ...prev,
+        [currentIdx]: {
+          stage: currentQ.stage || (currentIdx + 1),
+          skill_type: currentQ.skill_type,
+          spoken_text: transcribedText,
+          is_correct: isMatch
+        }
+      }));
+    }
+  };
+
   const handleNextQuestion = () => {
+    syncCurrentInputToAnswers();
     if (currentIdx < questions.length - 1) {
-      setCurrentIdx(currentIdx + 1);
-      setWrittenInput("");
-      setTranscribedText("");
+      const nextIdx = currentIdx + 1;
+      setCurrentIdx(nextIdx);
+      const prevNextAns = userAnswers[nextIdx] || {};
+      setWrittenInput(prevNextAns.written_text || "");
+      setTranscribedText(prevNextAns.spoken_text || "");
     } else {
       handleFinishAssessment();
     }
   };
 
   const handlePrevQuestion = () => {
+    syncCurrentInputToAnswers();
     if (currentIdx > 0) {
-      setCurrentIdx(currentIdx - 1);
-      setWrittenInput("");
-      setTranscribedText("");
+      const prevIdx = currentIdx - 1;
+      setCurrentIdx(prevIdx);
+      const prevAns = userAnswers[prevIdx] || {};
+      setWrittenInput(prevAns.written_text || "");
+      setTranscribedText(prevAns.spoken_text || "");
     }
   };
 
   const handleFinishAssessment = async () => {
     setIsSubmitting(true);
+    syncCurrentInputToAnswers();
     
     const formattedAnswers = questions.map((q, idx) => {
-      const ans = userAnswers[q.id || idx] || {};
+      const ans = userAnswers[idx] || {};
       return {
         stage: q.stage || (idx + 1),
         skill_type: q.skill_type,
@@ -191,7 +304,12 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     );
   }
 
-  const answeredCurrent = Boolean(userAnswers[currentQ?.id || currentIdx]);
+  const currentAnswerState = userAnswers[currentIdx] || {};
+  const answeredCurrent = currentQ.skill_type === 'READ' 
+    ? Boolean(currentAnswerState.selected_option_id)
+    : currentQ.skill_type === 'WRITE'
+    ? writtenInput.trim().length > 0
+    : transcribedText.trim().length > 0 || Boolean(currentAnswerState.spoken_text);
 
   // Format question text lines (Native Language on Line 1, English on Line 2)
   const textLines = (currentQ?.question_text || "").split("\n");
@@ -218,19 +336,23 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
 
         {/* 9-Step Difficulty Indicator Bar */}
         <div className="grid grid-cols-9 gap-1.5 pt-1">
-          {questions.map((q, idx) => (
-            <div
-              key={idx}
-              className={`h-2.5 rounded-full transition-all ${
-                idx === currentIdx
-                  ? 'bg-amber-400 ring-2 ring-amber-400/50 shadow-md shadow-amber-400/30'
-                  : idx < currentIdx
-                  ? 'bg-emerald-500'
-                  : 'bg-slate-700/80'
-              }`}
-              title={`Difficulty Level ${q.difficulty || idx + 1}`}
-            />
-          ))}
+          {questions.map((q, idx) => {
+            const hasAns = userAnswers[idx];
+            const isAnsOk = hasAns?.is_correct;
+            return (
+              <div
+                key={idx}
+                className={`h-2.5 rounded-full transition-all ${
+                  idx === currentIdx
+                    ? 'bg-amber-400 ring-2 ring-amber-400/50 shadow-md shadow-amber-400/30'
+                    : hasAns
+                    ? (isAnsOk ? 'bg-emerald-500' : 'bg-rose-500/80')
+                    : 'bg-slate-700/80'
+                }`}
+                title={`Difficulty Level ${q.difficulty || idx + 1}`}
+              />
+            );
+          })}
         </div>
       </div>
 
@@ -265,7 +387,7 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
       {currentQ.skill_type === 'READ' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
           {currentQ.options?.map(opt => {
-            const isSelected = userAnswers[currentQ.id || currentIdx]?.selected_option_id === opt.id;
+            const isSelected = currentAnswerState.selected_option_id === opt.id;
             return (
               <button
                 key={opt.id}
@@ -309,28 +431,29 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
 
           <AudioVisualizer isRecording={isRecording} mediaStream={mediaStream} />
 
-          {!transcribedText ? (
-            <button
-              onClick={startVoiceRecording}
-              disabled={isRecording}
-              className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-                isRecording 
-                  ? 'bg-rose-600 text-white mic-active' 
-                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30'
-              }`}
-            >
-              <Mic size={20} />
-              <span>{isRecording ? "Listening to your voice..." : "Turn On Microphone & Speak Aloud Native Phrase"}</span>
-            </button>
-          ) : (
-            <div className="bg-emerald-950/40 border border-emerald-500/40 p-4 rounded-xl space-y-2">
-              <div className="flex items-center justify-center gap-2 text-emerald-400 font-semibold">
-                <CheckCircle size={20} />
-                <span>Speech Assessment Audio Recorded!</span>
-              </div>
-              <p className="text-xs text-slate-300 text-center">Transcribed Speech: "{transcribedText}"</p>
-            </div>
-          )}
+          <button
+            onClick={startVoiceRecording}
+            disabled={isRecording}
+            className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+              isRecording 
+                ? 'bg-rose-600 text-white mic-active' 
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30'
+            }`}
+          >
+            <Mic size={20} />
+            <span>{isRecording ? "Listening to your voice..." : "Turn On Microphone & Speak Aloud Native Phrase"}</span>
+          </button>
+
+          <div className="space-y-2">
+            <label className="text-xs text-slate-300 block font-medium">Recorded / Transcribed Speech Input:</label>
+            <input
+              type="text"
+              value={transcribedText}
+              onChange={(e) => handleSpokenTextChange(e.target.value)}
+              placeholder="Speech transcript will appear here (or type to verify)..."
+              className="w-full bg-slate-900/90 border border-slate-700 focus:border-emerald-500 rounded-xl p-3 text-emerald-300 font-semibold text-sm focus:outline-none"
+            />
+          </div>
         </div>
       )}
 
@@ -368,7 +491,6 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
           )}
         </button>
       </div>
-
     </div>
   );
 }

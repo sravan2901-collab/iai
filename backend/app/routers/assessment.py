@@ -722,8 +722,13 @@ def submit_initial_assessment(
             elif skill_type == "SPEAK":
                 spoken = (ans.spoken_text or "").strip().lower()
                 target = (q_def.get("target_text") or "").strip().lower()
-                if spoken and (spoken in target or target in spoken or len(spoken) >= max(3, len(target) * 0.3)):
-                    is_q_correct = True
+                if not spoken or len(spoken) == 0:
+                    is_q_correct = False
+                else:
+                    target_words = [w for w in target.split() if len(w) > 1]
+                    spoken_words = [w for w in spoken.split() if len(w) > 1]
+                    matching_words = [w for w in spoken_words if any(tw in w or w in tw for tw in target_words)]
+                    is_q_correct = (len(target_words) > 0 and (len(matching_words) / len(target_words)) >= 0.5) or (spoken == target)
         else:
             # Fallback if question id not found directly
             is_q_correct = bool(ans.is_correct)
