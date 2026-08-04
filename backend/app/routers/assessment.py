@@ -725,10 +725,12 @@ def submit_initial_assessment(
                 if not spoken or len(spoken) == 0:
                     is_q_correct = False
                 else:
-                    target_words = [w for w in target.split() if len(w) > 1]
-                    spoken_words = [w for w in spoken.split() if len(w) > 1]
-                    matching_words = [w for w in spoken_words if any(tw in w or w in tw for tw in target_words)]
-                    is_q_correct = (len(target_words) > 0 and (len(matching_words) / len(target_words)) >= 0.5) or (spoken == target)
+                    import re
+                    target_words = [re.sub(r'[^\w]', '', w) for w in target.split() if len(re.sub(r'[^\w]', '', w)) > 1]
+                    spoken_words = [re.sub(r'[^\w]', '', w) for w in spoken.split() if len(re.sub(r'[^\w]', '', w)) > 1]
+                    target_set = set(target_words)
+                    matching_words = [w for w in spoken_words if w in target_set]
+                    is_q_correct = len(target_words) > 0 and (len(matching_words) / len(target_words)) >= 0.5
         else:
             # Fallback if question id not found directly
             is_q_correct = bool(ans.is_correct)
