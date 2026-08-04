@@ -253,6 +253,36 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           </p>
         </div>
 
+        {/* Login / Register Mode Switcher Tabs */}
+        {(viewMode === 'login' || viewMode === 'register') && (
+          <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700/80 gap-1">
+            <button
+              type="button"
+              onClick={() => { setViewMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                viewMode === 'login'
+                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+              }`}
+            >
+              <LogIn size={14} />
+              <span>Learner Login</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setViewMode('register'); setErrorMsg(''); setSuccessMsg(''); }}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                viewMode === 'register'
+                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+              }`}
+            >
+              <UserPlus size={14} />
+              <span>New Account</span>
+            </button>
+          </div>
+        )}
+
         {/* Success Alert */}
         {successMsg && (
           <div className="p-3.5 bg-emerald-950/60 border border-emerald-500/40 rounded-xl space-y-1 text-center text-xs animate-fade-in">

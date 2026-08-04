@@ -23,7 +23,7 @@ const LANG_MAP = {
 export default function App() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [activeLesson, setActiveLesson] = useState(null);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(true);
   const [assessmentResult, setAssessmentResult] = useState(null);
   const [learner, setLearner] = useState({
     isLoggedIn: false,
@@ -56,8 +56,10 @@ export default function App() {
         })
         .catch(() => {
           removeAuthToken();
-          setIsAuthOpen(false);
+          setIsAuthOpen(true);
         });
+    } else {
+      setIsAuthOpen(true);
     }
   }, []);
 
@@ -88,7 +90,7 @@ export default function App() {
       total_points: 0,
       preferred_lang: 'en'
     });
-    setIsAuthOpen(false);
+    setIsAuthOpen(true);
     setActiveTab('catalog');
   };
 
