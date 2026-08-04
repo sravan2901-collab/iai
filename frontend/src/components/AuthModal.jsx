@@ -315,8 +315,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="learner@example.com"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  placeholder="Enter email address"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -345,7 +345,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -394,8 +394,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   required
                   value={formData.fullName}
                   onChange={handleChange}
-                  placeholder="Sravan Kumar"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  placeholder="Enter full name"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -410,8 +410,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="sravan2901@gmail.com"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  placeholder="Enter email address"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -426,8 +426,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  placeholder="sravan2901"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  placeholder="Enter username"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -463,8 +463,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Elsa$123"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  placeholder="Enter password"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -533,8 +533,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="sravan2901@gmail.com"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  placeholder="Enter email address"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -580,7 +580,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   maxLength={6}
                   value={formData.otpCode}
                   onChange={handleChange}
-                  placeholder="123456"
+                  placeholder="------"
                   className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-center tracking-[8px] font-mono text-lg text-amber-400 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
@@ -620,8 +620,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                   required
                   value={formData.newPassword}
                   onChange={handleChange}
-                  placeholder="Elsa$123"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  placeholder="Enter new password"
+                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
