@@ -445,13 +445,18 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
           </button>
 
           <div className="space-y-2">
-            <label className="text-xs text-slate-300 block font-medium">Recorded / Transcribed Speech Input:</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-slate-300 block font-medium">Extracted Speech Transcript (Voice Only):</label>
+              <span className="text-[10px] text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                🔒 Manual Typing Prohibited
+              </span>
+            </div>
             <input
               type="text"
               value={transcribedText}
-              onChange={(e) => handleSpokenTextChange(e.target.value)}
-              placeholder="Speech transcript will appear here (or type to verify)..."
-              className="w-full bg-slate-900/90 border border-slate-700 focus:border-emerald-500 rounded-xl p-3 text-emerald-300 font-semibold text-sm focus:outline-none"
+              readOnly={true}
+              placeholder="Live speech transcript will automatically appear here when you speak into the microphone..."
+              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 text-emerald-300 font-semibold text-sm focus:outline-none cursor-not-allowed select-none shadow-inner"
             />
           </div>
         </div>
