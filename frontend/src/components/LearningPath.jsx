@@ -122,9 +122,16 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
     ]
   };
 
-  const score = assessmentResult?.total_score || 70;
-  const level = assessmentResult?.proficiency_level || activePath.current_level;
-  const breakdown = assessmentResult?.skill_breakdown || { reading_score: 35, comprehension_score: 35, voice_score: 0 };
+  const score = typeof assessmentResult?.total_score === 'number' ? assessmentResult.total_score : (activePath.total_score ?? 0);
+  const level = assessmentResult?.proficiency_level || activePath.current_level || 'FOUNDATIONAL';
+  const breakdown = assessmentResult?.skill_breakdown || {
+    reading_score: Math.min(33, Math.round(score * 0.33)),
+    reading_max: 33,
+    writing_score: Math.min(33, Math.round(score * 0.33)),
+    writing_max: 33,
+    voice_score: Math.max(0, score - Math.min(33, Math.round(score * 0.33)) * 2),
+    voice_max: 34
+  };
   
   const getLevelColor = (lvl) => {
     if (lvl === 'FOUNDATIONAL') return 'text-orange-400 bg-orange-400/20 border-orange-400/30';
@@ -145,7 +152,7 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
                 Your Personalized Learning Path
               </h2>
               <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                <Globe size={12} /> EN-US
+                <Globe size={12} /> {selectedLang.toUpperCase()}
               </span>
             </div>
             <p className="text-sm text-slate-400">Adaptive curriculum tailored to your current literacy level</p>
@@ -173,16 +180,33 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800">
-            <div className="flex justify-between text-xs mb-1"><span className="text-slate-300">Reading</span><span className="text-amber-400">{breakdown.reading_score}/35</span></div>
-            <div className="h-1.5 bg-slate-800 rounded-full"><div className="h-full bg-amber-400 rounded-full transition-all duration-1000" style={{width: `${(breakdown.reading_score/35)*100}%`}}></div></div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-slate-300 font-medium">Reading Literacy</span>
+              <span className="text-amber-400 font-bold">{breakdown.reading_score}/{breakdown.reading_max || 33}</span>
+            </div>
+            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-amber-400 rounded-full transition-all duration-1000" style={{width: `${Math.min(100, Math.round((breakdown.reading_score / (breakdown.reading_max || 33)) * 100))}%`}}></div>
+            </div>
           </div>
+
           <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800">
-            <div className="flex justify-between text-xs mb-1"><span className="text-slate-300">Comprehension</span><span className="text-blue-400">{breakdown.comprehension_score}/35</span></div>
-            <div className="h-1.5 bg-slate-800 rounded-full"><div className="h-full bg-blue-400 rounded-full transition-all duration-1000" style={{width: `${(breakdown.comprehension_score/35)*100}%`}}></div></div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-slate-300 font-medium">Writing & Spelling</span>
+              <span className="text-blue-400 font-bold">{breakdown.writing_score}/{breakdown.writing_max || 33}</span>
+            </div>
+            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-400 rounded-full transition-all duration-1000" style={{width: `${Math.min(100, Math.round((breakdown.writing_score / (breakdown.writing_max || 33)) * 100))}%`}}></div>
+            </div>
           </div>
+
           <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800">
-            <div className="flex justify-between text-xs mb-1"><span className="text-slate-300">Voice</span><span className="text-emerald-400">{breakdown.voice_score}/30</span></div>
-            <div className="h-1.5 bg-slate-800 rounded-full"><div className="h-full bg-emerald-400 rounded-full transition-all duration-1000" style={{width: `${(breakdown.voice_score/30)*100}%`}}></div></div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-slate-300 font-medium">Voice Pronunciation</span>
+              <span className="text-emerald-400 font-bold">{breakdown.voice_score}/{breakdown.voice_max || 34}</span>
+            </div>
+            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-400 rounded-full transition-all duration-1000" style={{width: `${Math.min(100, Math.round((breakdown.voice_score / (breakdown.voice_max || 34)) * 100))}%`}}></div>
+            </div>
           </div>
         </div>
       </div>

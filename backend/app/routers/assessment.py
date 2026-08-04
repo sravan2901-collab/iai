@@ -744,8 +744,24 @@ def submit_initial_assessment(
             "is_correct": is_q_correct
         })
 
-    total_questions = len(payload.answers) if payload.answers else len(questions_list)
-    total_score = min(100, round((correct_count / max(1, total_questions)) * 100))
+    read_correct = sum(1 for v in validated_details if v["skill_type"] == "READ" and v["is_correct"])
+    write_correct = sum(1 for v in validated_details if v["skill_type"] == "WRITE" and v["is_correct"])
+    speak_correct = sum(1 for v in validated_details if v["skill_type"] == "SPEAK" and v["is_correct"])
+
+    reading_score = min(33, read_correct * 11)
+    writing_score = min(33, write_correct * 11)
+    voice_score = 34 if speak_correct == 3 else (speak_correct * 11)
+
+    total_score = reading_score + writing_score + voice_score
+
+    skill_breakdown = {
+        "reading_score": reading_score,
+        "reading_max": 33,
+        "writing_score": writing_score,
+        "writing_max": 33,
+        "voice_score": voice_score,
+        "voice_max": 34
+    }
 
     proficiency_level = "FOUNDATIONAL"
     if total_score >= 75:
@@ -768,8 +784,9 @@ def submit_initial_assessment(
         "status": "success",
         "total_score": total_score,
         "correct_answers": correct_count,
-        "total_questions": total_questions,
+        "total_questions": len(payload.answers) if payload.answers else len(questions_list),
         "proficiency_level": proficiency_level,
+        "skill_breakdown": skill_breakdown,
         "learning_path": learning_path_recommendation,
         "validated_details": validated_details
     }
