@@ -438,15 +438,59 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
     completed_path_count = sum(1 for pl in all_path_lessons if pl.status == "COMPLETED")
     
     path.completion_percentage = round((completed_path_count / total_path_count) * 100.0, 1) if total_path_count > 0 else 0.0
-
     db.commit()
+
+    # Step 3.2: Milestone Completion & Unlock Logic + Score Re-evaluation
+    is_milestone_completed = (completed_mod_count == total_mod_count and total_mod_count > 0)
+    
+    if is_milestone_completed:
+        if prog:
+            prog.completion_percent = 100.0
+
+        # Unlock next milestone's lessons
+        uncompleted_path_lessons = db.query(models.PathLesson).filter(
+            models.PathLesson.path_id == path.path_id,
+            models.PathLesson.status == "LOCKED"
+        ).order_by(models.PathLesson.sequence_no).all()
+
+        if uncompleted_path_lessons:
+            uncompleted_path_lessons[0].status = "UNLOCKED"
+            if len(uncompleted_path_lessons) > 1 and uncompleted_path_lessons[1].lesson.module_id == uncompleted_path_lessons[0].lesson.module_id:
+                uncompleted_path_lessons[1].status = "UNLOCKED"
+            db.commit()
+
+        # Re-evaluate learner scores (PronunciationScore & LearnerProfile)
+        profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == learner_id).first()
+        if profile:
+            recent_scores = db.query(models.PronunciationScore).join(models.VoiceSession).filter(
+                models.VoiceSession.learner_id == learner_id
+            ).order_by(models.PronunciationScore.score_id.desc()).limit(5).all()
+
+            if recent_scores:
+                avg_voice = sum(s.overall_score for s in recent_scores) / len(recent_scores)
+                profile.voice_pct = round(avg_voice, 1)
+
+            # Update LearningPath.current_level and LearnerProfile.literacy_level upon progression
+            if path.completion_percentage >= 50.0 or (profile.reading_pct >= 75 and profile.comprehension_pct >= 75 and profile.voice_pct >= 75):
+                if profile.literacy_level == "FOUNDATIONAL":
+                    profile.literacy_level = "FUNCTIONAL"
+                    path.current_level = "FUNCTIONAL"
+                    path.target_proficiency = "FUNCTIONAL"
+                elif profile.literacy_level == "FUNCTIONAL":
+                    profile.literacy_level = "PROFICIENT"
+                    path.current_level = "PROFICIENT"
+                    path.target_proficiency = "PROFICIENT"
+            
+            db.commit()
 
     return {
         "path_id": path.path_id,
         "lesson_id": lesson_id,
         "status": "COMPLETED",
+        "milestone_completed": is_milestone_completed,
         "module_completion_pct": module_completion_pct,
-        "path_completion_pct": path.completion_percentage
+        "path_completion_pct": path.completion_percentage,
+        "current_level": path.current_level
     }
 
 @router.patch("/lesson/{path_lesson_id}/status")
