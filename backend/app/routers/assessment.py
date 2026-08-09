@@ -825,6 +825,26 @@ def submit_initial_assessment(
         if "id" in q:
             question_map[q["id"]] = q
 
+    # 1. Obtain Learner ID (from DB or default 1)
+    learner_obj = db.query(models.Learner).first()
+    learner_id = learner_obj.learner_id if learner_obj else 1
+
+    # 2. Find or create Diagnostic Assessment DB record
+    assessment_obj = db.query(models.Assessment).filter(
+        models.Assessment.assessment_type == "DIAGNOSTIC",
+        models.Assessment.title == f"Diagnostic Placement Test ({lang_code.upper()})"
+    ).first()
+
+    if not assessment_obj:
+        assessment_obj = models.Assessment(
+            assessment_type="DIAGNOSTIC",
+            title=f"Diagnostic Placement Test ({lang_code.upper()})",
+            total_marks=100
+        )
+        db.add(assessment_obj)
+        db.commit()
+        db.refresh(assessment_obj)
+
     correct_count = 0
     validated_details = []
 
@@ -891,7 +911,45 @@ def submit_initial_assessment(
         if is_q_correct:
             correct_count += 1
 
+        # 3. Find or create AssessmentQuestion row in DB
+        db_q = None
+        if q_def:
+            db_q = db.query(models.AssessmentQuestion).filter(
+                models.AssessmentQuestion.assessment_id == assessment_obj.assessment_id,
+                models.AssessmentQuestion.question_text == q_def.get("question_text")
+            ).first()
+
+            if not db_q:
+                import json
+                db_q = models.AssessmentQuestion(
+                    assessment_id=assessment_obj.assessment_id,
+                    question_text=q_def.get("question_text", ""),
+                    question_type=q_def.get("skill_type", "READ"),
+                    options_json=json.dumps(q_def.get("options", [])) if q_def.get("options") else None,
+                    correct_answer=correct_answer_str
+                )
+                db.add(db_q)
+                db.commit()
+                db.refresh(db_q)
+
+        # 4. Write individual question result to AssessmentResult table
+        q_score = 12.0 if (idx == 8 and is_q_correct) else (11.0 if is_q_correct else 0.0)
+
+        result_row = models.AssessmentResult(
+            learner_id=learner_id,
+            assessment_id=assessment_obj.assessment_id,
+            question_id=db_q.question_id if db_q else None,
+            score=q_score,
+            is_correct=is_q_correct,
+            user_answer=user_answer_str,
+            attempt_no=1
+        )
+        db.add(result_row)
+        db.flush()
+
         validated_details.append({
+            "result_id": result_row.result_id,
+            "db_question_id": db_q.question_id if db_q else None,
             "question_id": q_id,
             "stage": q_def.get("stage", idx + 1) if q_def else (idx + 1),
             "difficulty": q_def.get("difficulty", idx + 1) if q_def else (idx + 1),
@@ -902,6 +960,8 @@ def submit_initial_assessment(
             "correct_answer": correct_answer_str,
             "is_correct": is_q_correct
         })
+
+    db.commit()
 
     read_correct = sum(1 for v in validated_details if v["skill_type"] == "READ" and v["is_correct"])
     write_correct = sum(1 for v in validated_details if v["skill_type"] == "WRITE" and v["is_correct"])

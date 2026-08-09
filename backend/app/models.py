@@ -149,14 +149,19 @@ class AssessmentResult(Base):
     result_id = Column(Integer, primary_key=True, index=True)
     learner_id = Column(Integer, ForeignKey("learner.learner_id", ondelete="CASCADE"), nullable=False)
     assessment_id = Column(Integer, ForeignKey("assessment.assessment_id", ondelete="CASCADE"), nullable=False)
-    benchmark_id = Column(Integer, ForeignKey("proficiency_benchmark.benchmark_id"))
+    question_id = Column(Integer, ForeignKey("assessment_question.question_id", ondelete="SET NULL"), nullable=True)
+    benchmark_id = Column(Integer, ForeignKey("proficiency_benchmark.benchmark_id"), nullable=True)
     score = Column(Float, nullable=False)
+    is_correct = Column(Boolean, nullable=True, default=False)
+    user_answer = Column(Text, nullable=True)
     attempt_no = Column(Integer, default=1)
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
     
     learner = relationship("Learner", back_populates="assessment_results")
     assessment = relationship("Assessment", back_populates="results")
     benchmark = relationship("ProficiencyBenchmark", back_populates="results")
+    question = relationship("AssessmentQuestion")
+
 
 # 11. LEARNING_PATH
 class LearningPath(Base):
