@@ -832,32 +832,54 @@ def submit_initial_assessment(
         q_id = ans.stage or (idx + 1)
         q_def = question_map.get(q_id) or (questions_list[idx] if idx < len(questions_list) else None)
 
-        is_q_correct = False
+        user_answer_str = "No Answer Submitted"
+        correct_answer_str = ""
 
         if q_def:
             skill_type = q_def.get("skill_type", "READ")
 
             if skill_type == "READ":
                 selected = (ans.selected_option_id or "").strip().lower()
+                user_opt = next((opt for opt in q_def.get("options", []) if opt.get("id", "").strip().lower() == selected), None)
+                if user_opt:
+                    user_answer_str = f"Option {user_opt.get('id', '').upper()}: {user_opt.get('text', '')}"
+                elif ans.selected_option_id:
+                    user_answer_str = f"Option {ans.selected_option_id.upper()}"
+
                 correct_opt = next((opt for opt in q_def.get("options", []) if opt.get("is_correct")), None)
+                if correct_opt:
+                    correct_answer_str = f"Option {correct_opt.get('id', '').upper()}: {correct_opt.get('text', '')}"
+
                 if correct_opt and selected == correct_opt.get("id", "").strip().lower():
                     is_q_correct = True
 
             elif skill_type == "WRITE":
-                written = (ans.written_text or "").strip().lower()
-                accepted_list = [a.strip().lower() for a in q_def.get("accepted_answers", [])]
-                if written and written in accepted_list:
+                written = (ans.written_text or "").strip()
+                if len(written) > 0:
+                    user_answer_str = written
+
+                accepted_list = q_def.get("accepted_answers", [])
+                correct_answer_str = ", ".join(accepted_list) if accepted_list else ""
+
+                if written and written.lower() in [a.strip().lower() for a in accepted_list]:
                     is_q_correct = True
 
             elif skill_type == "SPEAK":
-                spoken = (ans.spoken_text or "").strip().lower()
-                target = (q_def.get("target_text") or "").strip().lower()
+                spoken = (ans.spoken_text or "").strip()
+                if len(spoken) > 0:
+                    user_answer_str = spoken
+                else:
+                    user_answer_str = "No Voice Speech Captured"
+
+                target = (q_def.get("target_text") or "").strip()
+                correct_answer_str = target
+
                 if not spoken or len(spoken) == 0:
                     is_q_correct = False
                 else:
                     import re
-                    target_words = [re.sub(r'[^\w]', '', w) for w in target.split() if len(re.sub(r'[^\w]', '', w)) > 1]
-                    spoken_words = [re.sub(r'[^\w]', '', w) for w in spoken.split() if len(re.sub(r'[^\w]', '', w)) > 1]
+                    target_words = [re.sub(r'[^\w]', '', w) for w in target.lower().split() if len(re.sub(r'[^\w]', '', w)) > 1]
+                    spoken_words = [re.sub(r'[^\w]', '', w) for w in spoken.lower().split() if len(re.sub(r'[^\w]', '', w)) > 1]
                     target_set = set(target_words)
                     matching_words = [w for w in spoken_words if w in target_set]
                     is_q_correct = len(target_words) > 0 and (len(matching_words) / len(target_words)) >= 0.5
@@ -870,7 +892,13 @@ def submit_initial_assessment(
 
         validated_details.append({
             "question_id": q_id,
-            "skill_type": q_def.get("skill_type") if q_def else "READ",
+            "stage": q_def.get("stage", idx + 1) if q_def else (idx + 1),
+            "difficulty": q_def.get("difficulty", idx + 1) if q_def else (idx + 1),
+            "skill_type": q_def.get("skill_type", "READ") if q_def else "READ",
+            "question_title": q_def.get("question_title", f"Question {idx+1}/9") if q_def else f"Question {idx+1}/9",
+            "question_text": q_def.get("question_text", "") if q_def else "",
+            "user_answer": user_answer_str,
+            "correct_answer": correct_answer_str,
             "is_correct": is_q_correct
         })
 

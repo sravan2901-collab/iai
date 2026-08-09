@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Compass, Sparkles, Lock, Play, Check, CheckCircle, ArrowRight, BookOpen, RefreshCw, Globe } from 'lucide-react';
+import { Compass, Sparkles, Lock, Play, Check, CheckCircle, XCircle, ArrowRight, BookOpen, RefreshCw, Globe, HelpCircle } from 'lucide-react';
 import { apiRequest } from '../services/api';
 
 export default function LearningPath({ assessmentResult, onSelectLesson, onRetakeAssessment, selectedLang = 'en' }) {
@@ -210,6 +210,77 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
           </div>
         </div>
       </div>
+
+      {/* 2. Detailed Diagnostic Question & Answer Review Section */}
+      {assessmentResult?.validated_details && assessmentResult.validated_details.length > 0 && (
+        <div className="glass-panel rounded-2xl p-6 md:p-8 space-y-6 border border-slate-700/60 bg-slate-900/90 shadow-xl text-left">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-4">
+            <div>
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <CheckCircle className="text-emerald-400" size={22} />
+                Diagnostic Question & Correct Answer Review
+              </h3>
+              <p className="text-xs text-slate-300">Complete performance breakdown showing questions, your submitted answers, and correct answers.</p>
+            </div>
+            <span className="text-xs font-bold px-3.5 py-1.5 bg-emerald-500/20 text-emerald-300 rounded-full border border-emerald-500/30 self-start sm:self-auto">
+              {assessmentResult.correct_answers || 0} / {assessmentResult.total_questions || 9} Correct
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {assessmentResult.validated_details.map((item, index) => {
+              const isOk = item.is_correct;
+              const skillBadgeColor = item.skill_type === 'READ' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : (item.skill_type === 'WRITE' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30');
+
+              return (
+                <div 
+                  key={index} 
+                  className={`p-4 md:p-5 rounded-xl border ${isOk ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-rose-500/40 bg-rose-950/20'} space-y-3 transition-all shadow-md`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/40 pb-2.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded border border-slate-700">
+                        Q{item.question_id || (index + 1)}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${skillBadgeColor}`}>
+                        {item.skill_type}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-100">{item.question_title || `Question ${index + 1}`}</h4>
+                    </div>
+
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1.5 self-start sm:self-auto ${isOk ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'}`}>
+                      {isOk ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                      <span>{isOk ? '✓ Correct' : '✗ Incorrect'}</span>
+                    </span>
+                  </div>
+
+                  {item.question_text && (
+                    <p className="text-xs md:text-sm text-slate-200 font-semibold bg-slate-900/80 p-3 rounded-lg border border-slate-800 whitespace-pre-line leading-relaxed">
+                      {item.question_text}
+                    </p>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
+                    <div className="bg-slate-900/90 p-3 rounded-lg border border-slate-800 space-y-1">
+                      <span className="text-slate-400 font-medium block">Your Submitted Answer:</span>
+                      <span className={`font-bold text-sm block ${isOk ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {item.user_answer || "No Answer Submitted"}
+                      </span>
+                    </div>
+
+                    <div className="bg-emerald-950/40 p-3 rounded-lg border border-emerald-500/30 space-y-1">
+                      <span className="text-emerald-300 font-medium block">Correct Answer:</span>
+                      <span className="font-bold text-sm text-emerald-200 block">
+                        {item.correct_answer || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 2. Overall Progress Bar */}
       <div className="space-y-2 px-2">
