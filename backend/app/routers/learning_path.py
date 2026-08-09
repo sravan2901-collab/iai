@@ -144,12 +144,30 @@ LANGUAGE_CONTENT = {
 
 @router.get("/active")
 def get_active_learning_path(
-    lang: Optional[str] = Query("en"),
+    lang: Optional[str] = Query(None),
     current_learner: Optional[models.Learner] = Depends(get_optional_current_learner),
     db: Session = Depends(get_db)
 ):
-    target_lang = lang if lang in LANGUAGE_CONTENT else "en"
-    content = LANGUAGE_CONTENT[target_lang]
+    # Step 1.3: Filter content by learner's current_lang_id language preference
+    target_lang = None
+
+    if lang and lang in LANGUAGE_CONTENT:
+        target_lang = lang
+
+    if not target_lang and current_learner and current_learner.current_lang_id:
+        learner_lang = db.query(models.Language).filter(models.Language.lang_id == current_learner.current_lang_id).first()
+        if learner_lang and learner_lang.iso_code in LANGUAGE_CONTENT:
+            target_lang = learner_lang.iso_code
+
+    if not target_lang:
+        first_learner = db.query(models.Learner).first()
+        if first_learner and first_learner.current_lang_id:
+            l_lang = db.query(models.Language).filter(models.Language.lang_id == first_learner.current_lang_id).first()
+            if l_lang and l_lang.iso_code in LANGUAGE_CONTENT:
+                target_lang = l_lang.iso_code
+
+    target_lang = target_lang or "en"
+    content = LANGUAGE_CONTENT.get(target_lang, LANGUAGE_CONTENT["en"])
 
     if current_learner:
         path = db.query(models.LearningPath).filter(models.LearningPath.learner_id == current_learner.learner_id).first()
@@ -159,8 +177,8 @@ def get_active_learning_path(
                 "learner_id": current_learner.learner_id,
                 "target_lang": target_lang,
                 "title": content["path_title"],
-                "current_tier": path.current_tier or "FOUNDATIONAL",
-                "completion_percentage": path.completion_percentage or 35.0,
+                "current_tier": getattr(path, 'current_tier', 'FOUNDATIONAL') or "FOUNDATIONAL",
+                "completion_percentage": getattr(path, 'completion_percentage', 35.0) or 35.0,
                 "milestones": content["milestones"]
             }
 

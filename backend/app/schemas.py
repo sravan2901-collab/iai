@@ -10,6 +10,7 @@ class LearnerRegister(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     native_lang_id: Optional[int] = 1
+    selected_lang: Optional[str] = "en"
 
 class LearnerLogin(BaseModel):
     email: str

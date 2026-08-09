@@ -44,12 +44,19 @@ def register_learner(payload: schemas.LearnerRegister, db: Session = Depends(get
     if existing_user:
         raise HTTPException(status_code=400, detail="Username is already taken.")
 
+    # Resolve Language Preference for current_lang_id (Step 1.3)
+    target_code = (getattr(payload, 'selected_lang', None) or 'en').lower()
+    lang_record = db.query(models.Language).filter(
+        (models.Language.iso_code == target_code) | (models.Language.lang_id == payload.native_lang_id)
+    ).first()
+    chosen_lang_id = lang_record.lang_id if lang_record else 1
+
     # Create Learner
     new_learner = models.Learner(
         email=clean_email,
         username=clean_username,
         password_hash=get_password_hash(payload.password),
-        current_lang_id=payload.native_lang_id or 1,
+        current_lang_id=chosen_lang_id,
         is_email_verified=True
     )
     db.add(new_learner)

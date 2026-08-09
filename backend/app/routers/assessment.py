@@ -4,6 +4,7 @@ from app.database import get_db
 from app import models, schemas
 from typing import List, Optional
 from pydantic import BaseModel
+from app.auth import get_optional_current_learner
 
 router = APIRouter(prefix="/api/assessment", tags=["Generic Initial Assessment & Learning Path Generation"])
 
@@ -816,6 +817,7 @@ class AssessmentSubmission(BaseModel):
 @router.post("/submit")
 def submit_initial_assessment(
     payload: AssessmentSubmission,
+    current_learner: Optional[models.Learner] = Depends(get_optional_current_learner),
     db: Session = Depends(get_db)
 ):
     lang_code = (payload.lang or "en").lower()
@@ -825,9 +827,14 @@ def submit_initial_assessment(
         if "id" in q:
             question_map[q["id"]] = q
 
-    # 1. Obtain Learner ID (from DB or default 1)
-    learner_obj = db.query(models.Learner).first()
+    # 1. Obtain Learner (from auth context or DB fallback) & Update current_lang_id (Step 1.3)
+    learner_obj = current_learner or db.query(models.Learner).first()
     learner_id = learner_obj.learner_id if learner_obj else 1
+
+    lang_record = db.query(models.Language).filter(models.Language.iso_code == lang_code).first()
+    if lang_record and learner_obj:
+        learner_obj.current_lang_id = lang_record.lang_id
+        db.commit()
 
     # 2. Find or create Diagnostic Assessment DB record
     assessment_obj = db.query(models.Assessment).filter(

@@ -30,7 +30,33 @@ def ensure_schema_migrations():
     except Exception as e:
         print(f"[DB MIGRATION NOTICE] Auto-migration skipped or failed: {e}")
 
+def seed_languages():
+    try:
+        from app.database import SessionLocal
+        from app import models
+        db = SessionLocal()
+        supported = [
+            {"iso_code": "en", "lang_name": "English"},
+            {"iso_code": "te", "lang_name": "Telugu (తెలుగు)"},
+            {"iso_code": "hi", "lang_name": "Hindi (हिन्दी)"},
+            {"iso_code": "ta", "lang_name": "Tamil (தமிழ்)"},
+            {"iso_code": "bn", "lang_name": "Bengali (বাংলা)"},
+            {"iso_code": "mr", "lang_name": "Marathi (मराठी)"},
+            {"iso_code": "kn", "lang_name": "Kannada (ಕನ್ನಡ)"},
+            {"iso_code": "es", "lang_name": "Spanish (Español)"}
+        ]
+        for item in supported:
+            existing = db.query(models.Language).filter(models.Language.iso_code == item["iso_code"]).first()
+            if not existing:
+                new_lang = models.Language(iso_code=item["iso_code"], lang_name=item["lang_name"])
+                db.add(new_lang)
+        db.commit()
+        db.close()
+    except Exception as e:
+        print(f"[SEED LANGUAGES NOTICE] Could not seed languages: {e}")
+
 ensure_schema_migrations()
+seed_languages()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
