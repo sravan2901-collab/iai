@@ -832,6 +832,7 @@ def submit_initial_assessment(
         q_id = ans.stage or (idx + 1)
         q_def = question_map.get(q_id) or (questions_list[idx] if idx < len(questions_list) else None)
 
+        is_q_correct = False
         user_answer_str = "No Answer Submitted"
         correct_answer_str = ""
 
