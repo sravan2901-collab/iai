@@ -372,6 +372,61 @@ async def generate_path(
         
     return path_data
 
+def trigger_adaptive_replanning(learner_id: int, path: models.LearningPath, db: Session):
+    profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == learner_id).first()
+    if not profile:
+        return False, "No profile found"
+
+    # Step 3.3: Recalculate reading_pct, comprehension_pct, voice_pct from recent scores
+    recent_voice = db.query(models.PronunciationScore).join(models.VoiceSession).filter(
+        models.VoiceSession.learner_id == learner_id
+    ).order_by(models.PronunciationScore.score_id.desc()).limit(5).all()
+
+    if recent_voice:
+        profile.voice_pct = round(sum(s.overall_score for s in recent_voice) / len(recent_voice), 1)
+
+    r_pct = profile.reading_pct or 0.0
+    c_pct = profile.comprehension_pct or 0.0
+    v_pct = profile.voice_pct or 0.0
+
+    skills = {"READING": r_pct, "COMPREHENSION": c_pct, "VOICE": v_pct}
+    new_weakest_skill = min(skills, key=skills.get)
+    new_weakest_score = skills[new_weakest_skill]
+
+    if new_weakest_skill == "READING":
+        skill_keywords = ["READING", "Phonics", "Alphabet", "Greetings"]
+    elif new_weakest_skill == "COMPREHENSION":
+        skill_keywords = ["COMPREHENSION", "ATM", "Banking", "Health", "Prescription", "Digital"]
+    else:
+        skill_keywords = ["VOICE", "Workplace", "Customer Service", "Dialogue"]
+
+    locked_path_lessons = db.query(models.PathLesson).filter(
+        models.PathLesson.path_id == path.path_id,
+        models.PathLesson.status == "LOCKED"
+    ).all()
+
+    if not locked_path_lessons:
+        return False, "No locked lessons to re-order"
+
+    def is_weak_module(pl):
+        m = pl.lesson.module
+        m_skill = (m.skill_type or "").upper()
+        m_name = (m.module_name or "").upper()
+        return any(k.upper() in m_skill or k.upper() in m_name for k in skill_keywords)
+
+    weak_locked = [pl for pl in locked_path_lessons if is_weak_module(pl)]
+    other_locked = [pl for pl in locked_path_lessons if not is_weak_module(pl)]
+    reordered_locked = weak_locked + other_locked
+
+    base_seq = min(pl.sequence_no for pl in locked_path_lessons)
+    for idx, pl in enumerate(reordered_locked):
+        pl.sequence_no = base_seq + idx
+
+    db.commit()
+
+    reason = f"Adaptive Re-Planning Triggered! Recent performance update: {new_weakest_skill} is now lowest ({new_weakest_score}%). Re-ordered upcoming locked lessons to prioritize {new_weakest_skill} mastery."
+    return True, reason
+
 def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: Session):
     lesson = db.query(models.Lesson).filter(models.Lesson.lesson_id == lesson_id).first()
     if not lesson:
@@ -447,7 +502,6 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
         if prog:
             prog.completion_percent = 100.0
 
-        # Unlock next milestone's lessons
         uncompleted_path_lessons = db.query(models.PathLesson).filter(
             models.PathLesson.path_id == path.path_id,
             models.PathLesson.status == "LOCKED"
@@ -459,7 +513,6 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
                 uncompleted_path_lessons[1].status = "UNLOCKED"
             db.commit()
 
-        # Re-evaluate learner scores (PronunciationScore & LearnerProfile)
         profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == learner_id).first()
         if profile:
             recent_scores = db.query(models.PronunciationScore).join(models.VoiceSession).filter(
@@ -470,7 +523,6 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
                 avg_voice = sum(s.overall_score for s in recent_scores) / len(recent_scores)
                 profile.voice_pct = round(avg_voice, 1)
 
-            # Update LearningPath.current_level and LearnerProfile.literacy_level upon progression
             if path.completion_percentage >= 50.0 or (profile.reading_pct >= 75 and profile.comprehension_pct >= 75 and profile.voice_pct >= 75):
                 if profile.literacy_level == "FOUNDATIONAL":
                     profile.literacy_level = "FUNCTIONAL"
@@ -483,6 +535,12 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
             
             db.commit()
 
+    # Step 3.3: Re-Planning Trigger (After every 3 completed lessons OR module completion)
+    replanned = False
+    replan_reason = ""
+    if completed_path_count % 3 == 0 or is_milestone_completed:
+        replanned, replan_reason = trigger_adaptive_replanning(learner_id, path, db)
+
     return {
         "path_id": path.path_id,
         "lesson_id": lesson_id,
@@ -490,7 +548,9 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
         "milestone_completed": is_milestone_completed,
         "module_completion_pct": module_completion_pct,
         "path_completion_pct": path.completion_percentage,
-        "current_level": path.current_level
+        "current_level": path.current_level,
+        "replanned": replanned,
+        "replan_reason": replan_reason
     }
 
 @router.patch("/lesson/{path_lesson_id}/status")
