@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "mock_sarvam_api_key")
     SARVAM_STT_ENDPOINT: str = "https://api.sarvam.ai/speech-to-text"
     SARVAM_TTS_ENDPOINT: str = "https://api.sarvam.ai/text-to-speech"
+    SARVAM_TRANSLATE_ENDPOINT: str = "https://api.sarvam.ai/translate"
 
     # SMTP Email Configuration
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")

@@ -42,7 +42,7 @@ def seed_languages():
             {"iso_code": "ta", "lang_name": "Tamil (தமிழ்)"},
             {"iso_code": "bn", "lang_name": "Bengali (বাংলা)"},
             {"iso_code": "mr", "lang_name": "Marathi (मराठी)"},
-            {"iso_code": "kn", "lang_name": "Kannada (ಕನ್ನಡ)"},
+            {"iso_code": "kn", "lang_name": "Kannada (కನ್ನಡ)"},
             {"iso_code": "es", "lang_name": "Spanish (Español)"}
         ]
         for item in supported:
@@ -55,8 +55,122 @@ def seed_languages():
     except Exception as e:
         print(f"[SEED LANGUAGES NOTICE] Could not seed languages: {e}")
 
+def seed_curriculum_data():
+    try:
+        from app.database import SessionLocal
+        from app import models
+        db = SessionLocal()
+
+        languages = db.query(models.Language).all()
+        for lang in languages:
+            for level in ["FOUNDATIONAL", "FUNCTIONAL", "PROFICIENT"]:
+                curriculum = db.query(models.Curriculum).filter(
+                    models.Curriculum.lang_id == lang.lang_id,
+                    models.Curriculum.level == level
+                ).first()
+
+                if not curriculum:
+                    curriculum = models.Curriculum(
+                        lang_id=lang.lang_id,
+                        title=f"{lang.lang_name} - {level} Literacy Curriculum",
+                        level=level,
+                        description=f"Comprehensive {level} literacy curriculum for {lang.lang_name}"
+                    )
+                    db.add(curriculum)
+                    db.commit()
+                    db.refresh(curriculum)
+
+                # Seed Modules for this Curriculum if empty
+                m_count = db.query(models.Module).filter(models.Module.curriculum_id == curriculum.curriculum_id).count()
+                if m_count == 0:
+                    m1 = models.Module(
+                        curriculum_id=curriculum.curriculum_id,
+                        module_name="Alphabets & Phonics and Everyday Greetings",
+                        sequence_no=1,
+                        skill_type="READING"
+                    )
+                    m2 = models.Module(
+                        curriculum_id=curriculum.curriculum_id,
+                        module_name="ATM & Banking, Health & Prescription, Digital Payment",
+                        sequence_no=2,
+                        skill_type="COMPREHENSION"
+                    )
+                    m3 = models.Module(
+                        curriculum_id=curriculum.curriculum_id,
+                        module_name="Workplace Communication & Customer Service Dialogue",
+                        sequence_no=3,
+                        skill_type="VOICE"
+                    )
+                    db.add_all([m1, m2, m3])
+                    db.commit()
+                    db.refresh(m1)
+                    db.refresh(m2)
+                    db.refresh(m3)
+
+                    # Seed Lessons for Module 1 (Phonics & Greetings)
+                    l1 = models.Lesson(
+                        module_id=m1.module_id,
+                        title="Alphabets & Phonics Fundamentals",
+                        content_type="READING",
+                        target_text="A B C D E F G",
+                        difficulty_level="FOUNDATIONAL"
+                    )
+                    l2 = models.Lesson(
+                        module_id=m1.module_id,
+                        title="Everyday Greetings & Basic Vocabulary",
+                        content_type="READING",
+                        target_text="Hello, Good Morning, Thank You",
+                        difficulty_level="FOUNDATIONAL"
+                    )
+
+                    # Seed Lessons for Module 2 (Banking, Health & Payment)
+                    l3 = models.Lesson(
+                        module_id=m2.module_id,
+                        title="ATM & Banking Functional Reading",
+                        content_type="COMPREHENSION",
+                        target_text="Withdraw cash, enter PIN, check balance",
+                        difficulty_level="FUNCTIONAL"
+                    )
+                    l4 = models.Lesson(
+                        module_id=m2.module_id,
+                        title="Health & Prescription Literacy",
+                        content_type="COMPREHENSION",
+                        target_text="Take 1 tablet after meals twice daily",
+                        difficulty_level="FUNCTIONAL"
+                    )
+                    l5 = models.Lesson(
+                        module_id=m2.module_id,
+                        title="Digital Payment & Receipt Confirmation",
+                        content_type="COMPREHENSION",
+                        target_text="Scan QR code, enter amount, payment successful",
+                        difficulty_level="FUNCTIONAL"
+                    )
+
+                    # Seed Lessons for Module 3 (Workplace & Customer Service)
+                    l6 = models.Lesson(
+                        module_id=m3.module_id,
+                        title="Workplace Communication & Professional Greetings",
+                        content_type="VOICE",
+                        target_text="Good morning team, let us discuss today's objectives clearly",
+                        difficulty_level="PROFICIENT"
+                    )
+                    l7 = models.Lesson(
+                        module_id=m3.module_id,
+                        title="Customer Service Dialogue & Voice Practice",
+                        content_type="VOICE",
+                        target_text="Welcome to our service desk. How may I assist you today?",
+                        difficulty_level="PROFICIENT"
+                    )
+                    db.add_all([l1, l2, l3, l4, l5, l6, l7])
+                    db.commit()
+
+        db.close()
+    except Exception as e:
+        print(f"[SEED CURRICULUM NOTICE] Could not seed curriculum data: {e}")
+
 ensure_schema_migrations()
 seed_languages()
+seed_curriculum_data()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

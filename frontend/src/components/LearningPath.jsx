@@ -211,6 +211,26 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
         </div>
       </div>
 
+      {/* AI Personalization Insight */}
+      {(activePath.personalization_reason || pathData?.personalization_reason) && (
+        <div className="glass-panel rounded-2xl p-4 md:p-5 border border-violet-500/30 bg-gradient-to-r from-violet-950/30 via-slate-900/80 to-indigo-950/30">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0 border border-violet-500/30">
+              <Sparkles className="text-violet-400" size={18} />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-violet-300 flex items-center gap-1.5">
+                <span>AI-Powered Personalization</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-violet-500/20 text-violet-300 rounded border border-violet-500/30">Sarvam AI</span>
+              </h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {activePath.personalization_reason || pathData?.personalization_reason}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 2. Detailed Diagnostic Question & Answer Review Section */}
       {assessmentResult?.validated_details && assessmentResult.validated_details.length > 0 && (
         <div className="glass-panel rounded-2xl p-6 md:p-8 space-y-6 border border-slate-700/60 bg-slate-900/90 shadow-xl text-left">
