@@ -372,6 +372,83 @@ async def generate_path(
         
     return path_data
 
+def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: Session):
+    lesson = db.query(models.Lesson).filter(models.Lesson.lesson_id == lesson_id).first()
+    if not lesson:
+        return None
+
+    module_id = lesson.module_id
+
+    path = db.query(models.LearningPath).filter(models.LearningPath.learner_id == learner_id).first()
+    if not path:
+        return None
+
+    path_lesson = db.query(models.PathLesson).filter(
+        models.PathLesson.path_id == path.path_id,
+        models.PathLesson.lesson_id == lesson_id
+    ).first()
+
+    if path_lesson:
+        path_lesson.status = "COMPLETED"
+        db.commit()
+
+        # Step 3.1: Auto-unlock next lesson in sequence
+        next_lesson = db.query(models.PathLesson).filter(
+            models.PathLesson.path_id == path.path_id,
+            models.PathLesson.sequence_no == path_lesson.sequence_no + 1
+        ).first()
+
+        if next_lesson and next_lesson.status == "LOCKED":
+            next_lesson.status = "UNLOCKED"
+            db.commit()
+
+    # Step 3.1: Milestone completion & ProgressTracking table entry
+    module_lessons = db.query(models.Lesson).filter(models.Lesson.module_id == module_id).all()
+    mod_lesson_ids = [l.lesson_id for l in module_lessons]
+    
+    total_mod_count = len(mod_lesson_ids)
+    completed_mod_count = db.query(models.PathLesson).filter(
+        models.PathLesson.path_id == path.path_id,
+        models.PathLesson.lesson_id.in_(mod_lesson_ids),
+        models.PathLesson.status == "COMPLETED"
+    ).count()
+
+    module_completion_pct = round((completed_mod_count / total_mod_count) * 100.0, 1) if total_mod_count > 0 else 100.0
+
+    prog = db.query(models.ProgressTracking).filter(
+        models.ProgressTracking.learner_id == learner_id,
+        models.ProgressTracking.module_id == module_id
+    ).first()
+
+    if not prog:
+        prog = models.ProgressTracking(
+            learner_id=learner_id,
+            module_id=module_id,
+            completion_percent=module_completion_pct,
+            time_spent_min=10
+        )
+        db.add(prog)
+    else:
+        prog.completion_percent = module_completion_pct
+        prog.time_spent_min = (prog.time_spent_min or 0) + 5
+
+    # Step 3.1: Update overall path completion percentage
+    all_path_lessons = db.query(models.PathLesson).filter(models.PathLesson.path_id == path.path_id).all()
+    total_path_count = len(all_path_lessons)
+    completed_path_count = sum(1 for pl in all_path_lessons if pl.status == "COMPLETED")
+    
+    path.completion_percentage = round((completed_path_count / total_path_count) * 100.0, 1) if total_path_count > 0 else 0.0
+
+    db.commit()
+
+    return {
+        "path_id": path.path_id,
+        "lesson_id": lesson_id,
+        "status": "COMPLETED",
+        "module_completion_pct": module_completion_pct,
+        "path_completion_pct": path.completion_percentage
+    }
+
 @router.patch("/lesson/{path_lesson_id}/status")
 async def update_lesson_status(
     path_lesson_id: int,
@@ -390,16 +467,10 @@ async def update_lesson_status(
     if not path_lesson:
         raise HTTPException(status_code=404, detail="PathLesson not found")
 
-    path_lesson.status = new_status
-    db.commit()
-
     if new_status == "COMPLETED":
-        next_lesson = db.query(models.PathLesson).filter(
-            models.PathLesson.path_id == path_lesson.path_id,
-            models.PathLesson.sequence_no == path_lesson.sequence_no + 1
-        ).first()
-        if next_lesson and next_lesson.status == "LOCKED":
-            next_lesson.status = "UNLOCKED"
-            db.commit()
-            
-    return {"message": "Status updated successfully", "status": new_status}
+        res = complete_lesson_workflow(current_learner.learner_id, path_lesson.lesson_id, 100.0, db)
+        return {"message": "Lesson completed and next lesson unlocked", "status": "COMPLETED", "details": res}
+    else:
+        path_lesson.status = new_status
+        db.commit()
+        return {"message": "Status updated successfully", "status": new_status}

@@ -177,6 +177,7 @@ class LearningPath(Base):
     target_proficiency = Column(String(50), nullable=False)
     generated_on = Column(DateTime(timezone=True), server_default=func.now())
     current_level = Column(String(30), nullable=False)
+    completion_percentage = Column(Float, default=0.0)
     status = Column(String(20), default="ACTIVE")
     
     learner = relationship("Learner", back_populates="learning_paths")
@@ -246,6 +247,7 @@ class ProgressTracking(Base):
     learner_id = Column(Integer, ForeignKey("learner.learner_id", ondelete="CASCADE"), nullable=False)
     module_id = Column(Integer, ForeignKey("module.module_id", ondelete="CASCADE"), nullable=False)
     completion_percent = Column(Float, default=0.0)
+    time_spent_min = Column(Integer, default=0)
     last_activity_date = Column(DateTime(timezone=True), server_default=func.now())
     
     learner = relationship("Learner", back_populates="progress_records")

@@ -64,6 +64,11 @@ async def evaluate_voice_session(
     
     db.commit()
 
+    # Step 3.1: Trigger lesson completion, ProgressTracking entry, and auto-unlock next lesson if passing score >= 50.0
+    if eval_result["overall_score"] >= 50.0:
+        from app.routers.learning_path import complete_lesson_workflow
+        complete_lesson_workflow(learner_id, lesson_id, eval_result["overall_score"], db)
+
     return {
         "session_id": voice_session.session_id,
         "recognized_text": transcribed_text,

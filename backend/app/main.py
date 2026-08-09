@@ -26,6 +26,14 @@ def ensure_schema_migrations():
                 conn.execute(text("ALTER TABLE learner_profile ADD COLUMN comprehension_pct FLOAT DEFAULT 0.0"))
             if profile_cols and "voice_pct" not in profile_cols:
                 conn.execute(text("ALTER TABLE learner_profile ADD COLUMN voice_pct FLOAT DEFAULT 0.0"))
+
+            prog_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(progress_tracking)")).fetchall()]
+            if prog_cols and "time_spent_min" not in prog_cols:
+                conn.execute(text("ALTER TABLE progress_tracking ADD COLUMN time_spent_min INTEGER DEFAULT 0"))
+
+            lp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(learning_path)")).fetchall()]
+            if lp_cols and "completion_percentage" not in lp_cols:
+                conn.execute(text("ALTER TABLE learning_path ADD COLUMN completion_percentage FLOAT DEFAULT 0.0"))
             conn.commit()
     except Exception as e:
         print(f"[DB MIGRATION NOTICE] Auto-migration skipped or failed: {e}")
