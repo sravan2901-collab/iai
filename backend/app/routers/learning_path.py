@@ -14,42 +14,31 @@ LANGUAGE_CONTENT = {
         "path_title": "English Language Literacy Roadmap",
         "milestones": [
             {
-                "id": 1,
-                "milestone_number": 1,
-                "title": "Phonemes & Alphabet Fundamentals",
+                "id": 1, "milestone_number": 1, "title": "Alphabets & Phonics and Everyday Greetings",
                 "description": "Master letter-sound associations, long/short vowels, and consonant blends.",
-                "progress_percentage": 100,
-                "is_completed": True,
-                "status": "COMPLETED",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
                 "lessons": [
-                    {"id": 1, "title": "Vowel Sounds & Phoneme Synthesis", "status": "COMPLETED", "score": 95},
-                    {"id": 2, "title": "Consonant Blends & Syllables", "status": "COMPLETED", "score": 90}
+                    {"id": 1, "title": "Alphabets & Phonics Fundamentals", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "Everyday Greetings & Basic Vocabulary", "status": "COMPLETED", "score": 90}
                 ]
             },
             {
-                "id": 2,
-                "milestone_number": 2,
-                "title": "Vocabulary & Sentence Grammar",
-                "description": "Expand vocabulary, master verb tenses, prefixes, suffixes, and sentence construction.",
-                "progress_percentage": 40,
-                "is_completed": False,
-                "status": "IN_PROGRESS",
+                "id": 2, "milestone_number": 2, "title": "ATM & Banking, Health & Prescription, Digital Payment",
+                "description": "Expand functional vocabulary, master ATM PIN entry, medical prescriptions, and digital transactions.",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
                 "lessons": [
-                    {"id": 3, "title": "Noun-Verb Agreement & Tenses", "status": "COMPLETED", "score": 85},
-                    {"id": 4, "title": "Prefixes, Suffixes & Root Words", "status": "IN_PROGRESS", "score": 0}
+                    {"id": 3, "title": "ATM & Banking Functional Reading", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "Health & Medical Prescription Literacy", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "Digital Payment & Receipt Confirmation", "status": "LOCKED", "score": 0}
                 ]
             },
             {
-                "id": 3,
-                "milestone_number": 3,
-                "title": "Advanced Literary Fluency & Expression",
-                "description": "Comprehend complex literary passages and express thoughts fluently.",
-                "progress_percentage": 0,
-                "is_completed": False,
-                "status": "LOCKED",
+                "id": 3, "milestone_number": 3, "title": "Workplace Communication & Customer Service Dialogue",
+                "description": "Comprehend complex workplace dialogues and express thoughts fluently.",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
                 "lessons": [
-                    {"id": 5, "title": "Prose & Passage Comprehension", "status": "LOCKED", "score": 0},
-                    {"id": 6, "title": "Fluent Speech & Public Articulation", "status": "LOCKED", "score": 0}
+                    {"id": 6, "title": "Workplace Communication & Professional Greetings", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "Customer Service Dialogue & Voice Practice", "status": "LOCKED", "score": 0}
                 ]
             }
         ]
@@ -58,42 +47,31 @@ LANGUAGE_CONTENT = {
         "path_title": "తెలుగు భాషా అక్షరాస్యత కార్యాచరణ సాధన",
         "milestones": [
             {
-                "id": 1,
-                "milestone_number": 1,
-                "title": "అక్షరాలు, వర్ణమాల మరియు గుణింతాలు",
+                "id": 1, "milestone_number": 1, "title": "అక్షరాలు, వర్ణమాల మరియు దైనందిన శుభాకాంక్షలు",
                 "description": "అచ్చులు, హల్లులు, గుణింతపు గుర్తులు మరియు ఒత్తుల ఉచ్చారణలో నైపుణ్యం సాధించండి.",
-                "progress_percentage": 100,
-                "is_completed": True,
-                "status": "COMPLETED",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
                 "lessons": [
-                    {"id": 1, "title": "అచ్చులు మరియు హల్లుల ఉచ్చారణ", "status": "COMPLETED", "score": 95},
-                    {"id": 2, "title": "గుణింతాలు మరియు ఒత్తుల సాధన", "status": "COMPLETED", "score": 90}
+                    {"id": 1, "title": "వర్ణమాల మరియు హల్లుల ఉచ్చారణ", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "దైనందిన సంభాషణ మరియు శుభాకాంక్షలు", "status": "COMPLETED", "score": 90}
                 ]
             },
             {
-                "id": 2,
-                "milestone_number": 2,
-                "title": "పదజాలం, సంధులు మరియు వాక్య నిర్మాణం",
-                "description": "పర్యాయపదాలు, నానార్థాలు, సంధులు మరియు వ్యాకరణ వాక్య నిర్మాణం నేర్చుకోండి.",
-                "progress_percentage": 40,
-                "is_completed": False,
-                "status": "IN_PROGRESS",
+                "id": 2, "milestone_number": 2, "title": "ఏటీఎం బ్యాంకింగ్, వైద్య ప్రిస్క్రిప్షన్ మరియు డిజిటల్ చెల్లింపులు",
+                "description": "ఏటీఎం వాడకం, వైద్య ప్రిస్క్రిప్షన్ పఠనం మరియు డిజిటల్ చెల్లింపుల పరిజ్ఞానం.",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
                 "lessons": [
-                    {"id": 3, "title": "తెలుగు సంధులు మరియు సమాసాలు", "status": "COMPLETED", "score": 85},
-                    {"id": 4, "title": "వాక్య నిర్మాణం మరియు వ్యాకరణం", "status": "IN_PROGRESS", "score": 0}
+                    {"id": 3, "title": "ఏటీఎం మరియు బ్యాంకింగ్ పరిజ్ఞానం", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "వైద్య చికిత్స మరియు ప్రిస్క్రిప్షన్ పఠనం", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "డిజిటల్ చెల్లింపు మరియు రసీదు నిర్ధారణ", "status": "LOCKED", "score": 0}
                 ]
             },
             {
-                "id": 3,
-                "milestone_number": 3,
-                "title": "సాహిత్య గద్య పఠనం మరియు భావ వ్యక్తీకరణ",
-                "description": "ఉన్నత సాహిత్య గద్యాలను చదవడం మరియు అనర్గళంగా మాట్లాడటం.",
-                "progress_percentage": 0,
-                "is_completed": False,
-                "status": "LOCKED",
+                "id": 3, "milestone_number": 3, "title": "కార్యాలయ సంభాషణ మరియు వినియోగదారుల సేవా సంభాషణ",
+                "description": "కార్యాలయ వృత్తిపరమైన సంభాషణ మరియు మాట్లాడే నైపుణ్యం.",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
                 "lessons": [
-                    {"id": 5, "title": "సాహిత్య గద్య పఠనం మరియు అర్థ గ్రహణ", "status": "LOCKED", "score": 0},
-                    {"id": 6, "title": "అనర్గళ భాషా ప్రసంగం", "status": "LOCKED", "score": 0}
+                    {"id": 6, "title": "కార్యాలయ వృత్తిపరమైన మాట్లాడే పరిజ్ఞానం", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "వినియోగదారుల సేవా సంభాషణ సాధన", "status": "LOCKED", "score": 0}
                 ]
             }
         ]
@@ -102,42 +80,196 @@ LANGUAGE_CONTENT = {
         "path_title": "हिन्दी भाषा साक्षरता मार्गदर्शिका",
         "milestones": [
             {
-                "id": 1,
-                "milestone_number": 1,
-                "title": "वर्णमाला, स्वर एवं मात्रा ज्ञान",
+                "id": 1, "milestone_number": 1, "title": "वर्णमाला, स्वर एवं दैनिक अभिवादन",
                 "description": "स्वर, व्यंजन, मात्राएँ एवं वर्ण संयोजन में दक्षता प्राप्त करें।",
-                "progress_percentage": 100,
-                "is_completed": True,
-                "status": "COMPLETED",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
                 "lessons": [
-                    {"id": 1, "title": "स्वर एवं व्यंजन उच्चारण", "status": "COMPLETED", "score": 95},
-                    {"id": 2, "title": "मात्राएँ एवं संयुक्त अक्षर", "status": "COMPLETED", "score": 90}
+                    {"id": 1, "title": "वर्णमाला एवं स्वर उच्चारण", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "दैनिक बातचीत एवं अभिवादन", "status": "COMPLETED", "score": 90}
                 ]
             },
             {
-                "id": 2,
-                "milestone_number": 2,
-                "title": "शब्दावली, संधि एवं वाक्य व्याकरण",
-                "description": "पर्यायवाची, विलोम शब्द, संधि एवं व्याकरणिक वाक्य रचना सीखें।",
-                "progress_percentage": 40,
-                "is_completed": False,
-                "status": "IN_PROGRESS",
+                "id": 2, "milestone_number": 2, "title": "एटीएम बैंकिंग, स्वास्थ्य पर्चा एवं डिजिटल भुगतान",
+                "description": "एटीएम उपयोग, स्वास्थ्य पर्चा वाचन एवं डिजिटल भुगतान ज्ञान।",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
                 "lessons": [
-                    {"id": 3, "title": "हिंदी संधि एवं समास", "status": "COMPLETED", "score": 85},
-                    {"id": 4, "title": "शुद्ध वाक्य रचना एवं व्याकरण", "status": "IN_PROGRESS", "score": 0}
+                    {"id": 3, "title": "एटीएम एवं बैंकिंग साक्षरता", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "चिकित्सा एवं पर्चा वाचन", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "डिजिटल भुगतान एवं रसीद पुष्टि", "status": "LOCKED", "score": 0}
                 ]
             },
             {
-                "id": 3,
-                "milestone_number": 3,
-                "title": "उच्च साहित्यिक वाचन एवं अभिव्यक्ति",
-                "description": "साहित्यिक गद्यांश वाचन और धाराप्रवाह वाचन में दक्षता।",
-                "progress_percentage": 0,
-                "is_completed": False,
-                "status": "LOCKED",
+                "id": 3, "milestone_number": 3, "title": "कार्यस्थल संचार एवं ग्राहक सेवा संवाद",
+                "description": "कार्यस्थल पेशेवर भाषा वाचन और धाराप्रवाह अभिव्यक्ति।",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
                 "lessons": [
-                    {"id": 5, "title": "साहित्यिक गद्यांश वाचन एवं बोध", "status": "LOCKED", "score": 0},
-                    {"id": 6, "title": "धाराप्रवाह भाषा अभिव्यक्ति", "status": "LOCKED", "score": 0}
+                    {"id": 6, "title": "कार्यस्थल पेशेवर भाषा वाचन", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "ग्राहक सेवा संवाद एवं वाचन अभ्यास", "status": "LOCKED", "score": 0}
+                ]
+            }
+        ]
+    },
+    "ta": {
+        "path_title": "தமிழ் மொழி கற்றல் பாதை",
+        "milestones": [
+            {
+                "id": 1, "milestone_number": 1, "title": "எழுத்துக்கள், உச்சரிப்பு மற்றும் அன்றாட வாழ்த்துக்கள்",
+                "description": "எழுத்துக்கள் மற்றும் உச்சரிப்பு பயிற்சி.",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
+                "lessons": [
+                    {"id": 1, "title": "எழுத்துக்கள் மற்றும் உச்சரிப்பு பயிற்சி", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "அன்றாட வாழ்த்துக்கள் மற்றும் சொற்கள்", "status": "COMPLETED", "score": 90}
+                ]
+            },
+            {
+                "id": 2, "milestone_number": 2, "title": "ஏடிஎம் வங்கி, மருத்துவ குறிப்பு மற்றும் டிஜிட்டல் செலுத்தல்",
+                "description": "ஏடிஎம் மற்றும் வங்கி வாசிப்பு அறிவு.",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
+                "lessons": [
+                    {"id": 3, "title": "ஏடிஎம் மற்றும் வங்கி வாசிப்பு", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "மருத்துவ மருந்து சீட்டு வாசிப்பு", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "டிஜிட்டல் பணம் செலுத்துதல் உறுதிப்படுத்தல்", "status": "LOCKED", "score": 0}
+                ]
+            },
+            {
+                "id": 3, "milestone_number": 3, "title": "அலுவலக உரையாடல் மற்றும் வாடிக்கையாளர் சேவை",
+                "description": "அலுவலக தொடர்பு மற்றும் வாடிக்கையாளர் சேவை பயிற்சி.",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
+                "lessons": [
+                    {"id": 6, "title": "அலுவலக தொடர்பு பயிற்சி", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "வாடிக்கையாளர் சேவை பேச்சு பயிற்சி", "status": "LOCKED", "score": 0}
+                ]
+            }
+        ]
+    },
+    "bn": {
+        "path_title": "বাংলা ভাষা সাক্ষরতা পথচিত্র",
+        "milestones": [
+            {
+                "id": 1, "milestone_number": 1, "title": "বর্ণমালা, স্বরধ্বনি এবং দৈনন্দিন সম্ভাষণ",
+                "description": "বর্ণমালা ও মৌলিক উচ্চারণ ধারণা।",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
+                "lessons": [
+                    {"id": 1, "title": "বর্ণমালা ও মৌলিক উচ্চারণ", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "দৈনন্দিন সম্ভাষণ ও পরিচিতি", "status": "COMPLETED", "score": 90}
+                ]
+            },
+            {
+                "id": 2, "milestone_number": 2, "title": "এটিএম ব্যাংকিং, প্রেসক্রিপশন এবং ডিজিটাল পেমেন্ট",
+                "description": "এটিএম ও ব্যাংকিং এবং প্রেসক্রিপশন পঠন।",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
+                "lessons": [
+                    {"id": 3, "title": "এটিএম ও ব্যাংকিং পঠন", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "চিকিৎসা ও প্রেসক্রিপশন পঠন", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "ডিজিটাল পেমেন্ট ও রশিদ নিশ্চিতকরণ", "status": "LOCKED", "score": 0}
+                ]
+            },
+            {
+                "id": 3, "milestone_number": 3, "title": "কর্মক্ষেত্রের কথোপকথন এবং গ্রাহক সেবা বাক্য",
+                "description": "কর্মক্ষেত্রের পেশাদার বাক্য ও বাচন চর্চা।",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
+                "lessons": [
+                    {"id": 6, "title": "কর্মক্ষেত্রের পেশাদার বাক্য অনুশীলন", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "গ্রাহক সেবা বাক্য ও বাচন চর্চা", "status": "LOCKED", "score": 0}
+                ]
+            }
+        ]
+    },
+    "mr": {
+        "path_title": "मराठी भाषा साक्षरता मार्गदर्शिका",
+        "milestones": [
+            {
+                "id": 1, "milestone_number": 1, "title": "वर्णमाला, स्वर व दैनंदिन नमस्कार",
+                "description": "वर्णमाला व मूळाक्षरे उच्चार सराव.",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
+                "lessons": [
+                    {"id": 1, "title": "वर्णमाला व मूळाक्षरे उच्चार", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "दैनंदिन संवाद व नमस्कार", "status": "COMPLETED", "score": 90}
+                ]
+            },
+            {
+                "id": 2, "milestone_number": 2, "title": "एटीएम बँकिंग, औषध चिठ्ठी व डिजिटल पेमेंट",
+                "description": "एटीएम व बँकिंग आणि औषध चिठ्ठी वाचन ज्ञान.",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
+                "lessons": [
+                    {"id": 3, "title": "एटीएम व बँकिंग वाचन", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "आरोग्य व औषध चिठ्ठी वाचन", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "डिजिटल पेमेंट व पावती खात्री", "status": "LOCKED", "score": 0}
+                ]
+            },
+            {
+                "id": 3, "milestone_number": 3, "title": "कामाच्या ठिकाणचा संवाद व ग्राहक सेवा संभाषण",
+                "description": "व्यावसायिक संवाद व ग्राहक सेवा सराव.",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
+                "lessons": [
+                    {"id": 6, "title": "व्यावसायिक संवाद व संभाषण", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "ग्राहक सेवा संभाषण व वाचन सराव", "status": "LOCKED", "score": 0}
+                ]
+            }
+        ]
+    },
+    "kn": {
+        "path_title": "ಕನ್ನಡ ಭಾಷಾ ಸಾಕ್ಷರತಾ ಮಾರ್ಗಸೂಚಿ",
+        "milestones": [
+            {
+                "id": 1, "milestone_number": 1, "title": "ಅಕ್ಷರಮಾಲೆ, ಸ್ವರಗಳು ಮತ್ತು ದೈನಂದಿನ ಶುಭಾಶಯಗಳು",
+                "description": "ಅಕ್ಷರಮಾಲೆ ಮತ್ತು ಉಚ್ಚಾರಣೆ ಅಭ್ಯಾಸ.",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
+                "lessons": [
+                    {"id": 1, "title": "ಅಕ್ಷರಮಾಲೆ ಮತ್ತು ಉಚ್ಚಾರಣೆ ಅಭ್ಯಾಸ", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "ದೈನಂದಿನ ಶುಭಾಶಯಗಳು ಮತ್ತು ಪದಗಳು", "status": "COMPLETED", "score": 90}
+                ]
+            },
+            {
+                "id": 2, "milestone_number": 2, "title": "ಎಟಿಎಂ ಬ್ಯಾಂಕಿಂಗ್, ವೈದ್ಯಕೀಯ ಚೀಟಿ ಮತ್ತು ಡಿಜಿಟಲ್ ಪಾವತಿ",
+                "description": "ಎಟಿಎಂ ಮತ್ತು ಬ್ಯಾಂಕಿಂಗ್ ಓದುವಿಕೆ ಜ್ಞಾನ.",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
+                "lessons": [
+                    {"id": 3, "title": "ಎಟಿಎಂ ಮತ್ತು ಬ್ಯಾಂಕಿಂಗ್ ಓದುವಿಕೆ", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "ವೈದ್ಯಕೀಯ ಚೀಟಿ ಓದುವಿಕೆ", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "ಡಿಜಿಟಲ್ ಪಾವತಿ ಮತ್ತು ರಶೀದಿ ದೃಢೀಕರಣ", "status": "LOCKED", "score": 0}
+                ]
+            },
+            {
+                "id": 3, "milestone_number": 3, "title": "ಉದ್ಯೋಗಸ್ಥಳದ ಸಂವಹನ ಮತ್ತು ಗ್ರಾಹಕ ಸೇವಾ ಸಂಭಾಷಣೆ",
+                "description": "ವೃತ್ತಿಪರ ಮಾತನಾಡುವ ಅಭ್ಯಾಸ.",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
+                "lessons": [
+                    {"id": 6, "title": "ವೃತ್ತಿಪರ ಮಾತನಾಡುವ ಅಭ್ಯಾಸ", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "ಗ್ರಾಹಕ ಸೇವಾ ಸಂಭಾಷಣೆ ಅಭ್ಯಾಸ", "status": "LOCKED", "score": 0}
+                ]
+            }
+        ]
+    },
+    "es": {
+        "path_title": "Ruta de Alfabetización en Idioma Español",
+        "milestones": [
+            {
+                "id": 1, "milestone_number": 1, "title": "Alfabeto, Fonética y Saludos Cotidianos",
+                "description": "Dominio del alfabeto, asociación de sonidos y saludos cotidianos.",
+                "progress_percentage": 100, "is_completed": True, "status": "COMPLETED",
+                "lessons": [
+                    {"id": 1, "title": "Fundamentos del Alfabeto y Fonética", "status": "COMPLETED", "score": 95},
+                    {"id": 2, "title": "Saludos Cotidianos y Vocabulario Básico", "status": "COMPLETED", "score": 90}
+                ]
+            },
+            {
+                "id": 2, "milestone_number": 2, "title": "Cajero Automático, Salud y Pagos Digitales",
+                "description": "Lectura funcional de cajero automático, recetas médicas y pagos digitales.",
+                "progress_percentage": 40, "is_completed": False, "status": "IN_PROGRESS",
+                "lessons": [
+                    {"id": 3, "title": "Lectura Funcional de Cajero y Banco", "status": "COMPLETED", "score": 85},
+                    {"id": 4, "title": "Lectura de Recetas Médicas", "status": "IN_PROGRESS", "score": 0},
+                    {"id": 5, "title": "Confirmación de Pagos Digitales y Recibos", "status": "LOCKED", "score": 0}
+                ]
+            },
+            {
+                "id": 3, "milestone_number": 3, "title": "Comunicación Laboral y Servicio al Cliente",
+                "description": "Comprensión de diálogos laborales y articulación fluida.",
+                "progress_percentage": 0, "is_completed": False, "status": "LOCKED",
+                "lessons": [
+                    {"id": 6, "title": "Comunicación Profesional en el Trabajo", "status": "LOCKED", "score": 0},
+                    {"id": 7, "title": "Diálogo de Servicio al Cliente y Práctica de Voz", "status": "LOCKED", "score": 0}
                 ]
             }
         ]
