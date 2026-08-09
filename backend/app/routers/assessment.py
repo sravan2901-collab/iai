@@ -656,6 +656,136 @@ LANGUAGE_BENCHMARKS = {
                 "competencies": ["साहित्यिक बोध", "धाराप्रवाह अभिव्यक्ति", "प्रौढ़ शब्द प्रयोग"]
             }
         ]
+    },
+    "ta": {
+        "language_name": "தமிழ் (Tamil)",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 மதிப்பெண்கள்",
+                "title": "எழுத்துக்கள் மற்றும் உயிர்மெய் தரநிலை (Foundational Tier)",
+                "description": "உயிர் எழுத்துக்கள், மெய் எழுத்துக்கள் மற்றும் உயிர்மெய் எழுத்துக்களின் ஒலிப்பு முறை மற்றும் அடிப்படை வாசிப்பு திறன்.",
+                "competencies": ["எழுத்து ஒலிப்பு அறிதல்", "அடிப்படை சொல் வாசிப்பு", "எளிய சொல் எழுதுதல்"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 மதிப்பெண்கள்",
+                "title": "சொற்களஞ்சியம் மற்றும் இலக்கண தரநிலை (Functional Tier)",
+                "description": "இணைச்சொற்கள், எதிர்ச்சொற்கள், தமிழ் புணர்ச்சி விதிகள் மற்றும் வாக்கிய அமைப்பில் தேர்ச்சி பெறும் நிலை.",
+                "competencies": ["சொல் பயன்பாடு", "தமிழ் புணர்ச்சி இலக்கணம்", "சரியான வாக்கிய அமைப்பு"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 மதிப்பெண்கள்",
+                "title": "உயர்ந்த இலக்கிய புலமை தரநிலை (Proficient Tier)",
+                "description": "உயர்ந்த தமிழ் இலக்கிய உரைநடைகளைப் புரிந்து கொள்ளுதல் மற்றும் தெளிவான வாய்மொழி வெளிப்பாடு.",
+                "competencies": ["இலக்கிய கருத்தறிதல்", "தெளிவான பேச்சாற்றல்", "உயர் நடை எழுத்தாக்கம்"]
+            }
+        ]
+    },
+    "bn": {
+        "language_name": "বাংলা (Bengali)",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 নম্বর",
+                "title": "বর্ণমালা ও কার-ফলা জ্ঞান মানদণ্ড (Foundational Tier)",
+                "description": "স্বরবর্ণ, ব্যঞ্জনবর্ণ, কার-ফলা এবং যুক্তবর্ণের সঠিক উচ্চারণ ও চেনার প্রাথমিক দক্ষতা।",
+                "competencies": ["বর্ণ ও শব্দ চেনা", "কার-ফলা উচ্চারণ", "সহজ শব্দ লিখন"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 নম্বর",
+                "title": "শব্দভাণ্ডার ও ব্যাকরণ মানদণ্ড (Functional Tier)",
+                "description": "সমার্থক শব্দ, বিপরীত শব্দ, সন্ধি এবং সঠিক বাক্য গঠনে দক্ষতা অর্জনের স্তর।",
+                "competencies": ["শব্দভাণ্ডার বিকাশ", "বাংলা সন্ধি ও সমাস", "সঠিক বাক্য গঠন"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 নম্বর",
+                "title": "উচ্চ সাহিত্যিক দক্ষতা মানদণ্ড (Proficient Tier)",
+                "description": "গদ্য সাহিত্য পাঠের গভীর বোধ এবং সাবলীল বাংলা ভাষা প্রকাশের পূর্ণ সক্ষমতা।",
+                "competencies": ["সাহিত্য পাঠ বোধগম্যতা", "সাবলীল বাকপটুতা", "উচ্চাঙ্গের রচনা শৈলী"]
+            }
+        ]
+    },
+    "mr": {
+        "language_name": "मराठी (Marathi)",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 गुण",
+                "title": "मुळाक्षरे व मात्रा ज्ञान मानक (Foundational Tier)",
+                "description": "स्वर, व्यंजन, बाराखडी व जोडाक्षरांची अचूक ओळख व उच्चारणाची मूलभूत क्षमता.",
+                "competencies": ["वर्ण ध्वनी ओळख", "बाराखडी वाचन", "सोप्या शब्दांचे लेखन"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 गुण",
+                "title": "शब्दसंग्रह व व्याकरण मानक (Functional Tier)",
+                "description": "समानार्थी शब्द, विरुद्धार्थी शब्द, संधी व वाक्यरचनेतील व्याकरणाचे ज्ञान.",
+                "competencies": ["शब्दसंग्रह वाढवणे", "मराठी संधी व समास", "शुद्ध वाक्यरचना"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 गुण",
+                "title": "उच्च साहित्यिक नैपुण्य मानक (Proficient Tier)",
+                "description": "मराठी गद्य साहित्याचे आकलन आणि ओघवत्या भाषेतील अभिव्यक्तीची क्षमता.",
+                "competencies": ["साहित्य आकलन", "ओघवती भाषण कला", "प्रौढ लेखन शैली"]
+            }
+        ]
+    },
+    "kn": {
+        "language_name": "ಕನ್ನಡ (Kannada)",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 ಅಂಕಗಳು",
+                "title": "ಅಕ್ಷರಮಾಲೆ ಮತ್ತು ಕಾಗುಣಿತ ಪ್ರಮಾಣ (Foundational Tier)",
+                "description": "ಸ್ವರಗಳು, ವ್ಯಂಜನಗಳು, ಕಾಗುಣಿತದ ಗುರುತುಗಳು ಮತ್ತು ಒತ್ತಕ್ಷರಗಳನ್ನು ಗುರುತಿಸಿ ಓದುವ ಸಾಮರ್ಥ್ಯ.",
+                "competencies": ["ಅಕ್ಷರ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ", "ಪ್ರಾಥಮಿಕ ವಾಚನ", "ಸರಳ ಪದ ರಚನೆ"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 ಅಂಕಗಳು",
+                "title": "ಪದಸಂಪತ್ತು ಮತ್ತು ವ್ಯಾಕರಣ ಪ್ರಮಾಣ (Functional Tier)",
+                "description": "ಸಮಾನಾರ್ಥಕ ಪದಗಳು, ವಿರುದ್ಧಾರ್ಥಕ ಪದಗಳು, ಸಂಧಿಗಳು ಮತ್ತು ವಾಕ್ಯ ವ್ಯಾಕರಣದಲ್ಲಿ ಪ್ರಾವೀಣ್ಯತೆ.",
+                "competencies": ["ಪದಸಂಪತ್ತಿನ ಬಳಕೆ", "ಕನ್ನಡ ಸಂಧಿಗಳು", "ಶುದ್ಧ ವಾಕ್ಯ ರಚನೆ"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 ಅಂಕಗಳು",
+                "title": "ಉನ್ನತ ಸಾಹಿತ್ಯಿಕ ಪ್ರಾವೀಣ್ಯತೆ ಪ್ರಮಾಣ (Proficient Tier)",
+                "description": "ಉನ್ನತ ಕನ್ನಡ ಸಾಹಿತ್ಯದ ಗದ್ಯ ಭಾಗಗಳ ಅರ್ಥಗ್ರಹಣ ಮತ್ತು ಸ್ಪಷ್ಟ ವಾಕ್-ಸಂಪನ್ನತೆ.",
+                "competencies": ["ಸಾಹಿತ್ಯ ಗ್ರಹಿಕೆ", "ಸ್ಪಷ್ಟ ವಾಕ್-ಪ್ರಸಂಗ", "ಪ್ರೌಢ ಶೈಲಿಯ ಬರವಣಿಗೆ"]
+            }
+        ]
+    },
+    "es": {
+        "language_name": "Español (Spanish)",
+        "tiers": [
+            {
+                "tier": "FOUNDATIONAL",
+                "score_range": "0 – 44 Puntos",
+                "title": "Estándar de Alfabeto y Fonética (Foundational Tier)",
+                "description": "Dominio de la asociación letra-sonido, vocales acentuadas y sílabas básicas en español.",
+                "competencies": ["Reconocimiento Fonético", "Lectura de Sílabas Simples", "Ortografía Básica"]
+            },
+            {
+                "tier": "FUNCTIONAL",
+                "score_range": "45 – 74 Puntos",
+                "title": "Estándar de Vocabulario y Gramática (Functional Tier)",
+                "description": "Capacidad para usar sinónimos, conjugación verbal y lectura comprensiva de oraciones complejas.",
+                "competencies": ["Uso de Sinónimos", "Conjugación Gramatical", "Comprensión de Oraciones"]
+            },
+            {
+                "tier": "PROFICIENT",
+                "score_range": "75 – 100 Puntos",
+                "title": "Estándar de Fluidez Literaria Avanzada (Proficient Tier)",
+                "description": "Competencia completa en comprensión de textos literarios, ortografía avanzada y expresión oral articulada.",
+                "competencies": ["Análisis Literario", "Precisión Ortográfica", "Expresión Oral Fluida"]
+            }
+        ]
     }
 }
 
