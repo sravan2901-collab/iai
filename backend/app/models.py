@@ -140,6 +140,11 @@ class LearnerProfile(Base):
     streak_count = Column(Integer, default=0)
     total_points = Column(Integer, default=0)
     
+    # Granular Skill Breakdown Percentages (Step 1.2)
+    reading_pct = Column(Float, default=0.0)
+    comprehension_pct = Column(Float, default=0.0)
+    voice_pct = Column(Float, default=0.0)
+    
     learner = relationship("Learner", back_populates="profile")
 
 # 10. ASSESSMENT_RESULT

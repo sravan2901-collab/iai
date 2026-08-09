@@ -988,6 +988,33 @@ def submit_initial_assessment(
     elif total_score >= 45:
         proficiency_level = "FUNCTIONAL"
 
+    # Step 1.2: Calculate granular skill breakdown percentages
+    reading_pct = round((reading_score / 33.0) * 100.0, 1)
+    comprehension_pct = round((writing_score / 33.0) * 100.0, 1)
+    voice_pct = round((voice_score / 34.0) * 100.0, 1)
+
+    # Find or create LearnerProfile and update granular skill percentages
+    learner_profile = db.query(models.LearnerProfile).filter(
+        models.LearnerProfile.learner_id == learner_id
+    ).first()
+
+    if not learner_profile:
+        learner_profile = models.LearnerProfile(
+            learner_id=learner_id,
+            literacy_level=proficiency_level,
+            reading_pct=reading_pct,
+            comprehension_pct=comprehension_pct,
+            voice_pct=voice_pct
+        )
+        db.add(learner_profile)
+    else:
+        learner_profile.literacy_level = proficiency_level
+        learner_profile.reading_pct = reading_pct
+        learner_profile.comprehension_pct = comprehension_pct
+        learner_profile.voice_pct = voice_pct
+
+    db.commit()
+
     learning_path_recommendation = {
         "path_title": f"Language Literacy Mastery Roadmap — Track: {proficiency_level}",
         "current_level": proficiency_level,

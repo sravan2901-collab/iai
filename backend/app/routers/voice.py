@@ -52,10 +52,15 @@ async def evaluate_voice_session(
     )
     db.add(score_rec)
     
-    # Update learner points
+    # Update learner points and voice_pct skill score (Step 1.2)
     profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == learner_id).first()
     if profile:
         profile.total_points += int(eval_result["overall_score"] / 10)
+        new_voice_pct = float(eval_result["overall_score"])
+        if not profile.voice_pct or profile.voice_pct == 0.0:
+            profile.voice_pct = round(new_voice_pct, 1)
+        else:
+            profile.voice_pct = round((profile.voice_pct * 0.7) + (new_voice_pct * 0.3), 1)
     
     db.commit()
 

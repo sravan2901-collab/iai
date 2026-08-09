@@ -18,6 +18,14 @@ def ensure_schema_migrations():
                 conn.execute(text("ALTER TABLE assessment_result ADD COLUMN is_correct BOOLEAN DEFAULT 0"))
             if cols and "user_answer" not in cols:
                 conn.execute(text("ALTER TABLE assessment_result ADD COLUMN user_answer TEXT"))
+
+            profile_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(learner_profile)")).fetchall()]
+            if profile_cols and "reading_pct" not in profile_cols:
+                conn.execute(text("ALTER TABLE learner_profile ADD COLUMN reading_pct FLOAT DEFAULT 0.0"))
+            if profile_cols and "comprehension_pct" not in profile_cols:
+                conn.execute(text("ALTER TABLE learner_profile ADD COLUMN comprehension_pct FLOAT DEFAULT 0.0"))
+            if profile_cols and "voice_pct" not in profile_cols:
+                conn.execute(text("ALTER TABLE learner_profile ADD COLUMN voice_pct FLOAT DEFAULT 0.0"))
             conn.commit()
     except Exception as e:
         print(f"[DB MIGRATION NOTICE] Auto-migration skipped or failed: {e}")
