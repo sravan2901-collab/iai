@@ -74,7 +74,11 @@ CREATE TABLE IF NOT EXISTS learner (
     password_hash VARCHAR(255) NOT NULL,
     username VARCHAR(50) UNIQUE NOT NULL,
     registration_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    current_lang_id INT REFERENCES language(lang_id) ON DELETE SET NULL
+    current_lang_id INT REFERENCES language(lang_id) ON DELETE SET NULL,
+    is_email_verified BOOLEAN DEFAULT FALSE,
+    email_verification_token VARCHAR(255),
+    password_reset_token VARCHAR(255),
+    password_reset_expires DATETIME
 );
 
 -- 9. LEARNER_PROFILE
@@ -86,7 +90,10 @@ CREATE TABLE IF NOT EXISTS learner_profile (
     age_group VARCHAR(20),
     literacy_level VARCHAR(30) DEFAULT 'FOUNDATIONAL',
     streak_count INT DEFAULT 0,
-    total_points INT DEFAULT 0
+    total_points INT DEFAULT 0,
+    reading_pct FLOAT DEFAULT 0.0,
+    comprehension_pct FLOAT DEFAULT 0.0,
+    voice_pct FLOAT DEFAULT 0.0
 );
 
 -- 10. ASSESSMENT_RESULT
@@ -94,8 +101,11 @@ CREATE TABLE IF NOT EXISTS assessment_result (
     result_id SERIAL PRIMARY KEY,
     learner_id INT NOT NULL REFERENCES learner(learner_id) ON DELETE CASCADE,
     assessment_id INT NOT NULL REFERENCES assessment(assessment_id) ON DELETE CASCADE,
+    question_id INT REFERENCES assessment_question(question_id) ON DELETE SET NULL,
     benchmark_id INT REFERENCES proficiency_benchmark(benchmark_id),
     score DECIMAL(5,2) NOT NULL,
+    is_correct BOOLEAN DEFAULT FALSE,
+    user_answer TEXT,
     attempt_no INT DEFAULT 1,
     submitted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
