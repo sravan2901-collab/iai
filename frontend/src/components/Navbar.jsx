@@ -134,6 +134,20 @@ export default function Navbar({ activeTab, setActiveTab, learner, isNewRegistra
               {isNewRegistration && <Lock size={10} className="text-amber-400" />}
               <span>Dashboard</span>
             </button>
+
+            <button
+              onClick={() => handleTabClick('admin')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
+                activeTab === 'admin' 
+                  ? 'bg-emerald-600 text-white' 
+                  : isNewRegistration 
+                  ? 'text-slate-500 opacity-50 cursor-not-allowed' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {isNewRegistration && <Lock size={10} className="text-amber-400" />}
+              <span>Admin Panel</span>
+            </button>
           </div>
         </div>
 

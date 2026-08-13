@@ -6,6 +6,7 @@ import LearningPath from './components/LearningPath';
 import LearnerProfileView from './components/LearnerProfileView';
 import ProficiencyBenchmarks from './components/ProficiencyBenchmarks';
 import AuthModal from './components/AuthModal';
+import AdminPanel from './components/AdminPanel';
 import { BookOpen, Type, Sparkles, Feather, Award, CheckCircle, ArrowRight, Play, User, LogIn, Globe } from 'lucide-react';
 import { getAuthToken, removeAuthToken, apiRequest } from './services/api';
 
@@ -477,6 +478,9 @@ export default function App() {
               }}
             />
           </div>
+        ) : activeTab === 'admin' ? (
+          /* Admin Content Studio Panel */
+          <AdminPanel />
         ) : activeTab === 'catalog' ? (
           /* Catalog View */
           <div className="space-y-6">
