@@ -121,3 +121,40 @@ class PronunciationEvaluationOut(BaseModel):
     overall_score: float
     word_feedback: dict
     remediation_tip: str
+
+# Recommendations & Predictions (Milestone 2)
+class AdaptiveRecommendationOut(BaseModel):
+    learner_id: int
+    primary_focus_skill: str
+    confidence_score: float
+    reading_pct: float
+    comprehension_pct: float
+    voice_pct: float
+    recommended_modules: List[dict]
+    rationale: str
+
+class ProficiencyPredictionOut(BaseModel):
+    learner_id: int
+    current_level: str
+    predicted_next_level: str
+    estimated_days_to_mastery: int
+    accuracy_growth_rate: float
+    skill_breakdown: dict
+
+class PersonalizedLessonOut(BaseModel):
+    lesson_id: str
+    target_skill: str
+    language_code: str
+    difficulty: str
+    exercise_type: str
+    title: str
+    instructions: str
+    practice_content: List[dict]
+
+class ContentRecommendationOut(BaseModel):
+    category: str
+    title: str
+    skill_type: str
+    relevance_score: float
+    content_payload: dict
+

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, curriculum, voice, assessment, learning_path
+from app.routers import auth, curriculum, voice, assessment, learning_path, progress
 
 # Create tables in development mode if not already created
 Base.metadata.create_all(bind=engine)
@@ -251,11 +251,15 @@ app.add_middleware(
 )
 
 # Register Router Modules
+from app.routers import recommendations
+
 app.include_router(auth.router)
 app.include_router(curriculum.router)
 app.include_router(voice.router)
 app.include_router(assessment.router)
 app.include_router(learning_path.router)
+app.include_router(progress.router)
+app.include_router(recommendations.router)
 
 @app.get("/")
 def root():
@@ -264,7 +268,8 @@ def root():
         "status": "online",
         "documentation": "/docs",
         "api_v1": settings.API_V1_STR,
-        "weeks_1_2_status": "Learning Content Management & Assessment Framework 100% Implemented"
+        "weeks_1_2_status": "Learning Content Management & Assessment Framework 100% Implemented",
+        "milestone_2_status": "AI-Based Personalized Learning Engine 100% Implemented"
     }
 
 @app.get("/api/health")

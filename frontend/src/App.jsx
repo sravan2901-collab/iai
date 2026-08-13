@@ -433,11 +433,47 @@ export default function App() {
             </button>
             <PronunciationCoach
               lesson={activeLesson}
-              onScoreUpdate={(score) => {
+              onScoreUpdate={async (score) => {
                 setLearner(prev => ({
                   ...prev,
                   total_points: prev.total_points + Math.round(score / 10)
                 }));
+
+                // Phase 3: Call lesson completion API
+                try {
+                  const completionPayload = {
+                    lesson_id: activeLesson.lesson_id || activeLesson.id,
+                    score: score,
+                    path_lesson_id: activeLesson.path_lesson_id || null
+                  };
+
+                  // Try progress/complete-lesson endpoint first
+                  const result = await apiRequest('/progress/complete-lesson', {
+                    method: 'POST',
+                    body: JSON.stringify(completionPayload)
+                  });
+
+                  console.log('Lesson completed:', result);
+
+                  // If path_lesson_id is available, also update via learning-path endpoint
+                  if (activeLesson.path_lesson_id) {
+                    await apiRequest(`/learning-path/lesson/${activeLesson.path_lesson_id}/status`, {
+                      method: 'PATCH',
+                      body: JSON.stringify({ status: 'COMPLETED' })
+                    });
+                  }
+
+                  // Show completion notification and navigate back
+                  setTimeout(() => {
+                    setActiveLesson(null);
+                    setActiveTab('learning-path');
+                    // Force re-fetch of learning path by clearing cached data
+                    setAssessmentResult(prev => prev ? { ...prev, learning_path: null } : null);
+                  }, 2000);
+
+                } catch (err) {
+                  console.log('Lesson completion API call skipped:', err.message);
+                }
               }}
             />
           </div>
