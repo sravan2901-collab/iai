@@ -1022,9 +1022,18 @@ def submit_initial_assessment(
 
     db.commit()
 
-    # Generate personalized learning path for the learner based on diagnostic test analysis
-    from app.routers.learning_path import generate_personalized_path, get_active_learning_path
-    
+    # Generate personalized learning path for the learner based on diagnostic test analysis using AI Learning Path Engine
+    from app.services.learning_path_engine import generate_learning_path, get_active_path
+    from app.routers.learning_path import generate_personalized_path
+
+    # Trigger AI / Rule-Based Learning Path Engine
+    try:
+        engine_path_id = generate_learning_path(learner_id, db=db)
+        ai_active_path = get_active_path(learner_id, db=db)
+    except Exception as e:
+        print(f"[AI ENGINE NOTICE] Learning path engine notice: {e}")
+        ai_active_path = None
+
     target_lang_iso = payload.lang if hasattr(payload, 'lang') and payload.lang else None
     if not target_lang_iso and learner_obj and learner_obj.current_lang_id:
         lang_rec = db.query(models.Language).filter(models.Language.lang_id == learner_obj.current_lang_id).first()
@@ -1032,30 +1041,22 @@ def submit_initial_assessment(
     if not target_lang_iso:
         target_lang_iso = "en"
 
-    # Execute personalized path generation
+    # Execute personalized path generation for legacy frontend view compatibility
     import asyncio
     try:
         path_data = asyncio.run(generate_personalized_path(learner_id, target_lang_iso, db))
     except Exception as e:
-        # Fallback if loop running
         try:
             loop = asyncio.get_event_loop()
             path_data = loop.run_until_complete(generate_personalized_path(learner_id, target_lang_iso, db))
         except Exception:
             path_data = None
 
-    if not path_data:
-        path_data = {
-            "path_title": f"Personalized Literacy Path ({proficiency_level})",
-            "current_level": proficiency_level,
-            "completion_percentage": 0,
-            "personalization_reason": f"Diagnostic analysis complete: Reading {reading_pct}%, Comprehension {comprehension_pct}%, Voice {voice_pct}%.",
-            "milestones": [
-                {"step": 1, "title": "Alphabets & Phonics Fundamentals", "status": "UNLOCKED"},
-                {"step": 2, "title": "Vocabulary & Word Formation", "status": "LOCKED" if proficiency_level == "FOUNDATIONAL" else "UNLOCKED"},
-                {"step": 3, "title": "Sentence Grammar & Literary Fluency", "status": "LOCKED" if proficiency_level != "PROFICIENT" else "UNLOCKED"}
-            ]
-        }
+    if ai_active_path:
+        if path_data:
+            path_data["ai_active_path"] = ai_active_path
+        else:
+            path_data = ai_active_path
 
     return {
         "status": "success",
