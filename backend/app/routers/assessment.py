@@ -1022,16 +1022,40 @@ def submit_initial_assessment(
 
     db.commit()
 
-    learning_path_recommendation = {
-        "path_title": f"Language Literacy Mastery Roadmap — Track: {proficiency_level}",
-        "current_level": proficiency_level,
-        "completion_percentage": 85 if proficiency_level == "PROFICIENT" else (50 if proficiency_level == "FUNCTIONAL" else 15),
-        "recommended_modules": [
-            {"module_id": 101, "title": "Phonemes & Alphabet Fundamentals", "status": "UNLOCKED"},
-            {"module_id": 102, "title": "Vocabulary & Word Formation", "status": "LOCKED" if proficiency_level == "FOUNDATIONAL" else "UNLOCKED"},
-            {"module_id": 103, "title": "Sentence Grammar & Literary Fluency", "status": "LOCKED" if proficiency_level != "PROFICIENT" else "UNLOCKED"}
-        ]
-    }
+    # Generate personalized learning path for the learner based on diagnostic test analysis
+    from app.routers.learning_path import generate_personalized_path, get_active_learning_path
+    
+    target_lang_iso = payload.lang if hasattr(payload, 'lang') and payload.lang else None
+    if not target_lang_iso and learner_obj and learner_obj.current_lang_id:
+        lang_rec = db.query(models.Language).filter(models.Language.lang_id == learner_obj.current_lang_id).first()
+        target_lang_iso = lang_rec.iso_code if lang_rec else "en"
+    if not target_lang_iso:
+        target_lang_iso = "en"
+
+    # Execute personalized path generation
+    import asyncio
+    try:
+        path_data = asyncio.run(generate_personalized_path(learner_id, target_lang_iso, db))
+    except Exception as e:
+        # Fallback if loop running
+        try:
+            loop = asyncio.get_event_loop()
+            path_data = loop.run_until_complete(generate_personalized_path(learner_id, target_lang_iso, db))
+        except Exception:
+            path_data = None
+
+    if not path_data:
+        path_data = {
+            "path_title": f"Personalized Literacy Path ({proficiency_level})",
+            "current_level": proficiency_level,
+            "completion_percentage": 0,
+            "personalization_reason": f"Diagnostic analysis complete: Reading {reading_pct}%, Comprehension {comprehension_pct}%, Voice {voice_pct}%.",
+            "milestones": [
+                {"step": 1, "title": "Alphabets & Phonics Fundamentals", "status": "UNLOCKED"},
+                {"step": 2, "title": "Vocabulary & Word Formation", "status": "LOCKED" if proficiency_level == "FOUNDATIONAL" else "UNLOCKED"},
+                {"step": 3, "title": "Sentence Grammar & Literary Fluency", "status": "LOCKED" if proficiency_level != "PROFICIENT" else "UNLOCKED"}
+            ]
+        }
 
     return {
         "status": "success",
@@ -1040,6 +1064,6 @@ def submit_initial_assessment(
         "total_questions": len(payload.answers) if payload.answers else len(questions_list),
         "proficiency_level": proficiency_level,
         "skill_breakdown": skill_breakdown,
-        "learning_path": learning_path_recommendation,
+        "learning_path": path_data,
         "validated_details": validated_details
     }
