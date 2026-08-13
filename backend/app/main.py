@@ -251,7 +251,7 @@ app.add_middleware(
 )
 
 # Register Router Modules
-from app.routers import recommendations
+from app.routers import recommendations, learners
 
 app.include_router(auth.router)
 app.include_router(curriculum.router)
@@ -260,6 +260,7 @@ app.include_router(assessment.router)
 app.include_router(learning_path.router)
 app.include_router(progress.router)
 app.include_router(recommendations.router)
+app.include_router(learners.router)
 
 @app.get("/")
 def root():
