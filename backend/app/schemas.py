@@ -137,9 +137,12 @@ class ProficiencyPredictionOut(BaseModel):
     learner_id: int
     current_level: str
     predicted_next_level: str
+    native_current_level: Optional[str] = None
+    native_next_level: Optional[str] = None
     estimated_days_to_mastery: int
     accuracy_growth_rate: float
     skill_breakdown: dict
+    prediction_summary: Optional[str] = None
 
 class PersonalizedLessonOut(BaseModel):
     lesson_id: str

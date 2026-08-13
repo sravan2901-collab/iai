@@ -283,8 +283,68 @@ def get_adaptive_learning_recommendation(
         "rationale": recommendation_item["rationale"]
     }
 
+NATIVE_LEVEL_TRANSLATIONS = {
+    "en": {
+        "FOUNDATIONAL": "Foundational Literacy",
+        "FUNCTIONAL": "Functional Literacy",
+        "PROFICIENT": "Proficient Literacy",
+        "MASTERY": "Advanced Mastery",
+        "summary_tpl": "Based on current learning velocity, learner is projected to reach {next_lvl} in {days} days with a {growth}% weekly accuracy growth rate."
+    },
+    "te": {
+        "FOUNDATIONAL": "ప్రాథమిక అక్షరాస్యత",
+        "FUNCTIONAL": "కార్యాచరణ అక్షరాస్యత",
+        "PROFICIENT": "నైపుణ్యతా అక్షరాస్యత",
+        "MASTERY": "ఉన్నత పాండిత్యం",
+        "summary_tpl": "ప్రస్తుత అభ్యాస వేగం ప్రకారం, అభ్యర్థి {days} రోజుల్లో {next_lvl} స్థాయికి చేరుకుంటారని అంచనా వేయబడింది."
+    },
+    "hi": {
+        "FOUNDATIONAL": "बुनियादी साक्षरता",
+        "FUNCTIONAL": "कार्यात्मक साक्षरता",
+        "PROFICIENT": "प्रवीण साक्षरता",
+        "MASTERY": "उच्च दक्षता",
+        "summary_tpl": "वर्तमान सीखने की गति के आधार पर, शिक्षार्थी के {days} दिनों में {next_lvl} स्तर तक पहुँचने का अनुमान है।"
+    },
+    "ta": {
+        "FOUNDATIONAL": "அடிப்படை எழுத்தறிவு",
+        "FUNCTIONAL": "செயல்பாட்டு எழுத்தறிவு",
+        "PROFICIENT": "நிறைவு எழுத்தறிவு",
+        "MASTERY": "உயர் தேர்ச்சி",
+        "summary_tpl": "தற்போதைய கற்றல் வேகத்தின் அடிப்படையில், கற்பவர் {days} நாட்களில் {next_lvl} நிலையை அடைவார் என கணிக்கப்பட்டுள்ளது."
+    },
+    "bn": {
+        "FOUNDATIONAL": "প্রাথমিক সাক্ষরতা",
+        "FUNCTIONAL": "কার্যকরী সাক্ষরতা",
+        "PROFICIENT": "দক্ষ সাক্ষরতা",
+        "MASTERY": "উচ্চ পাণ্ডিত্য",
+        "summary_tpl": "বর্তমান শেখার গতির ওপর ভিত্তি করে, শিক্ষার্থী {days} দিনের মধ্যে {next_lvl} স্তরে পৌঁছাবে বলে অনুমান করা হচ্ছে।"
+    },
+    "mr": {
+        "FOUNDATIONAL": "मूलभूत साक्षरता",
+        "FUNCTIONAL": "कार्यात्मक साक्षरता",
+        "PROFICIENT": "प्रवीण साक्षरता",
+        "MASTERY": "उच्च प्रभुत्व",
+        "summary_tpl": "सध्याच्या शिकण्याच्या वेगानुसार, विद्यार्थी {days} दिवसांत {next_lvl} पातळी गाठण्याचा अंदाज आहे."
+    },
+    "kn": {
+        "FOUNDATIONAL": "ಮೂಲಭೂತ ಸಾಕ್ಷರತೆ",
+        "FUNCTIONAL": "ಕಾರ್ಯಾತ್ಮಕ ಸಾಕ್ಷರತೆ",
+        "PROFICIENT": "ಪ್ರವೀಣ ಸಾಕ್ಷರತೆ",
+        "MASTERY": "ಉನ್ನತ ಪಾಂಡಿತ್ಯ",
+        "summary_tpl": "ಪ್ರಸ್ತುತ ಕಲಿಕೆಯ ವೇಗದ ಆಧಾರದ ಮೇಲೆ, ಕಲಿಯುವವರು {days} ದಿನಗಳಲ್ಲಿ {next_lvl} ಹಂತವನ್ನು ತಲುಪುತ್ತಾರೆ ಎಂದು ಅಂದಾಜಿಸಲಾಗಿದೆ."
+    },
+    "es": {
+        "FOUNDATIONAL": "Alfabetización Básica",
+        "FUNCTIONAL": "Alfabetización Funcional",
+        "PROFICIENT": "Alfabetización Avanzada",
+        "MASTERY": "Maestría Completa",
+        "summary_tpl": "Según el ritmo de aprendizaje actual, se prevé que el estudiante alcance el nivel {next_lvl} en {days} días."
+    }
+}
+
 @router.get("/predict-proficiency", response_model=schemas.ProficiencyPredictionOut)
 def predict_learner_proficiency(
+    lang: Optional[str] = Query(None, description="ISO language code (e.g. en, te, hi, ta, bn, mr, kn, es)"),
     db: Session = Depends(get_db),
     learner: Optional[models.Learner] = Depends(get_optional_current_learner)
 ):
@@ -313,10 +373,26 @@ def predict_learner_proficiency(
 
     growth_rate = round(min(15.0, max(2.5, (avg_score / 10.0) + (profile.streak_count if profile else 1) * 0.5)), 1)
 
+    # Resolve target language for native level translations
+    if lang:
+        target_iso = lang.lower()
+    else:
+        lang_id = learner.current_lang_id or 1
+        lang_obj = db.query(models.Language).filter(models.Language.lang_id == lang_id).first()
+        target_iso = lang_obj.iso_code if lang_obj else "en"
+
+    lang_tr = NATIVE_LEVEL_TRANSLATIONS.get(target_iso, NATIVE_LEVEL_TRANSLATIONS["en"])
+    native_curr = lang_tr.get(current_lvl, current_lvl)
+    native_next = lang_tr.get(next_lvl, next_lvl)
+
+    summary = lang_tr["summary_tpl"].format(next_lvl=native_next, days=days, growth=growth_rate)
+
     return {
         "learner_id": learner.learner_id,
         "current_level": current_lvl,
         "predicted_next_level": next_lvl,
+        "native_current_level": native_curr,
+        "native_next_level": native_next,
         "estimated_days_to_mastery": days,
         "accuracy_growth_rate": growth_rate,
         "skill_breakdown": {
@@ -324,7 +400,8 @@ def predict_learner_proficiency(
             "comprehension": c_pct,
             "voice": v_pct,
             "composite_average": round(avg_score, 1)
-        }
+        },
+        "prediction_summary": summary
     }
 
 @router.post("/personalized-lessons", response_model=schemas.PersonalizedLessonOut)
