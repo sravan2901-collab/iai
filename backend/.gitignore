@@ -1,0 +1,6 @@
+# Local Environment Exclusions
+.env
+.env.*
+*.db
+sent_emails.json
+__pycache__/

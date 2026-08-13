@@ -29,8 +29,10 @@ backend/sent_emails.json
 
 # Environment Variables & Keys
 .env
-.env.local
-.env.*.local
+.env.*
+**/.env
+backend/.env
+frontend/.env
 
 # IDE & Editor Files
 .vscode/
