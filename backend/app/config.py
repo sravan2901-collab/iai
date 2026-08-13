@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
     SENDER_EMAIL: str = os.getenv("SENDER_EMAIL", "no-reply@aksharai.com")
     
+    # Ollama Local LLM & AI Learning Path Generator Settings
+    AI_LEARNING_ENGINE_ENABLED: bool = os.getenv("AI_LEARNING_ENGINE_ENABLED", "True").lower() in ("true", "1", "t")
+    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.1")
+    OLLAMA_TIMEOUT_SECONDS: int = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "15"))
+
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
