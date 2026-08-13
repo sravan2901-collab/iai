@@ -641,8 +641,196 @@ def generate_personalized_lesson(
         "practice_content": lesson_data["practice_content"]
     }
 
+RECOMMENDED_CONTENT_BY_LANG = {
+    "en": [
+        {
+            "category": "Interactive Speech Coach",
+            "title": "Customer Service & Workplace Speech Practice",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "Good morning, welcome to our office. How can I assist you today?"}
+        },
+        {
+            "category": "Functional Literacy Flashcards",
+            "title": "Medical Prescription & Pharmacy Labels",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "Medical & Pharmacy"}
+        },
+        {
+            "category": "Phonics Mastery",
+            "title": "Alphabet Vowel Sounds & Phonics Cards",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ],
+    "te": [
+        {
+            "category": "ఇంటరాక్టివ్ స్పీచ్ కోచ్",
+            "title": "కార్యాలయ వృత్తిపరమైన మాట్లాడే సాధన",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "శుభోదయం, మా కార్యాలయానికి స్వాగతం. నేను మీకు ఎలా సహాయపడగలను?"}
+        },
+        {
+            "category": "ఉపయోగకరమైన అక్షరాస్యత ఫ్లాష్ కార్డ్‌లు",
+            "title": "వైద్య ప్రిస్క్రిప్షన్ మరియు ఔషధ వివరాలు",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "వైద్యం"}
+        },
+        {
+            "category": "అక్షర సమగ్రత",
+            "title": "తెలుగు అచ్చులు మరియు గుణింతపు సాధన కార్డ్‌లు",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ],
+    "hi": [
+        {
+            "category": "इंटरएक्टिव स्पीच कोच",
+            "title": "कार्यस्थल पेशेवर भाषा वाचन अभ्यास",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "नमस्ते, हमारे कार्यालय में आपका स्वागत है। मैं आपकी क्या सहायता कर सकता हूँ?"}
+        },
+        {
+            "category": "कार्यात्मक साक्षरता फ्लैशकार्ड",
+            "title": "चिकित्सा पर्चा एवं दवा निर्देश वाचन",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "स्वास्थ्य एवं चिकित्सा"}
+        },
+        {
+            "category": "वर्णमाला दक्षता",
+            "title": "हिंदी स्वर एवं मात्रा अभ्यास कार्ड",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ],
+    "ta": [
+        {
+            "category": "இன்டராக்டிவ் பேச்சு பயிற்சியாளர்",
+            "title": "அலுவலக பேச்சு மற்றும் உரையாடல் பயிற்சி",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "வணக்கம், எங்கள் அலுவலகத்திற்கு நல்வரவு."}
+        },
+        {
+            "category": "செயல்பாட்டு எழுத்தறிவு கார்டுகள்",
+            "title": "மருத்துவ சீட்டு மற்றும் மருந்து குறிப்புகள்",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "மருத்துவம்"}
+        },
+        {
+            "category": "எழுத்து பயிற்சி",
+            "title": "தமிழ் எழுத்துக்கள் மற்றும் ஒலி பயிற்சி",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ],
+    "bn": [
+        {
+            "category": "ইন্টারেক্টিভ স্পিচ কোচ",
+            "title": "কর্মক্ষেত্রের পেশাদার বাক্যালাপ চর্চা",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "শুভ সকাল, আমাদের কার্যালয়ে স্বাগতম।"}
+        },
+        {
+            "category": "কার্যকরী সাক্ষরতা ফ্ল্যাশকার্ড",
+            "title": "চিকিৎসা প্রেসক্রিপশন ও ঔষধ নির্দেশিকা",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "চিকিৎসা"}
+        },
+        {
+            "category": "বর্ণমালা দক্ষতা",
+            "title": "বাংলা বর্ণমালা ও স্বরধ্বনি চর্চা কার্ড",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ],
+    "mr": [
+        {
+            "category": "इंटरॲक्टिव्ह स्पीच कोच",
+            "title": "व्यावसायिक संवाद व संभाषण सराव",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "नमस्कार, आमच्या कार्यालयात आपले स्वागत आहे."}
+        },
+        {
+            "category": "कार्यात्मक साक्षरता फ्लॅशकार्ड्स",
+            "title": "औषध चिठ्ठी व वैद्यकीय माहिती वाचन",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "आरोग्य"}
+        },
+        {
+            "category": "मूळाक्षरे प्रभुत्व",
+            "title": "मराठी मूळाक्षरे व उच्चार सराव कार्ड्स",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ],
+    "kn": [
+        {
+            "category": "ಇಂಟರ್ಯಾಕ್ಟಿವ್ ಸ್ಪೀಚ್ ಕೋಚ್",
+            "title": "ವೃತ್ತಿಪರ ಮಾತನಾಡುವ ಸಂಭಾಷಣೆ ಅಭ್ಯಾಸ",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "ನಮಸ್ಕಾರ, ನಮ್ಮ ಕಚೇರಿಗೆ ಸ್ವಾಗತ."}
+        },
+        {
+            "category": "ಕಾರ್ಯಾತ್ಮಕ ಸಾಕ್ಷರತೆ ಫ್ಲ್ಯಾಶ್ ಕಾರ್ಡ್‌ಗಳು",
+            "title": "ವೈದ್ಯಕೀಯ ಚೀಟಿ ಮತ್ತು ಔಷಧಿ ಓದುವಿಕೆ",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "ವೈದ್ಯಕೀಯ"}
+        },
+        {
+            "category": "ಅಕ್ಷರಮಾಲೆ ಪ್ರಾವೀಣ್ಯ",
+            "title": "ಕನ್ನಡ ಅಕ್ಷರಮಾಲೆ ಮತ್ತು ಸ್ವರ ತರಬೇತಿ ಕಾರ್ಡ್‌ಗಳು",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ],
+    "es": [
+        {
+            "category": "Entrenador de Voz Interactivo",
+            "title": "Práctica de Diálogo de Servicio al Cliente",
+            "skill_type": "VOICE",
+            "relevance_score": 0.96,
+            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "Buenos días, bienvenido a nuestra oficina. ¿En qué puedo ayudarle hoy?"}
+        },
+        {
+            "category": "Tarjetas de Alfabetización Funcional",
+            "title": "Lectura de Recetas Médicas y Etiquetas",
+            "skill_type": "COMPREHENSION",
+            "relevance_score": 0.91,
+            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "Salud"}
+        },
+        {
+            "category": "Dominio de Fonética",
+            "title": "Tarjetas de Sonidos del Alfabeto y Vocales",
+            "skill_type": "READING",
+            "relevance_score": 0.88,
+            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
+        }
+    ]
+}
+
 @router.get("/recommended-content", response_model=List[schemas.ContentRecommendationOut])
 def get_recommended_content(
+    lang: Optional[str] = Query(None, description="ISO language code (e.g. en, te, hi, ta, bn, mr, kn, es)"),
     db: Session = Depends(get_db),
     learner: Optional[models.Learner] = Depends(get_optional_current_learner)
 ):
@@ -655,26 +843,33 @@ def get_recommended_content(
     v_pct = profile.voice_pct if profile else 50.0
     r_pct = profile.reading_pct if profile else 50.0
 
-    return [
-        {
-            "category": "Interactive Speech Coach",
-            "title": "Customer Service Dialogue Audio Practice",
-            "skill_type": "VOICE",
-            "relevance_score": 0.96 if v_pct < 60 else 0.75,
-            "content_payload": {"type": "AUDIO_DIALOGUE", "duration_sec": 120, "script": "Hello, welcome to our office."}
-        },
-        {
-            "category": "Functional Literacy Flashcards",
-            "title": "Medical Prescription & Pharmacy Signs",
-            "skill_type": "COMPREHENSION",
-            "relevance_score": 0.91,
-            "content_payload": {"type": "FLASHCARD_SUITE", "card_count": 10, "topic": "Health"}
-        },
-        {
-            "category": "Phonics Mastery",
-            "title": "Vowel Blends & Consonant Clusters",
-            "skill_type": "READING",
-            "relevance_score": 0.88 if r_pct < 60 else 0.70,
-            "content_payload": {"type": "PHONICS_GAME", "level": "FOUNDATIONAL"}
-        }
-    ]
+    # Resolve target language ISO
+    if lang:
+        iso = lang.lower()
+    else:
+        lang_id = learner.current_lang_id or 1
+        lang_obj = db.query(models.Language).filter(models.Language.lang_id == lang_id).first()
+        iso = lang_obj.iso_code if lang_obj else "en"
+
+    items = RECOMMENDED_CONTENT_BY_LANG.get(iso, RECOMMENDED_CONTENT_BY_LANG["en"])
+
+    # Adjust relevance scores dynamically based on learner's weaknesses
+    adjusted_items = []
+    for item in items:
+        score = item["relevance_score"]
+        if item["skill_type"] == "VOICE" and v_pct < 60:
+            score = 0.98
+        elif item["skill_type"] == "READING" and r_pct < 60:
+            score = 0.95
+
+        adjusted_items.append({
+            "category": item["category"],
+            "title": item["title"],
+            "skill_type": item["skill_type"],
+            "relevance_score": score,
+            "content_payload": item["content_payload"]
+        })
+
+    # Sort items by relevance score descending
+    adjusted_items.sort(key=lambda x: x["relevance_score"], reverse=True)
+    return adjusted_items
