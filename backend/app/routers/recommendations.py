@@ -404,9 +404,200 @@ def predict_learner_proficiency(
         "prediction_summary": summary
     }
 
+PERSONALIZED_LESSONS_BY_LANG = {
+    "en": {
+        "READING": {
+            "title": "Adaptive Phonics & Syllable Trainer",
+            "instructions": "Listen to the letter sound and select the matching word.",
+            "practice_content": [
+                {"symbol": "A / a", "sound_prompt": "apple", "options": ["Apple", "Ball", "Cat"], "correct": "Apple"},
+                {"symbol": "B / b", "sound_prompt": "ball", "options": ["Dog", "Ball", "Elephant"], "correct": "Ball"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "ATM & Financial Literacy Scenario",
+            "instructions": "Read the receipt details and answer the comprehension question.",
+            "practice_content": [
+                {"passage": "ATM Withdrawal Receipt: Amount $500, Account XXXX1234, Balance $4,500", "question": "What is the remaining account balance?", "options": ["$500", "$4,500", "$5,000"], "correct": "$4,500"}
+            ]
+        },
+        "VOICE": {
+            "title": "Professional Speech Articulation",
+            "instructions": "Tap microphone and speak the prompt phrase clearly.",
+            "practice_content": [
+                {"prompt_phrase": "Good morning, how can I help you today?", "target_phonemes": ["g", "d", "m", "n", "ng"]}
+            ]
+        }
+    },
+    "te": {
+        "READING": {
+            "title": "తెలుగు అక్షరాలు మరియు గుణింతపు సాధన",
+            "instructions": "అక్షరం శబ్దాన్ని విని సరైన పదాన్ని ఎంచుకోండి.",
+            "practice_content": [
+                {"symbol": "అ / ఆ", "sound_prompt": "అమ్మ", "options": ["అమ్మ", "ఆవు", "ఇల్లు"], "correct": "అమ్మ"},
+                {"symbol": "క / కా", "sound_prompt": "కాకి", "options": ["కమలం", "కాకి", "కిటికి"], "correct": "కాకి"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "ఏటీఎం మరియు ఆర్థిక రసీదు పఠనం",
+            "instructions": "రసీదు వివరాలను చదివి సరైన సమాధానం ఇవ్వండి.",
+            "practice_content": [
+                {"passage": "ఏటీఎం ఉపసంహరణ రసీదు: విత్ డ్రా మొత్తం ₹500, మిగిలిన నిల్వ ₹4,500", "question": "ఖాతాలో మిగిలిన నిల్వ ఎంత?", "options": ["₹500", "₹4,500", "₹5,000"], "correct": "₹4,500"}
+            ]
+        },
+        "VOICE": {
+            "title": "స్పష్టమైన మాట్లాడే ఉచ్చారణ సాధన",
+            "instructions": "మైక్రోఫోన్ నొక్కి వాక్యాన్ని స్పష్టంగా ఉచ్చరించండి.",
+            "practice_content": [
+                {"prompt_phrase": "శుభోదయం, నేటి పని లక్ష్యాలను చర్చిద్దాం", "target_phonemes": ["శు", "భో", "ద", "యం"]}
+            ]
+        }
+    },
+    "hi": {
+        "READING": {
+            "title": "हिंदी अक्षर एवं मात्रा वाचन अभ्यास",
+            "instructions": "अक्षर की ध्वनि सुनें और सही शब्द चुनें।",
+            "practice_content": [
+                {"symbol": "अ / आ", "sound_prompt": "अनार", "options": ["अनार", "आम", "इमली"], "correct": "अनार"},
+                {"symbol": "क / का", "sound_prompt": "कमल", "options": ["कमल", "कागज", "किताब"], "correct": "कमल"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "एटीएम एवं वित्तीय रसीद वाचन",
+            "instructions": "रसीद का विवरण पढ़ें और प्रश्न का उत्तर दें।",
+            "practice_content": [
+                {"passage": "एटीएम निकासी रसीद: राशि ₹500, शेष राशि ₹4,500", "question": "खाते में शेष राशि कितनी है?", "options": ["₹500", "₹4,500", "₹5,000"], "correct": "₹4,500"}
+            ]
+        },
+        "VOICE": {
+            "title": "स्पष्ट वाचन एवं उच्चारण अभ्यास",
+            "instructions": "माइक दबाएं और वाक्य को स्पष्ट रूप से बोलें।",
+            "practice_content": [
+                {"prompt_phrase": "नमस्ते, मैं आपकी क्या सहायता कर सकता हूँ", "target_phonemes": ["न", "म", "स्", "ते"]}
+            ]
+        }
+    },
+    "ta": {
+        "READING": {
+            "title": "தமிழ் எழுத்து மற்றும் உச்சரிப்பு பயிற்சி",
+            "instructions": "எழுத்தின் ஒலியைக் கேட்டு சரியான சொல்லைத் தேர்ந்தெடுக்கவும்.",
+            "practice_content": [
+                {"symbol": "அ / ஆ", "sound_prompt": "அம்மா", "options": ["அம்மா", "ஆடு", "இலை"], "correct": "அம்மா"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "ஏடிஎம் மற்றும் வங்கி ரசீது வாசிப்பு",
+            "instructions": "ரசீது விவரங்களைப் படித்து சரியான பதிலைக் கூறவும்.",
+            "practice_content": [
+                {"passage": "ஏடிஎம் பணம் எடுத்தல் ரசீது: தொகை ₹500, மீதி இருப்பு ₹4,500", "question": "கணக்கில் உள்ள மீதி இருப்பு எவ்வளவு?", "options": ["₹500", "₹4,500", "₹5,000"], "correct": "₹4,500"}
+            ]
+        },
+        "VOICE": {
+            "title": "தெளிவான பேச்சு உச்சரிப்பு பயிற்சி",
+            "instructions": "மைக்ரோஃபோனை அழுத்தி வாக்கியத்தைத் தெளிவாகப் பேசவும்.",
+            "practice_content": [
+                {"prompt_phrase": "காலை வணக்கம், உங்களுக்கு எவ்வாறு உதவ முடியும்", "target_phonemes": ["கா", "லை", "வ", "ணக்", "கம்"]}
+            ]
+        }
+    },
+    "bn": {
+        "READING": {
+            "title": "বাংলা বর্ণমালা ও ধ্বনি প্রশিক্ষণ",
+            "instructions": "বর্ণের উচ্চারণ শুনুন এবং সঠিক শব্দ বাছাই করুন।",
+            "practice_content": [
+                {"symbol": "অ / আ", "sound_prompt": "আম", "options": ["আম", "ইট", "উট"], "correct": "আম"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "এটিএম ও আর্থিক রসিদ পঠন",
+            "instructions": "রসিদের বিবরণ পড়ুন এবং প্রশ্নের সঠিক উত্তর দিন।",
+            "practice_content": [
+                {"passage": "এটিএম উত্তোলন রসিদ: পরিমাণ ₹৫০০, অবশিষ্ট ব্যালেন্স ₹৪,৫০০", "question": "অ্যাকাউন্টে অবশিষ্ট ব্যালেন্স কত?", "options": ["₹৫০০", "₹৪,৫০০", "₹৫,০০০"], "correct": "₹৪,৫০০"}
+            ]
+        },
+        "VOICE": {
+            "title": "স্পষ্ট বাক্য বাচন চর্চা",
+            "instructions": "মাইক্রোফোন চেপে বাক্যটি স্পষ্টভাবে বলুন।",
+            "practice_content": [
+                {"prompt_phrase": "শুভ সকাল, আপনাকে কীভাবে সাহায্য করতে পারি", "target_phonemes": ["শু", "ভ", "স", "কা", "ল"]}
+            ]
+        }
+    },
+    "mr": {
+        "READING": {
+            "title": "मराठी मूळाक्षरे व उच्चार सराव",
+            "instructions": "अक्षराचा आवाज ऐका आणि योग्य शब्द निवडा.",
+            "practice_content": [
+                {"symbol": "अ / आ", "sound_prompt": "अननस", "options": ["अननस", "आंबा", "इमारत"], "correct": "अननस"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "एटीएम व वित्तीय पावती वाचन",
+            "instructions": "पावतीचा तपशील वाचा आणि प्रश्नाचे उत्तर द्या.",
+            "practice_content": [
+                {"passage": "एटीएम पैसे काढल्याची पावती: रक्कम ₹500, शिल्लक रक्कम ₹4,500", "question": "खात्यातील शिल्लक रक्कम किती आहे?", "options": ["₹500", "₹4,500", "₹5,000"], "correct": "₹4,500"}
+            ]
+        },
+        "VOICE": {
+            "title": "स्पष्ट संभाषण व वाचन सराव",
+            "instructions": "मायक्रोफोन दाबा आणि वाक्य स्पष्टपणे बोला.",
+            "practice_content": [
+                {"prompt_phrase": "नमस्कार, मी तुम्हाला कशी मदत करू शकेन", "target_phonemes": ["न", "म", "स्", "का", "र"]}
+            ]
+        }
+    },
+    "kn": {
+        "READING": {
+            "title": "ಕನ್ನಡ ಅಕ್ಷರಮಾಲೆ ಮತ್ತು ಸ್ವರ ತರಬೇತಿ",
+            "instructions": "ಅಕ್ಷರದ ಶಬ್ದವನ್ನು ಕೇಳಿ ಸರಿಯಾದ ಪದವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+            "practice_content": [
+                {"symbol": "ಅ / ಆ", "sound_prompt": "ಅರಸ", "options": ["ಅರಸ", "ಆನೆ", "ಇಲಿ"], "correct": "ಅರಸ"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "ಎಟಿಎಂ ಮತ್ತು ಹಣಕಾಸು ರಶೀದಿ ಓದುವಿಕೆ",
+            "instructions": "ರಶೀದಿ ವಿವರಗಳನ್ನು ಓದಿ ಸರಿಯಾದ ಉತ್ತರ ನೀಡಿ.",
+            "practice_content": [
+                {"passage": "ಎಟಿಎಂ ಹಣ ಹಿಂಪಡೆದ ರಶೀದಿ: ಮೊತ್ತ ₹500, ಬಾಕಿ ಮೊತ್ತ ₹4,500", "question": "ಖಾತೆಯಲ್ಲಿರುವ ಬಾಕಿ ಮೊತ್ತ ಎಷ್ಟು?", "options": ["₹500", "₹4,500", "₹5,000"], "correct": "₹4,500"}
+            ]
+        },
+        "VOICE": {
+            "title": "ಸ್ಪಷ್ಟ ಮಾತನಾಡುವ ಉಚ್ಚಾರಣೆ ಅಭ್ಯಾಸ",
+            "instructions": "ಮೈಕ್ರೋಫೋನ್ ಒತ್ತಿ ವಾಕ್ಯವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಮಾತನಾಡಿ.",
+            "practice_content": [
+                {"prompt_phrase": "ಶುಭೋದಯ, ನಾನು ನಿಮಗೆ ಹೇಗೆ ನೆರವಾಗಲಿ", "target_phonemes": ["ಶು", "ಭೋ", "ದ", "ಯ"]}
+            ]
+        }
+    },
+    "es": {
+        "READING": {
+            "title": "Entrenador de Fonética y Sílabas en Español",
+            "instructions": "Escuche el sonido de la letra y seleccione la palabra correspondiente.",
+            "practice_content": [
+                {"symbol": "A / a", "sound_prompt": "manzana", "options": ["Manzana", "Pelota", "Gato"], "correct": "Manzana"}
+            ]
+        },
+        "COMPREHENSION": {
+            "title": "Escenario de Lectura Funcional de Cajero",
+            "instructions": "Lea los detalles del recibo y responda la pregunta.",
+            "practice_content": [
+                {"passage": "Recibo de cajero: Monto $500, Saldo restante $4,500", "question": "¿Cuál es el saldo restante?", "options": ["$500", "$4,500", "$5,000"], "correct": "$4,500"}
+            ]
+        },
+        "VOICE": {
+            "title": "Articulación de Voz Profesional",
+            "instructions": "Toque el micrófono y pronuncie la frase claramente.",
+            "practice_content": [
+                {"prompt_phrase": "Buenos días, ¿en qué puedo ayudarle hoy?", "target_phonemes": ["b", "n", "s", "d", "s"]}
+            ]
+        }
+    }
+}
+
 @router.post("/personalized-lessons", response_model=schemas.PersonalizedLessonOut)
 def generate_personalized_lesson(
-    skill_type: Optional[str] = None,
+    skill_type: Optional[str] = Query(None),
+    lang: Optional[str] = Query(None, description="ISO language code (e.g. en, te, hi, ta, bn, mr, kn, es)"),
     db: Session = Depends(get_db),
     learner: Optional[models.Learner] = Depends(get_optional_current_learner)
 ):
@@ -416,9 +607,14 @@ def generate_personalized_lesson(
         raise HTTPException(status_code=404, detail="No learner account found.")
 
     profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == learner.learner_id).first()
-    lang_id = learner.current_lang_id or 1
-    lang = db.query(models.Language).filter(models.Language.lang_id == lang_id).first()
-    iso = lang.iso_code if lang else "en"
+    
+    # Resolve target language ISO
+    if lang:
+        iso = lang.lower()
+    else:
+        lang_id = learner.current_lang_id or 1
+        lang_obj = db.query(models.Language).filter(models.Language.lang_id == lang_id).first()
+        iso = lang_obj.iso_code if lang_obj else "en"
 
     if not skill_type:
         skills = {
@@ -429,49 +625,21 @@ def generate_personalized_lesson(
         skill_type = min(skills, key=skills.get)
 
     level = profile.literacy_level if profile else "FOUNDATIONAL"
+    lang_lessons = PERSONALIZED_LESSONS_BY_LANG.get(iso, PERSONALIZED_LESSONS_BY_LANG["en"])
+    lesson_data = lang_lessons.get(skill_type, lang_lessons["READING"])
 
-    if skill_type == "READING":
-        exercise = {
-            "lesson_id": f"gen_read_{learner.learner_id}",
-            "target_skill": "READING",
-            "language_code": iso,
-            "difficulty": level,
-            "exercise_type": "PHONICS_FLASHCARD",
-            "title": "Adaptive Phonics & Syllable Trainer",
-            "instructions": "Listen to the letter sound and select the matching word.",
-            "practice_content": [
-                {"symbol": "A / அ / अ", "sound_prompt": "apple", "options": ["Apple", "Ball", "Cat"], "correct": "Apple"},
-                {"symbol": "B / ಬ / ব", "sound_prompt": "ball", "options": ["Dog", "Ball", "Elephant"], "correct": "Ball"}
-            ]
-        }
-    elif skill_type == "COMPREHENSION":
-        exercise = {
-            "lesson_id": f"gen_comp_{learner.learner_id}",
-            "target_skill": "COMPREHENSION",
-            "language_code": iso,
-            "difficulty": level,
-            "exercise_type": "FUNCTIONAL_CONTEXT_READING",
-            "title": "ATM & Financial Literacy Scenario",
-            "instructions": "Read the receipt details and answer the comprehension question.",
-            "practice_content": [
-                {"passage": "ATM Withdrawal Receipt: Amount ₹500, Account XXXX1234, Balance ₹4,500", "question": "What is the remaining account balance?", "options": ["₹500", "₹4,500", "₹5,000"], "correct": "₹4,500"}
-            ]
-        }
-    else:
-        exercise = {
-            "lesson_id": f"gen_voice_{learner.learner_id}",
-            "target_skill": "VOICE",
-            "language_code": iso,
-            "difficulty": level,
-            "exercise_type": "PRONUNCIATION_COACH",
-            "title": "Professional Speech Articulation",
-            "instructions": "Tap microphone and speak the prompt phrase clearly.",
-            "practice_content": [
-                {"prompt_phrase": "Good morning, how can I help you today?", "target_phonemes": ["g", "d", "m", "n", "ng"]}
-            ]
-        }
+    ex_type = "PHONICS_FLASHCARD" if skill_type == "READING" else ("FUNCTIONAL_CONTEXT_READING" if skill_type == "COMPREHENSION" else "PRONUNCIATION_COACH")
 
-    return exercise
+    return {
+        "lesson_id": f"gen_{skill_type.lower()}_{learner.learner_id}_{iso}",
+        "target_skill": skill_type,
+        "language_code": iso,
+        "difficulty": level,
+        "exercise_type": ex_type,
+        "title": lesson_data["title"],
+        "instructions": lesson_data["instructions"],
+        "practice_content": lesson_data["practice_content"]
+    }
 
 @router.get("/recommended-content", response_model=List[schemas.ContentRecommendationOut])
 def get_recommended_content(
