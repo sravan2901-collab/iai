@@ -52,20 +52,22 @@ DIFFICULTY_ORDER = {
 }
 
 
-def generate_learning_path(learner_id: int, db: Optional[Session] = None) -> int:
+def generate_learning_path(learner_id: int, target_lang: Optional[str] = None, db: Optional[Session] = None) -> int:
     """
     Generates a new personalized learning_path and path_lesson sequence for a learner:
     1. Calls predict_proficiency(learner_id) to get predicted proficiency per skill.
     2. Identifies the learner's weakest skill_type.
-    3. Deactivates any existing ACTIVE learning_path by setting status = 'COMPLETED'.
-    4. Inserts a new ACTIVE learning_path with current_level = weakest level and
+    3. Resolves target language (e.g. 'en', 'hi', 'te', etc.) and updates learner.current_lang_id.
+    4. Deactivates any existing ACTIVE learning_path by setting status = 'COMPLETED'.
+    5. Inserts a new ACTIVE learning_path with current_level = weakest level and
        target_proficiency = next level up.
-    5. Attempts dynamic AI plan generation via Ollama (ai_content_service). If available,
+    6. Attempts dynamic AI plan generation via Ollama (ai_content_service). If available,
        persists generated lessons. Otherwise, gracefully falls back to rule-based selection.
-    6. Inserts path_lesson entries with sequence_no 1..N, status = 'UNLOCKED' for the
-       first lesson and 'LOCKED' for subsequent lessons.
+    7. Inserts path_lesson entries with sequence_no 1..N, status = 'UNLOCKED' for the
+       first lesson and 'LOCKED' for subsequent lessons. Guarantees non-empty path.
 
     :param learner_id: Unique integer ID of the learner.
+    :param target_lang: Optional language code ISO string (e.g. 'en', 'hi', 'te', etc.)
     :param db: Optional SQLAlchemy Session. If omitted, uses SessionLocal context.
     :return: Unique path_id integer of the newly generated learning_path.
     """
@@ -86,7 +88,31 @@ def generate_learning_path(learner_id: int, db: Optional[Session] = None) -> int
         weakest_level = predictions.get(weakest_skill, "FOUNDATIONAL")
         target_level = LEVEL_NEXT.get(weakest_level, "BASIC")
 
-        # 3. Complete any existing ACTIVE learning paths for this learner
+        # 3. Resolve Learner Language
+        learner = db.query(models.Learner).filter(models.Learner.learner_id == learner_id).first()
+        
+        target_iso = (target_lang or "").strip().lower() if target_lang else None
+        lang_obj = None
+
+        if target_iso:
+            lang_obj = db.query(models.Language).filter(models.Language.iso_code == target_iso).first()
+        
+        if not lang_obj and learner and learner.current_lang_id:
+            lang_obj = db.query(models.Language).filter(models.Language.lang_id == learner.current_lang_id).first()
+
+        if not lang_obj:
+            lang_obj = db.query(models.Language).filter(models.Language.iso_code == "en").first()
+            if not lang_obj:
+                lang_obj = db.query(models.Language).first()
+
+        lang_id = lang_obj.lang_id if lang_obj else 2
+        lang_code = lang_obj.iso_code if lang_obj else "en"
+
+        if learner and lang_id:
+            learner.current_lang_id = lang_id
+            db.commit()
+
+        # 4. Complete any existing ACTIVE learning paths for this learner
         active_paths = (
             db.query(models.LearningPath)
             .filter(
@@ -99,7 +125,7 @@ def generate_learning_path(learner_id: int, db: Optional[Session] = None) -> int
             ap.status = "COMPLETED"
         db.commit()
 
-        # 4. Insert new ACTIVE learning_path
+        # 5. Insert new ACTIVE learning_path
         new_path = models.LearningPath(
             learner_id=learner_id,
             target_proficiency=target_level,
@@ -112,81 +138,85 @@ def generate_learning_path(learner_id: int, db: Optional[Session] = None) -> int
         db.commit()
         db.refresh(new_path)
 
-        # 5. Resolve Learner Language and Curriculum
-        learner = db.query(models.Learner).filter(models.Learner.learner_id == learner_id).first()
-        lang_id = learner.current_lang_id if (learner and learner.current_lang_id) else 2
-        lang_obj = db.query(models.Language).filter(models.Language.lang_id == lang_id).first()
-        lang_code = lang_obj.iso_code if lang_obj else "en"
-
+        # 6. Resolve Curriculum & Lessons
         curriculum = db.query(models.Curriculum).filter(models.Curriculum.lang_id == lang_id).first()
+        if not curriculum:
+            curriculum = models.Curriculum(
+                lang_id=lang_id,
+                title=f"{lang_code.upper()} Literacy Curriculum",
+                description=f"Personalized Literacy Curriculum for {lang_code.upper()}"
+            )
+            db.add(curriculum)
+            db.commit()
+            db.refresh(curriculum)
 
         selected_lessons: List[models.Lesson] = []
         ai_generated_success = False
 
         # Attempt Ollama AI Generation if available
         if is_ai_available():
-            ai_plan = generate_path_plan(
-                weakest_skill=weakest_skill,
-                current_level=weakest_level,
-                target_level=target_level,
-                lang_code=lang_code
-            )
-
-            if ai_plan and curriculum:
-                # Find or create a matching module for the weakest skill
-                target_mod = (
-                    db.query(models.Module)
-                    .filter(
-                        models.Module.curriculum_id == curriculum.curriculum_id,
-                        models.Module.skill_type == weakest_skill
-                    )
-                    .first()
+            try:
+                ai_plan = generate_path_plan(
+                    weakest_skill=weakest_skill,
+                    current_level=weakest_level,
+                    target_level=target_level,
+                    lang_code=lang_code
                 )
 
-                if not target_mod:
-                    target_mod = models.Module(
-                        curriculum_id=curriculum.curriculum_id,
-                        module_name=f"{weakest_skill} AI Mastery",
-                        sequence_no=5,
-                        skill_type=weakest_skill
+                if ai_plan and curriculum:
+                    target_mod = (
+                        db.query(models.Module)
+                        .filter(
+                            models.Module.curriculum_id == curriculum.curriculum_id,
+                            models.Module.skill_type == weakest_skill
+                        )
+                        .first()
                     )
-                    db.add(target_mod)
-                    db.commit()
-                    db.refresh(target_mod)
 
-                # Persist AI-planned lessons
-                for item in ai_plan[:5]:
-                    l_title = item.get("title", f"AI {weakest_skill} Lesson")
-                    l_diff = item.get("difficulty_level", weakest_level)
+                    if not target_mod:
+                        target_mod = models.Module(
+                            curriculum_id=curriculum.curriculum_id,
+                            module_name=f"{weakest_skill} AI Mastery",
+                            sequence_no=5,
+                            skill_type=weakest_skill
+                        )
+                        db.add(target_mod)
+                        db.commit()
+                        db.refresh(target_mod)
 
-                    # Generate rich passage content via AI
-                    content = generate_lesson_content(
-                        lesson_title=l_title,
-                        skill_type=weakest_skill,
-                        lang_code=lang_code,
-                        target_level=l_diff
-                    ) or {}
+                    for item in ai_plan[:5]:
+                        l_title = item.get("title", f"AI {weakest_skill} Lesson")
+                        l_diff = item.get("difficulty_level", weakest_level)
 
-                    new_lesson = models.Lesson(
-                        module_id=target_mod.module_id,
-                        title=l_title,
-                        content_type="Voice Practice" if "Pronunciation" in weakest_skill else "Functional Reading",
-                        content_url=content.get("content_url", f"/audio/{lang_code}/ai_generated.mp3"),
-                        target_text=content.get("target_text", f"Practice lesson for {l_title}"),
-                        phonetic_script=json.dumps(content.get("phonetic_script", ["Phoneme"])),
-                        difficulty_level=l_diff
-                    )
-                    db.add(new_lesson)
-                    db.commit()
-                    db.refresh(new_lesson)
+                        content = generate_lesson_content(
+                            lesson_title=l_title,
+                            skill_type=weakest_skill,
+                            lang_code=lang_code,
+                            target_level=l_diff
+                        ) or {}
 
-                    selected_lessons.append(new_lesson)
+                        new_lesson = models.Lesson(
+                            module_id=target_mod.module_id,
+                            title=l_title,
+                            content_type="Voice Practice" if "Pronunciation" in weakest_skill else "Functional Reading",
+                            content_url=content.get("content_url", f"/audio/{lang_code}/ai_generated.mp3"),
+                            target_text=content.get("target_text", f"Practice lesson for {l_title}"),
+                            phonetic_script=json.dumps(content.get("phonetic_script", ["Phoneme"])),
+                            difficulty_level=l_diff
+                        )
+                        db.add(new_lesson)
+                        db.commit()
+                        db.refresh(new_lesson)
 
-                if selected_lessons:
-                    ai_generated_success = True
+                        selected_lessons.append(new_lesson)
 
-        # Fallback to Rule-Based Selection if AI is offline, disabled, or returned empty
-        if not ai_generated_success:
+                    if selected_lessons:
+                        ai_generated_success = True
+            except Exception as ai_err:
+                print(f"[AI GENERATION NOTICE] Ollama generation notice: {ai_err}")
+
+        # Rule-Based Selection Fallback
+        if not ai_generated_success or not selected_lessons:
             candidate_lessons: List[models.Lesson] = []
             if curriculum:
                 modules = (
@@ -211,12 +241,52 @@ def generate_learning_path(learner_id: int, db: Optional[Session] = None) -> int
                     )
                     candidate_lessons.extend(mod_lessons)
 
-            candidate_lessons.sort(
-                key=lambda l: DIFFICULTY_ORDER.get((l.difficulty_level or "").upper(), 99)
-            )
-            selected_lessons = candidate_lessons[:5]
+            if not candidate_lessons:
+                candidate_lessons = db.query(models.Lesson).all()
 
-        # 6. Insert path_lesson rows
+            if candidate_lessons:
+                candidate_lessons.sort(
+                    key=lambda l: DIFFICULTY_ORDER.get((l.difficulty_level or "").upper(), 99)
+                )
+                selected_lessons = candidate_lessons[:5]
+
+        # Emergency Lesson Seeding if repository is completely empty for target language
+        if not selected_lessons:
+            emergency_mod = db.query(models.Module).filter(models.Module.curriculum_id == curriculum.curriculum_id).first()
+            if not emergency_mod:
+                emergency_mod = models.Module(
+                    curriculum_id=curriculum.curriculum_id,
+                    module_name=f"{lang_code.upper()} Phonics & Literacy",
+                    sequence_no=1,
+                    skill_type="Reading & Pronunciation"
+                )
+                db.add(emergency_mod)
+                db.commit()
+                db.refresh(emergency_mod)
+
+            seed_data = [
+                ("Phoneme Sounds & Vowels", "Voice Practice", "Welcome to English language practice"),
+                ("Word Formation & Vocabulary", "Functional Reading", "Learning essential everyday vocabulary"),
+                ("Sentence Construction & Tenses", "Functional Reading", "Language unlocks knowledge and opportunity"),
+                ("Passage Reading & Fluency", "Voice Practice", "Continuous practice develops confidence and skill"),
+                ("Literary Expression & Articulation", "Voice Practice", "Mastery of language transforms human communication")
+            ]
+
+            for s_idx, (t_title, t_type, t_text) in enumerate(seed_data):
+                s_les = models.Lesson(
+                    module_id=emergency_mod.module_id,
+                    title=f"Lesson {s_idx+1}: {t_title}",
+                    content_type=t_type,
+                    content_url=f"/audio/{lang_code}/lesson_{s_idx+1}.mp3",
+                    target_text=t_text,
+                    difficulty_level="FOUNDATIONAL" if s_idx < 2 else "FUNCTIONAL"
+                )
+                db.add(s_les)
+                db.commit()
+                db.refresh(s_les)
+                selected_lessons.append(s_les)
+
+        # 7. Insert path_lesson rows
         for idx, lesson_obj in enumerate(selected_lessons):
             seq_no = idx + 1
             lesson_status = "UNLOCKED" if seq_no == 1 else "LOCKED"
@@ -239,7 +309,8 @@ def generate_learning_path(learner_id: int, db: Optional[Session] = None) -> int
 
 def get_active_path(learner_id: int, db: Optional[Session] = None) -> Optional[Dict[str, Any]]:
     """
-    Retrieves the current ACTIVE learning_path for a learner along with its ordered path_lesson list.
+    Retrieves the current ACTIVE learning_path for a learner along with its ordered path_lesson list
+    and structured milestones.
     """
     close_db = False
     if db is None:
@@ -282,15 +353,57 @@ def get_active_path(learner_id: int, db: Optional[Session] = None) -> Optional[D
                 "content_url": l.content_url
             })
 
+        # Build structured milestones from ordered_lessons
+        milestone1_lessons = ordered_lessons[:2]
+        milestone2_lessons = ordered_lessons[2:4]
+        milestone3_lessons = ordered_lessons[4:]
+
+        milestones = [
+            {
+                "step": 1,
+                "title": f"Milestone 1: {active_path.current_level} Phonics & Alphabet Fundamentals",
+                "category": "Phonemes & Letter Recognition",
+                "status": "UNLOCKED",
+                "completion": 50 if any(l["status"] == "COMPLETED" for l in milestone1_lessons) else 0,
+                "description": "Master letter sound associations and fundamental phonemes",
+                "lessons": milestone1_lessons
+            }
+        ]
+
+        if milestone2_lessons:
+            milestones.append({
+                "step": 2,
+                "title": "Milestone 2: Functional Reading & Word Vocabulary",
+                "category": "Functional Reading & Everyday Literacy",
+                "status": "UNLOCKED" if any(l["status"] in ["UNLOCKED", "COMPLETED"] for l in milestone2_lessons) else "LOCKED",
+                "completion": 50 if any(l["status"] == "COMPLETED" for l in milestone2_lessons) else 0,
+                "description": "Everyday practical reading, signs, and functional vocabulary",
+                "lessons": milestone2_lessons
+            })
+
+        if milestone3_lessons:
+            milestones.append({
+                "step": 3,
+                "title": "Milestone 3: Sentence Grammar & Literary Expression",
+                "category": "Advanced Fluency & Expression",
+                "status": "UNLOCKED" if any(l["status"] in ["UNLOCKED", "COMPLETED"] for l in milestone3_lessons) else "LOCKED",
+                "completion": 50 if any(l["status"] == "COMPLETED" for l in milestone3_lessons) else 0,
+                "description": "Expressive speech, complex sentence grammar, and literary fluency",
+                "lessons": milestone3_lessons
+            })
+
         return {
             "path_id": active_path.path_id,
             "learner_id": active_path.learner_id,
             "target_proficiency": active_path.target_proficiency,
             "current_level": active_path.current_level,
+            "path_title": f"AI Personalized Literacy Path ({active_path.current_level} → {active_path.target_proficiency})",
             "status": active_path.status,
             "completion_percentage": float(active_path.completion_percentage or 0.0),
+            "personalization_reason": f"Generated by AI Engine based on placement score: Target goal set to {active_path.target_proficiency}.",
             "generated_on": active_path.generated_on.isoformat() if active_path.generated_on else None,
-            "path_lessons": ordered_lessons
+            "path_lessons": ordered_lessons,
+            "milestones": milestones
         }
 
     finally:
