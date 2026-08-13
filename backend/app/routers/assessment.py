@@ -803,7 +803,8 @@ def get_language_proficiency_benchmarks(lang: str = Query("en", min_length=2, ma
     return target_benchmark
 
 class AnswerItem(BaseModel):
-    stage: int
+    stage: Optional[int] = None
+    question_id: Optional[int] = None
     skill_type: str
     selected_option_id: Optional[str] = None
     written_text: Optional[str] = None

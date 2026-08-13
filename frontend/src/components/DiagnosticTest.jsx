@@ -246,7 +246,8 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     const formattedAnswers = questions.map((q, idx) => {
       const ans = userAnswers[idx] || {};
       return {
-        stage: q.stage || (idx + 1),
+        stage: q.stage || q.id || (idx + 1),
+        question_id: q.id || q.stage || (idx + 1),
         skill_type: q.skill_type,
         selected_option_id: ans.selected_option_id || null,
         written_text: ans.written_text || null,
