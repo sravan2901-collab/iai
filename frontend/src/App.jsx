@@ -177,6 +177,14 @@ export default function App() {
       color: 'from-amber-500 to-orange-600',
       description: 'Prose & passage reading comprehension, articulate speech, and literary expression',
       lessonsCount: 3
+    },
+    {
+      id: 5,
+      title: 'Workplace Communication & Professional Skills',
+      icon: Award,
+      color: 'from-purple-500 to-violet-600',
+      description: 'Team greetings, meeting agendas, customer service dialogues, safety guidelines, and workplace email literacy',
+      lessonsCount: 6
     }
   ];
 
@@ -212,6 +220,38 @@ export default function App() {
       content_type: 'Literature Practice',
       target_text: 'Mastery over language transforms thought into eloquent communication',
       difficulty_level: 'PROFICIENT'
+    },
+    {
+      lesson_id: 5,
+      category_id: 5,
+      title: 'Professional Team Meeting Greetings & Agenda Discussion',
+      content_type: 'Voice Practice',
+      target_text: 'Good morning team, let us review our key project goals and daily targets clearly',
+      difficulty_level: 'FOUNDATIONAL'
+    },
+    {
+      lesson_id: 6,
+      category_id: 5,
+      title: 'Workplace Safety Guidelines & Emergency Protocols',
+      content_type: 'Functional Reading',
+      target_text: 'Always wear protective safety equipment and report all hazards immediately to your supervisor',
+      difficulty_level: 'FUNCTIONAL'
+    },
+    {
+      lesson_id: 7,
+      category_id: 5,
+      title: 'Customer Service Dialogue & Polite Assistance',
+      content_type: 'Voice Practice',
+      target_text: 'Thank you for contacting customer support. I am happy to assist you with your inquiry',
+      difficulty_level: 'FUNCTIONAL'
+    },
+    {
+      lesson_id: 8,
+      category_id: 5,
+      title: 'Professional Workplace Email & Memo Literacy',
+      content_type: 'Functional Reading',
+      target_text: 'Please find attached the quarterly project report for your review and formal approval',
+      difficulty_level: 'INTERMEDIATE'
     }
   ];
 
