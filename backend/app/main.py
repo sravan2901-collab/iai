@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, curriculum, voice, assessment, learning_path, progress
+from app.routers import auth, curriculum, voice, assessment, learning_path, progress, recommendation
 
 # Create tables in development mode if not already created
 Base.metadata.create_all(bind=engine)
@@ -34,6 +34,34 @@ def ensure_schema_migrations():
             lp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(learning_path)")).fetchall()]
             if lp_cols and "completion_percentage" not in lp_cols:
                 conn.execute(text("ALTER TABLE learning_path ADD COLUMN completion_percentage FLOAT DEFAULT 0.0"))
+
+            # Phase 4: Recommendation table — make lesson_id nullable + add new columns
+            rec_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(recommendation)")).fetchall()]
+            if rec_cols and "priority" not in rec_cols:
+                # SQLite doesn't support ALTER COLUMN, so recreate the table
+                conn.execute(text("ALTER TABLE recommendation RENAME TO recommendation_old"))
+                conn.execute(text("""
+                    CREATE TABLE recommendation (
+                        recommendation_id INTEGER PRIMARY KEY,
+                        learner_id INTEGER NOT NULL REFERENCES learner(learner_id) ON DELETE CASCADE,
+                        lesson_id INTEGER REFERENCES lesson(lesson_id) ON DELETE CASCADE,
+                        recommended_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        reason VARCHAR(500),
+                        model_version VARCHAR(50) DEFAULT 'rule-based',
+                        priority VARCHAR(20) DEFAULT 'MEDIUM',
+                        skill_focus VARCHAR(50) DEFAULT 'READING',
+                        rec_type VARCHAR(50) DEFAULT 'practice_weak_area',
+                        title VARCHAR(200)
+                    )
+                """))
+                conn.execute(text("""
+                    INSERT INTO recommendation (recommendation_id, learner_id, lesson_id, recommended_on, reason, model_version)
+                    SELECT recommendation_id, learner_id, lesson_id, recommended_on, reason, model_version
+                    FROM recommendation_old
+                """))
+                conn.execute(text("DROP TABLE recommendation_old"))
+
+            # Phase 4: AI Generated Content table (created by Base.metadata.create_all)
             conn.commit()
     except Exception as e:
         print(f"[DB MIGRATION NOTICE] Auto-migration skipped or failed: {e}")
@@ -251,7 +279,7 @@ app.add_middleware(
 )
 
 # Register Router Modules
-from app.routers import recommendations, learners, admin
+from app.routers import learners, admin
 
 app.include_router(auth.router)
 app.include_router(curriculum.router)
@@ -259,7 +287,7 @@ app.include_router(voice.router)
 app.include_router(assessment.router)
 app.include_router(learning_path.router)
 app.include_router(progress.router)
-app.include_router(recommendations.router)
+app.include_router(recommendation.router)
 app.include_router(learners.router)
 app.include_router(admin.router)
 

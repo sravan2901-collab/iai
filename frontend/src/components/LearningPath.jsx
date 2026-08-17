@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Compass, Sparkles, Lock, Play, Check, CheckCircle, XCircle, ArrowRight, BookOpen, RefreshCw, Globe, HelpCircle } from 'lucide-react';
-import { apiRequest } from '../services/api';
+import { Compass, Sparkles, Lock, Play, Check, CheckCircle, XCircle, ArrowRight, BookOpen, RefreshCw, Globe, HelpCircle, Zap, Brain, Mic, BookOpenCheck } from 'lucide-react';
+import { apiRequest, recommendationApi } from '../services/api';
 
 const formatPathDataWithMilestones = (raw) => {
   if (!raw) return null;
@@ -61,6 +61,40 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
   const [loading, setLoading] = useState(false);
   const [pathData, setPathData] = useState(formatPathDataWithMilestones(assessmentResult?.learning_path) || null);
   const [showProgress, setShowProgress] = useState(0);
+  const [recommendations, setRecommendations] = useState([]);
+  const [aiProvider, setAiProvider] = useState(null);
+  const [recsLoading, setRecsLoading] = useState(false);
+  const [genExercise, setGenExercise] = useState(null);
+  const [genLoading, setGenLoading] = useState(false);
+
+  // Fetch AI recommendations when path data loads
+  useEffect(() => {
+    const fetchRecs = async () => {
+      try {
+        setRecsLoading(true);
+        const data = await recommendationApi.getRecommendations();
+        setRecommendations(data.recommendations || []);
+        setAiProvider(data.ai_provider);
+      } catch (err) {
+        console.log('Recommendations not available:', err.message);
+      } finally {
+        setRecsLoading(false);
+      }
+    };
+    if (pathData) fetchRecs();
+  }, [pathData]);
+
+  const handleGenerateExercise = async (skillFocus, difficulty = 'FOUNDATIONAL') => {
+    try {
+      setGenLoading(true);
+      const data = await recommendationApi.generateExercise(skillFocus, difficulty);
+      setGenExercise(data);
+    } catch (err) {
+      console.log('Exercise generation failed:', err.message);
+    } finally {
+      setGenLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (assessmentResult?.learning_path) {
@@ -454,7 +488,120 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
         })}
       </div>
 
-      {/* 4. Action Buttons */}
+      {/* 4. AI Recommended For You */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
+            <Zap size={16} className="text-amber-400" />
+          </div>
+          <h3 className="text-base font-bold text-slate-200">AI Recommended For You</h3>
+          {aiProvider && (
+            <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold uppercase tracking-wider">
+              {aiProvider === 'groq' ? '⚡ Llama 3.3 via Groq' : aiProvider === 'ollama' ? '🦙 Ollama Local' : '📊 Smart Analysis'}
+            </span>
+          )}
+        </div>
+
+        {recsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="animate-spin text-amber-400" size={20} />
+            <span className="ml-2 text-sm text-slate-400">Generating AI recommendations...</span>
+          </div>
+        ) : recommendations.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {recommendations.map((rec, idx) => {
+              const priorityStyles = {
+                HIGH: { border: 'border-rose-500/30', bg: 'bg-rose-500/5', badge: 'bg-rose-500/20 text-rose-400', dot: 'bg-rose-400' },
+                MEDIUM: { border: 'border-amber-500/30', bg: 'bg-amber-500/5', badge: 'bg-amber-500/20 text-amber-400', dot: 'bg-amber-400' },
+                LOW: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', badge: 'bg-emerald-500/20 text-emerald-400', dot: 'bg-emerald-400' }
+              };
+              const style = priorityStyles[rec.priority] || priorityStyles.MEDIUM;
+              const SkillIcon = rec.skill_focus === 'VOICE' ? Mic : rec.skill_focus === 'COMPREHENSION' ? Brain : BookOpenCheck;
+
+              return (
+                <div key={idx} className={`rounded-xl p-4 border ${style.border} ${style.bg} backdrop-blur-sm transition-all hover:scale-[1.02]`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.badge}`}>
+                      <SkillIcon size={15} />
+                    </div>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${style.badge}`}>
+                      <span className={`inline-block w-1.5 h-1.5 rounded-full ${style.dot} mr-1`}></span>
+                      {rec.priority}
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-200 mb-1 leading-snug">{rec.title}</h4>
+                  <p className="text-[10px] text-slate-400 leading-relaxed mb-3">{rec.reason}</p>
+                  <button
+                    onClick={() => handleGenerateExercise(rec.skill_focus)}
+                    disabled={genLoading}
+                    className="w-full py-1.5 rounded-lg text-[10px] font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all flex items-center justify-center gap-1"
+                  >
+                    {genLoading ? <RefreshCw size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                    Generate Exercise
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {/* Generated Exercise Display */}
+        {genExercise && genExercise.exercise && (
+          <div className="mt-4 rounded-xl border border-teal-500/30 bg-teal-500/5 p-5 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-teal-400" />
+                <span className="text-xs font-bold text-teal-300">AI-Generated Exercise</span>
+              </div>
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 font-semibold">
+                {genExercise.ai_provider === 'groq' ? 'Llama 3.3' : genExercise.ai_provider === 'ollama' ? 'Ollama' : 'Smart Fallback'}
+              </span>
+            </div>
+            <h4 className="text-sm font-bold text-slate-200 mb-1">{genExercise.exercise.title}</h4>
+            {genExercise.exercise.title_english && (
+              <p className="text-[10px] text-slate-500 mb-2 italic">{genExercise.exercise.title_english}</p>
+            )}
+            <div className="bg-black/20 rounded-lg p-3 mb-3">
+              <p className="text-sm text-emerald-300 font-medium leading-relaxed">
+                "{genExercise.exercise.target_text}"
+              </p>
+              {genExercise.exercise.phonetic_script && genExercise.exercise.phonetic_script.length > 0 && (
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Phonetic: {Array.isArray(genExercise.exercise.phonetic_script) ? genExercise.exercise.phonetic_script.join(' · ') : genExercise.exercise.phonetic_script}
+                </p>
+              )}
+            </div>
+            {genExercise.exercise.explanation && (
+              <p className="text-[10px] text-slate-400 mb-3 italic">💡 {genExercise.exercise.explanation}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const practiceLesson = {
+                    lesson_id: `ai-gen-${genExercise.content_id}`,
+                    title: genExercise.exercise.title,
+                    target_text: genExercise.exercise.target_text,
+                    content_type: genExercise.exercise.content_type || 'Voice Practice',
+                    phonetic_script: Array.isArray(genExercise.exercise.phonetic_script) ? genExercise.exercise.phonetic_script.join(' ') : genExercise.exercise.phonetic_script
+                  };
+                  onSelectLesson(practiceLesson);
+                }}
+                className="flex-1 py-2 rounded-lg text-xs font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 transition-all flex items-center justify-center gap-1"
+              >
+                <Play size={12} /> Practice Now
+              </button>
+              <button
+                onClick={() => setGenExercise(null)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-400 border border-white/10 transition-all"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 5. Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
         <button onClick={onRetakeAssessment} className="w-full py-3.5 rounded-xl glass-button text-emerald-300 hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all border border-emerald-500/40">
           <RefreshCw size={16} />

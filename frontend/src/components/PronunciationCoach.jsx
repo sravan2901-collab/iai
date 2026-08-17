@@ -1,11 +1,114 @@
-import React, { useState } from 'react';
-import { Mic, Volume2, RotateCcw, Sparkles } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { Mic, Volume2, RotateCcw, Sparkles, MicOff, Loader } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
+import { apiRequest } from '../services/api';
+
+/**
+ * Compute word-level similarity between target and spoken text.
+ * Uses normalized Levenshtein-like comparison per word.
+ */
+function computePronunciationScore(targetText, spokenText) {
+  const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9\u0900-\u097F\u0C00-\u0C7F\u0B80-\u0BFF\u0980-\u09FF\u0C80-\u0CFF\u00C0-\u017F\s]/g, '').trim();
+  const targetWords = normalize(targetText).split(/\s+/).filter(Boolean);
+  const spokenWords = normalize(spokenText).split(/\s+/).filter(Boolean);
+
+  if (targetWords.length === 0) return { overall_score: 0, phoneme_accuracy: 0, syllable_score: 0, word_feedback: {}, remediation_tip: "No target text." };
+
+  // Levenshtein distance for individual words
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++)
+      for (let j = 1; j <= n; j++)
+        dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    return dp[m][n];
+  }
+
+  // Match each target word to the best spoken word
+  const wordFeedback = {};
+  let totalWordScore = 0;
+  const usedSpoken = new Set();
+
+  const originalTargetWords = targetText.replace(/[.,!?;:'"]/g, '').split(/\s+/).filter(Boolean);
+
+  for (let i = 0; i < targetWords.length; i++) {
+    const tw = targetWords[i];
+    const displayWord = originalTargetWords[i] || tw;
+    let bestScore = 0;
+    let bestIdx = -1;
+
+    for (let j = 0; j < spokenWords.length; j++) {
+      if (usedSpoken.has(j)) continue;
+      const sw = spokenWords[j];
+      const maxLen = Math.max(tw.length, sw.length);
+      const dist = levenshtein(tw, sw);
+      const similarity = maxLen === 0 ? 1 : 1 - dist / maxLen;
+      if (similarity > bestScore) {
+        bestScore = similarity;
+        bestIdx = j;
+      }
+    }
+
+    if (bestIdx >= 0 && bestScore > 0.3) {
+      usedSpoken.add(bestIdx);
+    }
+
+    // Classify: green >= 80%, yellow >= 50%, red < 50%
+    const pct = bestScore * 100;
+    if (pct >= 80) wordFeedback[displayWord] = 'green';
+    else if (pct >= 50) wordFeedback[displayWord] = 'yellow';
+    else wordFeedback[displayWord] = 'red';
+
+    totalWordScore += bestScore;
+  }
+
+  const accuracy = (totalWordScore / targetWords.length) * 100;
+
+  // Syllable score: how many target words were found at all in spoken text
+  const foundCount = Object.values(wordFeedback).filter(v => v !== 'red').length;
+  const syllableScore = (foundCount / targetWords.length) * 100;
+
+  // Overall: weighted average
+  const overall = Math.round(accuracy * 0.6 + syllableScore * 0.4);
+
+  // Count problem areas
+  const redWords = Object.entries(wordFeedback).filter(([, v]) => v === 'red').map(([k]) => k);
+  const yellowWords = Object.entries(wordFeedback).filter(([, v]) => v === 'yellow').map(([k]) => k);
+
+  let tip;
+  if (overall >= 90) {
+    tip = "Excellent pronunciation! Your speech closely matches the target text.";
+  } else if (overall >= 70) {
+    const issues = [...yellowWords, ...redWords].slice(0, 3).join(', ');
+    tip = `Good effort! Practice these words more: ${issues || 'focus on clarity'}.`;
+  } else if (overall >= 50) {
+    const issues = [...redWords, ...yellowWords].slice(0, 3).join(', ');
+    tip = `Keep practicing. Focus on pronouncing: ${issues || 'the full sentence'}. Try listening to the benchmark audio first.`;
+  } else {
+    tip = "Try listening to the benchmark audio first, then repeat slowly. Focus on one word at a time.";
+  }
+
+  return {
+    overall_score: Math.min(Math.max(overall, 0), 100),
+    phoneme_accuracy: Math.round(Math.min(accuracy, 100) * 10) / 10,
+    syllable_score: Math.round(syllableScore * 10) / 10,
+    word_feedback: wordFeedback,
+    remediation_tip: tip
+  };
+}
 
 export default function PronunciationCoach({ lesson, onScoreUpdate }) {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaStream, setMediaStream] = useState(null);
   const [evaluation, setEvaluation] = useState(null);
+  const [recognizedText, setRecognizedText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   const targetText = lesson?.target_text || "Hello, how are you today?";
 
@@ -23,42 +126,144 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(targetText);
     utterance.lang = "en-US";
-    utterance.rate = 0.5; // slow-motion breakdown
+    utterance.rate = 0.5;
     window.speechSynthesis.speak(utterance);
   };
 
+  const stopRecording = useCallback(() => {
+    setIsRecording(false);
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) { /* already stopped */ }
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      setMediaStream(null);
+    }
+  }, [mediaStream]);
+
   const startRecording = async () => {
     setEvaluation(null);
+    setRecognizedText('');
+    setErrorMsg('');
+    audioChunksRef.current = [];
+
+    // Check for SpeechRecognition support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setErrorMsg('Speech Recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
     try {
+      // 1. Get microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setMediaStream(stream);
       setIsRecording(true);
 
-      // Simulate sending audio blob to STT & backend phoneme scorer
-      setTimeout(() => {
-        setIsRecording(false);
+      // 2. Set up MediaRecorder to capture audio blob (for backend)
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mediaRecorder.start();
+
+      // 3. Set up Web Speech API for real-time recognition
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US'; // Default — could be dynamic per language
+
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      recognition.onresult = (event) => {
+        interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript = transcript;
+          }
+        }
+        setRecognizedText((finalTranscript + interimTranscript).trim());
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech recognition error:', event.error);
+        if (event.error === 'no-speech') {
+          setErrorMsg('No speech detected. Please speak louder and try again.');
+        }
+      };
+
+      recognition.onend = () => {
+        // When recognition ends, compute the score
+        const spokenText = finalTranscript.trim() || interimTranscript.trim();
+        
+        if (spokenText.length > 0) {
+          setIsProcessing(true);
+          const evalResult = computePronunciationScore(targetText, spokenText);
+          setEvaluation(evalResult);
+          setRecognizedText(spokenText);
+          if (onScoreUpdate) onScoreUpdate(evalResult.overall_score);
+
+          // Also try to send to backend for server-side scoring (non-blocking)
+          try {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            if (audioBlob.size > 0 && lesson?.lesson_id && typeof lesson.lesson_id === 'number') {
+              const formData = new FormData();
+              formData.append('audio_file', audioBlob, 'recording.webm');
+              formData.append('learner_id', '0');
+              formData.append('lesson_id', String(lesson.lesson_id));
+              apiRequest('/voice/evaluate', {
+                method: 'POST',
+                body: formData,
+                isFormData: true
+              }).catch(() => {}); // Silent fail — frontend scoring is primary
+            }
+          } catch (e) { /* ignore backend send errors */ }
+
+          setIsProcessing(false);
+        } else {
+          setErrorMsg('No speech was recognized. Please try again and speak clearly.');
+          setIsProcessing(false);
+        }
+
+        // Clean up stream
         stream.getTracks().forEach(track => track.stop());
+        setMediaStream(null);
+        setIsRecording(false);
+      };
 
-        const mockEval = {
-          overall_score: 92.0,
-          phoneme_accuracy: 94.5,
-          syllable_score: 90.0,
-          word_feedback: {
-            "Hello,": "green",
-            "how": "green",
-            "are": "green",
-            "you": "green",
-            "today?": "yellow"
-          },
-          remediation_tip: "Excellent pronunciation! Pay slight attention to stressing the word 'today'."
-        };
+      recognition.start();
 
-        setEvaluation(mockEval);
-        if (onScoreUpdate) onScoreUpdate(mockEval.overall_score);
-      }, 3500);
+      // 4. Auto-stop after 8 seconds to give enough time for a sentence
+      setTimeout(() => {
+        if (recognitionRef.current) {
+          try { recognitionRef.current.stop(); } catch (e) {}
+        }
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
+      }, 8000);
+
     } catch (err) {
-      alert("Microphone permission required for speech practice.");
+      setErrorMsg('Microphone permission required for speech practice.');
+      setIsRecording(false);
     }
+  };
+
+  // Determine status label based on overall score
+  const getStatusLabel = (score) => {
+    if (score >= 90) return { text: 'Excellent', color: 'text-emerald-400', dot: '🟢' };
+    if (score >= 70) return { text: 'Good', color: 'text-amber-300', dot: '🟡' };
+    if (score >= 50) return { text: 'Fair', color: 'text-orange-400', dot: '🟠' };
+    return { text: 'Needs Practice', color: 'text-rose-400', dot: '🔴' };
   };
 
   return (
@@ -84,7 +289,8 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
         <span className="text-xs text-slate-400">Target Practice Sentence:</span>
         <div className="flex flex-wrap items-center justify-center gap-3 text-2xl md:text-3xl font-bold tracking-wide">
           {targetText.split(' ').map((word, idx) => {
-            const status = evaluation?.word_feedback?.[word];
+            const cleanWord = word.replace(/[.,!?;:'"]/g, '');
+            const status = evaluation?.word_feedback?.[word] || evaluation?.word_feedback?.[cleanWord];
             let colorClass = "text-amber-300 border-b-2 border-amber-400/40";
 
             if (status === 'green') colorClass = "text-emerald-400 border-b-2 border-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded";
@@ -102,19 +308,45 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
 
       <AudioVisualizer isRecording={isRecording} mediaStream={mediaStream} />
 
+      {/* Live Recognized Text */}
+      {(isRecording || recognizedText) && (
+        <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-700/50">
+          <span className="text-[10px] uppercase tracking-wider text-slate-500 block mb-1">
+            {isRecording ? '🎙️ Listening...' : '📝 What you said:'}
+          </span>
+          <p className={`text-sm font-medium ${isRecording ? 'text-emerald-300 animate-pulse' : 'text-slate-300'}`}>
+            {recognizedText || (isRecording ? 'Speak now...' : '')}
+          </p>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {errorMsg && (
+        <div className="bg-rose-950/30 rounded-xl p-3 border border-rose-500/20">
+          <p className="text-xs text-rose-300">⚠️ {errorMsg}</p>
+        </div>
+      )}
+
       {/* Recording Actions */}
       <div className="flex items-center justify-center gap-4">
         <button
-          onClick={startRecording}
-          disabled={isRecording}
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={isProcessing}
           className={`flex-1 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-            isRecording 
-              ? 'bg-rose-600 text-white mic-active' 
-              : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/30'
+            isProcessing
+              ? 'bg-slate-700 text-slate-400 cursor-wait'
+              : isRecording 
+                ? 'bg-rose-600 hover:bg-rose-500 text-white mic-active' 
+                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/30'
           }`}
         >
-          <Mic size={22} />
-          <span>{isRecording ? "Listening to your voice..." : "Tap Microphone & Speak Aloud"}</span>
+          {isProcessing ? (
+            <><Loader size={22} className="animate-spin" /><span>Analyzing your speech...</span></>
+          ) : isRecording ? (
+            <><MicOff size={22} /><span>Stop Recording</span></>
+          ) : (
+            <><Mic size={22} /><span>Tap Microphone & Speak Aloud</span></>
+          )}
         </button>
 
         <button
@@ -135,21 +367,31 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
               <Sparkles size={20} />
               <span>Pronunciation Accuracy Score</span>
             </div>
-            <span className="text-2xl font-black text-emerald-400">{evaluation.overall_score}%</span>
+            <span className={`text-2xl font-black ${
+              evaluation.overall_score >= 70 ? 'text-emerald-400' : 
+              evaluation.overall_score >= 50 ? 'text-amber-400' : 'text-rose-400'
+            }`}>{evaluation.overall_score}%</span>
           </div>
 
           <div className="grid grid-cols-3 gap-3 text-center text-xs">
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
               <span className="text-slate-400 block">Accuracy</span>
-              <span className="text-sm font-bold text-emerald-300">{evaluation.phoneme_accuracy}%</span>
+              <span className={`text-sm font-bold ${evaluation.phoneme_accuracy >= 70 ? 'text-emerald-300' : evaluation.phoneme_accuracy >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
+                {evaluation.phoneme_accuracy}%
+              </span>
             </div>
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
               <span className="text-slate-400 block">Syllables</span>
-              <span className="text-sm font-bold text-amber-300">{evaluation.syllable_score}%</span>
+              <span className={`text-sm font-bold ${evaluation.syllable_score >= 70 ? 'text-emerald-300' : evaluation.syllable_score >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
+                {evaluation.syllable_score}%
+              </span>
             </div>
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
               <span className="text-slate-400 block">Status</span>
-              <span className="text-sm font-bold text-emerald-400">🟢 Excellent</span>
+              {(() => {
+                const status = getStatusLabel(evaluation.overall_score);
+                return <span className={`text-sm font-bold ${status.color}`}>{status.dot} {status.text}</span>;
+              })()}
             </div>
           </div>
 

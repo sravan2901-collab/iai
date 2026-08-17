@@ -72,3 +72,22 @@ export const learningPathApi = {
     });
   }
 };
+
+// AI Recommendation API
+export const recommendationApi = {
+  getRecommendations: async () => {
+    return apiRequest('/recommendations');
+  },
+  generateExercise: async (skillType, difficultyLevel) => {
+    return apiRequest('/recommendations/generate-exercise', {
+      method: 'POST',
+      body: JSON.stringify({ skill_type: skillType, difficulty_level: difficultyLevel })
+    });
+  },
+  getAIStatus: async () => {
+    return apiRequest('/recommendations/ai-status');
+  },
+  getHistory: async () => {
+    return apiRequest('/recommendations/history');
+  }
+};

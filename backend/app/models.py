@@ -202,13 +202,34 @@ class Recommendation(Base):
     
     recommendation_id = Column(Integer, primary_key=True, index=True)
     learner_id = Column(Integer, ForeignKey("learner.learner_id", ondelete="CASCADE"), nullable=False)
-    lesson_id = Column(Integer, ForeignKey("lesson.lesson_id", ondelete="CASCADE"), nullable=False)
+    lesson_id = Column(Integer, ForeignKey("lesson.lesson_id", ondelete="CASCADE"), nullable=True)
     recommended_on = Column(DateTime(timezone=True), server_default=func.now())
-    reason = Column(String(255))
-    model_version = Column(String(50), default="scikit-learn-v1")
+    reason = Column(String(500))
+    model_version = Column(String(50), default="rule-based")
+    priority = Column(String(20), default="MEDIUM")
+    skill_focus = Column(String(50), default="READING")
+    rec_type = Column(String(50), default="practice_weak_area")
+    title = Column(String(200))
     
     learner = relationship("Learner", back_populates="recommendations")
     lesson = relationship("Lesson", back_populates="recommendations")
+
+# 13b. AI_GENERATED_CONTENT
+class AIGeneratedContent(Base):
+    __tablename__ = "ai_generated_content"
+    
+    content_id = Column(Integer, primary_key=True, index=True)
+    learner_id = Column(Integer, ForeignKey("learner.learner_id", ondelete="CASCADE"), nullable=False)
+    language_code = Column(String(10), nullable=False)
+    skill_type = Column(String(50), nullable=False)
+    difficulty_level = Column(String(30), nullable=False)
+    title = Column(String(200), nullable=False)
+    content_json = Column(Text, nullable=False)
+    generated_by = Column(String(50), default="rule-based")
+    generated_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_approved = Column(Boolean, default=True)
+    
+    learner = relationship("Learner")
 
 # 14. VOICE_SESSION
 class VoiceSession(Base):

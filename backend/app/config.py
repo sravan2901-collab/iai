@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.1")
     OLLAMA_TIMEOUT_SECONDS: int = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "15"))
 
+    # Groq Cloud API (Free Tier — Open-Source LLM Inference)
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    GROQ_ENDPOINT: str = "https://api.groq.com/openai/v1/chat/completions"
+    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "auto")  # "auto" | "groq" | "ollama" | "none"
+
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
