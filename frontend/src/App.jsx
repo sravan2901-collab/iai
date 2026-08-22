@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import DiagnosticTest from './components/DiagnosticTest';
 import PronunciationCoach from './components/PronunciationCoach';
+import InteractiveWritingCanvas from './components/InteractiveWritingCanvas';
+import ReadingStudioCard from './components/ReadingStudioCard';
 import LearningPath from './components/LearningPath';
 import LearnerProfileView from './components/LearnerProfileView';
 import ProficiencyBenchmarks from './components/ProficiencyBenchmarks';
@@ -581,60 +583,66 @@ export default function App() {
           )
         )}
 
-        {/* Tab 2: Pronunciation Practice Mode */}
+        {/* Practice Mode based on Curriculum Category */}
         {activeLesson ? (
           <div className="space-y-4">
             <button
               onClick={() => { setActiveLesson(null); if (assessmentResult) setActiveTab('learning-path'); }}
               className="text-xs text-emerald-400 hover:underline font-semibold flex items-center gap-1"
             >
-              ← Return to Learning Path
+              ← Return to Curriculum Catalog
             </button>
-            <PronunciationCoach
-              lesson={activeLesson}
-              onScoreUpdate={async (score) => {
-                setLearner(prev => ({
-                  ...prev,
-                  total_points: prev.total_points + Math.round(score / 10)
-                }));
 
-                // Phase 3: Call lesson completion API
-                try {
-                  const completionPayload = {
-                    lesson_id: activeLesson.lesson_id || activeLesson.id,
-                    score: score,
-                    path_lesson_id: activeLesson.path_lesson_id || null
-                  };
+            {activeLesson.category_id === 2 || activeLesson.content_type === 'Written Practice' ? (
+              <InteractiveWritingCanvas
+                lesson={activeLesson}
+                onClose={() => setActiveLesson(null)}
+              />
+            ) : activeLesson.category_id === 3 || activeLesson.content_type === 'Functional Reading' ? (
+              <ReadingStudioCard
+                lesson={activeLesson}
+                onClose={() => setActiveLesson(null)}
+              />
+            ) : (
+              <PronunciationCoach
+                lesson={activeLesson}
+                onScoreUpdate={async (score) => {
+                  setLearner(prev => ({
+                    ...prev,
+                    total_points: prev.total_points + Math.round(score / 10)
+                  }));
 
-                  // Try progress/complete-lesson endpoint first
-                  const result = await apiRequest('/progress/complete-lesson', {
-                    method: 'POST',
-                    body: JSON.stringify(completionPayload)
-                  });
+                  try {
+                    const completionPayload = {
+                      lesson_id: activeLesson.lesson_id || activeLesson.id,
+                      score: score,
+                      path_lesson_id: activeLesson.path_lesson_id || null
+                    };
 
-                  console.log('Lesson completed:', result);
-
-                  // If path_lesson_id is available, also update via learning-path endpoint
-                  if (activeLesson.path_lesson_id) {
-                    await apiRequest(`/learning-path/lesson/${activeLesson.path_lesson_id}/status`, {
-                      method: 'PATCH',
-                      body: JSON.stringify({ status: 'COMPLETED' })
+                    const result = await apiRequest('/progress/complete-lesson', {
+                      method: 'POST',
+                      body: JSON.stringify(completionPayload)
                     });
+
+                    if (activeLesson.path_lesson_id) {
+                      await apiRequest(`/learning-path/lesson/${activeLesson.path_lesson_id}/status`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ status: 'COMPLETED' })
+                      });
+                    }
+
+                    setTimeout(() => {
+                      setActiveLesson(null);
+                      setActiveTab('learning-path');
+                      setAssessmentResult(prev => prev ? { ...prev, learning_path: null } : null);
+                    }, 2000);
+
+                  } catch (err) {
+                    console.log('Lesson completion API call skipped:', err.message);
                   }
-
-                  // Show completion notification and navigate back
-                  setTimeout(() => {
-                    setActiveLesson(null);
-                    setActiveTab('learning-path');
-                    // Force re-fetch of learning path by clearing cached data
-                    setAssessmentResult(prev => prev ? { ...prev, learning_path: null } : null);
-                  }, 2000);
-
-                } catch (err) {
-                  console.log('Lesson completion API call skipped:', err.message);
-                }
-              }}
-            />
+                }}
+              />
+            )}
           </div>
         ) : activeTab === 'admin' ? (
           /* Admin Content Studio Panel */
