@@ -186,69 +186,202 @@ export default function App() {
   ];
 
   const sampleLessons = [
+    // 🗣️ SPOKEN CURRICULUM (Category 1: 8 Progressive Stages)
     {
-      lesson_id: 1,
+      lesson_id: 101,
       category_id: 1,
       title: 'Stage 1 [Zero]: Single Letter Sounds & Phonemes',
       content_type: 'Voice Practice',
       target_text: 'A-ah, B-buh, C-kuh, D-duh, E-eh',
-      difficulty_level: 'ZERO'
+      difficulty_level: 'Zero'
     },
     {
-      lesson_id: 2,
+      lesson_id: 102,
       category_id: 1,
       title: 'Stage 2 [Absolute Beginner]: Short Syllables & Sound Blends',
       content_type: 'Voice Practice',
       target_text: 'Ba, Be, Bi, Bo, Bu — Syllable Blends',
-      difficulty_level: 'ABSOLUTE_BEGINNER'
+      difficulty_level: 'Absolute Beginner'
     },
     {
-      lesson_id: 3,
+      lesson_id: 103,
+      category_id: 1,
+      title: 'Stage 3 [Beginner]: 2-Letter Word Oral Practice',
+      content_type: 'Voice Practice',
+      target_text: 'Go, Be, In, On, At, Up — Oral Practice',
+      difficulty_level: 'Beginner'
+    },
+    {
+      lesson_id: 104,
+      category_id: 1,
+      title: 'Stage 4 [Elementary]: Everyday Nouns & Object Pronunciation',
+      content_type: 'Voice Practice',
+      target_text: 'Cat, Dog, Sun, Cup, Book — Object Names',
+      difficulty_level: 'Elementary'
+    },
+    {
+      lesson_id: 105,
       category_id: 1,
       title: 'Stage 5 [Intermediate]: Daily Conversation & Greetings',
       content_type: 'Voice Practice',
       target_text: 'Good Morning, Hello, Thank You, Welcome',
-      difficulty_level: 'INTERMEDIATE'
+      difficulty_level: 'Intermediate'
     },
     {
-      lesson_id: 4,
+      lesson_id: 106,
+      category_id: 1,
+      title: 'Stage 6 [Upper Intermediate]: Workplace Team Communication',
+      content_type: 'Voice Practice',
+      target_text: 'Let us review our daily project goals clearly',
+      difficulty_level: 'Upper Intermediate'
+    },
+    {
+      lesson_id: 107,
+      category_id: 1,
+      title: 'Stage 7 [Advanced]: Customer Service & Public Speaking',
+      content_type: 'Voice Practice',
+      target_text: 'Thank you for calling, I am happy to assist you today',
+      difficulty_level: 'Advanced'
+    },
+    {
+      lesson_id: 108,
+      category_id: 1,
+      title: 'Stage 8 [Mastery]: Literary Articulation & Fluent Oratory',
+      content_type: 'Voice Practice',
+      target_text: 'Mastery over language transforms thought into eloquent expression',
+      difficulty_level: 'Mastery'
+    },
+
+    // ✍️ WRITTEN CURRICULUM (Category 2: 8 Progressive Stages)
+    {
+      lesson_id: 201,
       category_id: 2,
       title: 'Stage 1 [Zero]: Letter Formation & Native Script Strokes',
       content_type: 'Written Practice',
       target_text: 'A, B, C, D, E — Letter Strokes',
-      difficulty_level: 'ZERO'
+      difficulty_level: 'Zero'
     },
     {
-      lesson_id: 5,
+      lesson_id: 202,
+      category_id: 2,
+      title: 'Stage 2 [Absolute Beginner]: Vowel Marks & Accent Spelling',
+      content_type: 'Written Practice',
+      target_text: 'Am, An, As, At — Vowel Spelling',
+      difficulty_level: 'Absolute Beginner'
+    },
+    {
+      lesson_id: 203,
+      category_id: 2,
+      title: 'Stage 3 [Beginner]: 2-Letter Word Composition',
+      content_type: 'Written Practice',
+      target_text: 'In, On, It, To, Up, Go — Word Writing',
+      difficulty_level: 'Beginner'
+    },
+    {
+      lesson_id: 204,
       category_id: 2,
       title: 'Stage 4 [Elementary]: 3-Letter Word Spelling',
       content_type: 'Written Practice',
       target_text: 'Sun, Pen, Box, Bag, Car — Noun Spelling',
-      difficulty_level: 'ELEMENTARY'
+      difficulty_level: 'Elementary'
     },
     {
-      lesson_id: 6,
+      lesson_id: 205,
+      category_id: 2,
+      title: 'Stage 5 [Intermediate]: Short Sentence Writing & Grammar',
+      content_type: 'Written Practice',
+      target_text: 'I write simple words correctly every day',
+      difficulty_level: 'Intermediate'
+    },
+    {
+      lesson_id: 206,
+      category_id: 2,
+      title: 'Stage 6 [Upper Intermediate]: Workplace Memo & Email Writing',
+      content_type: 'Written Practice',
+      target_text: 'Please find attached the quarterly project report for your review',
+      difficulty_level: 'Upper Intermediate'
+    },
+    {
+      lesson_id: 207,
+      category_id: 2,
+      title: 'Stage 7 [Advanced]: Paragraph Composition & Essays',
+      content_type: 'Written Practice',
+      target_text: 'Continuous practice enhances writing fluency and structured expression',
+      difficulty_level: 'Advanced'
+    },
+    {
+      lesson_id: 208,
+      category_id: 2,
+      title: 'Stage 8 [Mastery]: Literary Writing & Formal Documentation',
+      content_type: 'Written Practice',
+      target_text: 'Written communication is an essential cornerstone of human knowledge',
+      difficulty_level: 'Mastery'
+    },
+
+    // 📖 READING CURRICULUM (Category 3: 8 Progressive Stages)
+    {
+      lesson_id: 301,
       category_id: 3,
       title: 'Stage 1 [Zero]: Visual Alphabet Recognition',
       content_type: 'Functional Reading',
       target_text: 'A, B, C, D, E, F — Letter Recognition',
-      difficulty_level: 'ZERO'
+      difficulty_level: 'Zero'
     },
     {
-      lesson_id: 7,
+      lesson_id: 302,
+      category_id: 3,
+      title: 'Stage 2 [Absolute Beginner]: Short Sound & Syllable Sight Reading',
+      content_type: 'Functional Reading',
+      target_text: 'Ba, Ca, Da, Fa, Ga — Sight Reading',
+      difficulty_level: 'Absolute Beginner'
+    },
+    {
+      lesson_id: 303,
+      category_id: 3,
+      title: 'Stage 3 [Beginner]: 2-Letter Word Reading',
+      content_type: 'Functional Reading',
+      target_text: 'In, On, At, Is, It, Up — Short Word Reading',
+      difficulty_level: 'Beginner'
+    },
+    {
+      lesson_id: 304,
+      category_id: 3,
+      title: 'Stage 4 [Elementary]: Everyday Label & Sign Reading',
+      content_type: 'Functional Reading',
+      target_text: 'Open, Closed, Exit, Stop, Push — Label Reading',
+      difficulty_level: 'Elementary'
+    },
+    {
+      lesson_id: 305,
+      category_id: 3,
+      title: 'Stage 5 [Intermediate]: Short Passage Reading Comprehension',
+      content_type: 'Functional Reading',
+      target_text: 'Reading daily unlocks wisdom and opens new doors of opportunity',
+      difficulty_level: 'Intermediate'
+    },
+    {
+      lesson_id: 306,
       category_id: 3,
       title: 'Stage 6 [Upper Intermediate]: Workplace Safety & Policy Reading',
       content_type: 'Functional Reading',
       target_text: 'Always wear protective safety equipment and follow supervisor instructions',
-      difficulty_level: 'UPPER_INTERMEDIATE'
+      difficulty_level: 'Upper Intermediate'
     },
     {
-      lesson_id: 8,
+      lesson_id: 307,
+      category_id: 3,
+      title: 'Stage 7 [Advanced]: News Article & Editorial Reading',
+      content_type: 'Functional Reading',
+      target_text: 'Technology and digital literacy transform modern education globally',
+      difficulty_level: 'Advanced'
+    },
+    {
+      lesson_id: 308,
       category_id: 3,
       title: 'Stage 8 [Mastery]: Literary Prose & Classical Literature Reading',
       content_type: 'Functional Reading',
       target_text: 'Profound literature reflects the timeless beauty and wisdom of humanity',
-      difficulty_level: 'MASTERY'
+      difficulty_level: 'Mastery'
     }
   ];
 
