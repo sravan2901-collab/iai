@@ -147,143 +147,55 @@ export default function App() {
 
   const categories = [
     {
-      id: 0,
-      title: 'Zero Knowledge & Absolute Starter Literacy',
-      icon: BookOpen,
-      color: 'from-cyan-500 to-blue-600',
-      description: 'Single letter consonant sounds, vowel recognition, 2-letter word blends, numbers 1-10, and daily greetings',
-      lessonsCount: 14
-    },
-    {
       id: 1,
-      title: 'Phonemes & Alphabet Fundamentals',
-      icon: BookOpen,
-      color: 'from-emerald-500 to-teal-600',
-      description: 'Alphabet sound associations, long/short vowels, and syllable stress',
-      lessonsCount: 4
+      title: 'Spoken Curriculum',
+      icon: Mic,
+      color: 'from-amber-500 to-orange-600',
+      description: 'Clean slate curriculum for spoken language practice, pronunciation, and oral communication.',
+      lessonsCount: 1
     },
     {
       id: 2,
-      title: 'Vocabulary & Word Formation',
+      title: 'Written Curriculum',
       icon: Type,
       color: 'from-blue-500 to-indigo-600',
-      description: 'Prefixes, suffixes, root words, synonyms, and antonym mastery',
-      lessonsCount: 4
+      description: 'Clean slate curriculum for written language practice, spelling, and sentence composition.',
+      lessonsCount: 1
     },
     {
       id: 3,
-      title: 'Sentence Grammar & Syntax',
-      icon: Sparkles,
-      color: 'from-rose-500 to-pink-600',
-      description: 'Noun-verb agreement, tenses, conjunctions, and complex sentence structure',
-      lessonsCount: 3
-    },
-    {
-      id: 4,
-      title: 'Advanced Literary Fluency & Expression',
-      icon: Feather,
-      color: 'from-amber-500 to-orange-600',
-      description: 'Prose & passage reading comprehension, articulate speech, and literary expression',
-      lessonsCount: 3
-    },
-    {
-      id: 5,
-      title: 'Workplace Communication & Professional Skills',
-      icon: Award,
-      color: 'from-purple-500 to-violet-600',
-      description: 'Team greetings, meeting agendas, customer service dialogues, safety guidelines, and workplace email literacy',
-      lessonsCount: 6
+      title: 'Reading Curriculum',
+      icon: BookOpen,
+      color: 'from-emerald-500 to-teal-600',
+      description: 'Clean slate curriculum for reading comprehension, phonics, and literary understanding.',
+      lessonsCount: 1
     }
   ];
 
   const sampleLessons = [
     {
-      lesson_id: 101,
-      category_id: 0,
-      title: 'Alphabet Phonemes Part 1 (A-E)',
-      content_type: 'Voice Practice',
-      target_text: 'A-ah, B-buh, C-kuh, D-duh, E-eh',
-      difficulty_level: 'FOUNDATIONAL'
-    },
-    {
-      lesson_id: 102,
-      category_id: 0,
-      title: '2-Letter Vowel-Consonant Words',
-      content_type: 'Functional Reading',
-      target_text: 'Am, An, As, At, If, In, Is, It, Of, On',
-      difficulty_level: 'FOUNDATIONAL'
-    },
-    {
-      lesson_id: 103,
-      category_id: 0,
-      title: 'Number Names One to Five',
-      content_type: 'Voice Practice',
-      target_text: 'One, Two, Three, Four, Five',
-      difficulty_level: 'FOUNDATIONAL'
-    },
-    {
       lesson_id: 1,
       category_id: 1,
-      title: 'Vowel Sounds & Phoneme Synthesis',
+      title: 'Blank Spoken Practice Lesson',
       content_type: 'Voice Practice',
-      target_text: 'Language unlocks knowledge, wisdom, and human expression',
+      target_text: 'Practice spoken words clearly',
       difficulty_level: 'FOUNDATIONAL'
     },
     {
       lesson_id: 2,
       category_id: 2,
-      title: 'Prefixes, Suffixes & Root Words',
-      content_type: 'Language Practice',
-      target_text: 'Understanding root words enhances vocabulary comprehension',
-      difficulty_level: 'FUNCTIONAL'
+      title: 'Blank Written Practice Lesson',
+      content_type: 'Written Practice',
+      target_text: 'Write simple words correctly',
+      difficulty_level: 'FOUNDATIONAL'
     },
     {
       lesson_id: 3,
       category_id: 3,
-      title: 'Noun-Verb Agreement & Tenses',
-      content_type: 'Grammar Practice',
-      target_text: 'She had written an eloquent essay before sunrise',
-      difficulty_level: 'FUNCTIONAL'
-    },
-    {
-      lesson_id: 4,
-      category_id: 4,
-      title: 'Literary Prose & Passage Reading',
-      content_type: 'Literature Practice',
-      target_text: 'Mastery over language transforms thought into eloquent communication',
-      difficulty_level: 'PROFICIENT'
-    },
-    {
-      lesson_id: 5,
-      category_id: 5,
-      title: 'Professional Team Meeting Greetings & Agenda Discussion',
-      content_type: 'Voice Practice',
-      target_text: 'Good morning team, let us review our key project goals and daily targets clearly',
+      title: 'Blank Reading Practice Lesson',
+      content_type: 'Functional Reading',
+      target_text: 'Read text with accuracy and understanding',
       difficulty_level: 'FOUNDATIONAL'
-    },
-    {
-      lesson_id: 6,
-      category_id: 5,
-      title: 'Workplace Safety Guidelines & Emergency Protocols',
-      content_type: 'Functional Reading',
-      target_text: 'Always wear protective safety equipment and report all hazards immediately to your supervisor',
-      difficulty_level: 'FUNCTIONAL'
-    },
-    {
-      lesson_id: 7,
-      category_id: 5,
-      title: 'Customer Service Dialogue & Polite Assistance',
-      content_type: 'Voice Practice',
-      target_text: 'Thank you for contacting customer support. I am happy to assist you with your inquiry',
-      difficulty_level: 'FUNCTIONAL'
-    },
-    {
-      lesson_id: 8,
-      category_id: 5,
-      title: 'Professional Workplace Email & Memo Literacy',
-      content_type: 'Functional Reading',
-      target_text: 'Please find attached the quarterly project report for your review and formal approval',
-      difficulty_level: 'INTERMEDIATE'
     }
   ];
 
