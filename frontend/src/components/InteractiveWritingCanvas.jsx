@@ -97,15 +97,106 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
   };
 
   const evaluateHandwriting = () => {
-    if (!hasWritten) return;
-    
-    // Simulate AI Stroke & Formation Quality Evaluation
-    const randomAccuracy = Math.floor(Math.random() * 15) + 85; // 85% - 99%
+    const canvas = canvasRef.current;
+    if (!canvas || !hasWritten) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
+
+    let drawnPixels = 0;
+    let minX = width, maxX = 0, minY = height, maxY = 0;
+    let leftPixels = 0, rightPixels = 0;
+    const midX = width / 2;
+
+    // Scan canvas pixels
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const index = (y * width + x) * 4;
+        const r = data[index];
+        const g = data[index + 1];
+        const b = data[index + 2];
+
+        // Background is slate-900 (#0f172a = r:15, g:23, b:42)
+        const isBackground = (r < 30 && g < 45 && b < 60);
+        if (!isBackground) {
+          drawnPixels++;
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+
+          if (x < midX) leftPixels++;
+          else rightPixels++;
+        }
+      }
+    }
+
+    const totalCanvasPixels = width * height;
+    const densityRatio = drawnPixels / totalCanvasPixels;
+    const strokeWidth = Math.max(1, maxX - minX);
+    const strokeHeight = Math.max(1, maxY - minY);
+    const widthCoverage = strokeWidth / width;
+    const heightCoverage = strokeHeight / height;
+
+    let strokeAccuracy = 0;
+    let formationScore = 0;
+    let directionAccuracy = "Correct (Left-to-Right)";
+    let feedback = "";
+
+    if (drawnPixels < 150) {
+      // Too few strokes / tiny scribble
+      strokeAccuracy = Math.floor(Math.random() * 10) + 32; // 32-42%
+      formationScore = strokeAccuracy - 4;
+      feedback = "Minimal strokes detected. Please trace and write the full character set.";
+      directionAccuracy = "Incomplete Strokes";
+    } else if (densityRatio > 0.4) {
+      // Scribbled everywhere covering canvas
+      strokeAccuracy = Math.floor(Math.random() * 10) + 48; // 48-58%
+      formationScore = strokeAccuracy - 5;
+      feedback = "Canvas is overdrawn with stroke clutter. Try writing neatly along guidelines.";
+      directionAccuracy = "Irregular Strokes";
+    } else {
+      let baseAccuracy = 75;
+
+      // Reward balanced width coverage (0.25 to 0.85)
+      if (widthCoverage >= 0.25 && widthCoverage <= 0.85) {
+        baseAccuracy += 12;
+      } else if (widthCoverage < 0.2) {
+        baseAccuracy -= 15;
+      }
+
+      // Reward proper height alignment within notebook lines (0.2 to 0.75)
+      if (heightCoverage >= 0.2 && heightCoverage <= 0.75) {
+        baseAccuracy += 8;
+      }
+
+      // Left-to-right progression
+      if (leftPixels > 0 && rightPixels > 0) {
+        directionAccuracy = "Correct (Left-to-Right)";
+      } else if (rightPixels === 0 && leftPixels > 500) {
+        directionAccuracy = "Left-heavy (Extend across canvas)";
+        baseAccuracy -= 8;
+      }
+
+      strokeAccuracy = Math.min(98, Math.max(40, Math.round(baseAccuracy + (Math.random() * 4 - 2))));
+      formationScore = Math.min(99, Math.max(42, Math.round(strokeAccuracy + (widthCoverage * 8 - 2))));
+
+      if (strokeAccuracy >= 88) {
+        feedback = "Excellent handwriting precision! Letter alignment and stroke density match the target script.";
+      } else if (strokeAccuracy >= 75) {
+        feedback = "Good handwriting attempt! Keep strokes centered along the line guidelines.";
+      } else {
+        feedback = "Incomplete letter formation. Ensure strokes follow line guidelines evenly.";
+      }
+    }
+
     setEvaluation({
-      stroke_accuracy: randomAccuracy,
-      formation_score: Math.min(100, randomAccuracy + 2),
-      direction_accuracy: "Correct (Left-to-Right)",
-      feedback: "Great stroke discipline! Letters are well-proportioned along guidelines."
+      stroke_accuracy: strokeAccuracy,
+      formation_score: formationScore,
+      direction_accuracy: directionAccuracy,
+      feedback: feedback
     });
   };
 
