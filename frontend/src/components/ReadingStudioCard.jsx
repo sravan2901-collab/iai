@@ -8,34 +8,36 @@ export default function ReadingStudioCard({ lesson, onClose }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizScore, setQuizScore] = useState(null);
 
-  const targetText = lesson?.target_text || "Open, Closed, Exit, Stop";
-  const words = targetText.split(/[\s,–—]+/).filter(Boolean);
+  const [quizTargetIdx, setQuizTargetIdx] = useState(0);
 
-  const playWordAudio = (wordToSpeak) => {
-    setIsPlayingAudio(true);
-    try {
-      const cleanText = (wordToSpeak || targetText).replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
-      const encodedText = encodeURIComponent(cleanText.slice(0, 200));
-      const audioUrl = `http://127.0.0.1:8000/api/voice/tts?text=${encodedText}&lang=${lesson?.lang || 'te'}`;
-      const audio = new Audio(audioUrl);
-      audio.onended = () => setIsPlayingAudio(false);
-      audio.onerror = () => setIsPlayingAudio(false);
-      audio.play().catch(() => setIsPlayingAudio(false));
-    } catch (e) {
-      setIsPlayingAudio(false);
-    }
+  const EMOJI_MAP = {
+    'Cow': '🐄', 'cow': '🐄', 'ஆடு': '🐐', 'ஆவு': '🐄', 'गाय': '🐄', 'গরু': '🐄',
+    'House': '🏠', 'house': '🏠', 'வீடு': '🏠', 'ఇల్లు': '🏠', 'घर': '🏠', 'मने': '🏠',
+    'Tree': '🌳', 'tree': '🌳', 'மரம்': '🌳', 'చెట్టు': '🌳', 'पेड़': '🌳', 'গাছ': '🌳',
+    'Apple': '🍎', 'apple': '🍎', 'பழம்': '🍎', 'పండు': '🍎', 'सेब': '🍎', 'আপেল': '🍎',
+    'Exit': '🚪', 'exit': '🚪', 'வெளியேற்றம்': '🚪', 'నిష్క్రమణ': '🚪', 'निकास': '🚪', 'प्रस्थान': '🚪',
+    'Stop': '🛑', 'stop': '🛑', 'நில்லுங்கள்': '🛑', 'ఆగుము': '🛑', 'रुकिए': '🛑', 'থামুন': '🛑',
+    'Restroom': '🚻', 'restroom': '🚻', 'கழிப்பறை': '🚻', 'శౌచాలయం': '🚻', 'शौचालय': '🚻', 'শৌচাগার': '🚻',
+    'Danger': '⚠️', 'danger': '⚠️', 'அபாயம்': '⚠️', 'ప్రమాదం': '⚠️', 'खतरा': '⚠️', 'বিপদ': '⚠️'
   };
 
-  const markWordRead = (idx) => {
-    const newSet = new Set(completedWords);
-    newSet.add(idx);
-    setCompletedWords(newSet);
-    playWordAudio(words[idx]);
+  const getEmojiForWord = (w) => {
+    const cleanW = w.replace(/[(),]/g, '').trim();
+    return EMOJI_MAP[cleanW] || null;
   };
 
-  const handleQuizSubmit = (selectedAnswer) => {
-    const isCorrect = selectedAnswer === words[0];
-    setQuizScore(isCorrect ? 100 : 70);
+  const startAudioQuiz = () => {
+    setShowQuiz(true);
+    const randomIdx = Math.floor(Math.random() * Math.min(4, words.length));
+    setQuizTargetIdx(randomIdx);
+    setQuizScore(null);
+    playWordAudio(words[randomIdx]);
+  };
+
+  const handleQuizSubmit = (selectedWord) => {
+    const targetWord = words[quizTargetIdx];
+    const isCorrect = selectedWord === targetWord;
+    setQuizScore(isCorrect ? 100 : 50);
   };
 
   return (
@@ -85,6 +87,7 @@ export default function ReadingStudioCard({ lesson, onClose }) {
           {words.map((word, idx) => {
             const isSelected = selectedWordIdx === idx;
             const isCompleted = completedWords.has(idx);
+            const emojiBadge = getEmojiForWord(word);
 
             return (
               <button
@@ -101,6 +104,7 @@ export default function ReadingStudioCard({ lesson, onClose }) {
                     : 'bg-slate-900/90 text-amber-300 border border-slate-700 hover:border-emerald-500/60 hover:bg-slate-800'
                 }`}
               >
+                {emojiBadge && <span className="text-2xl">{emojiBadge}</span>}
                 <span>{word}</span>
                 {isCompleted && <CheckCircle size={18} className="text-emerald-400" />}
               </button>
@@ -114,8 +118,9 @@ export default function ReadingStudioCard({ lesson, onClose }) {
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Active Focus Word:
             </span>
-            <div className="text-2xl font-black text-emerald-300">
-              "{words[selectedWordIdx]}"
+            <div className="text-2xl font-black text-emerald-300 flex items-center justify-center gap-2">
+              {getEmojiForWord(words[selectedWordIdx]) && <span>{getEmojiForWord(words[selectedWordIdx])}</span>}
+              <span>"{words[selectedWordIdx]}"</span>
             </div>
             <div className="flex items-center justify-center gap-2 pt-1">
               <button
@@ -138,40 +143,54 @@ export default function ReadingStudioCard({ lesson, onClose }) {
         </div>
 
         <button
-          onClick={() => setShowQuiz(!showQuiz)}
+          onClick={() => {
+            if (!showQuiz) startAudioQuiz();
+            else setShowQuiz(false);
+          }}
           className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg transition-all"
         >
           <Sparkles size={14} />
-          <span>{showQuiz ? 'Hide Sight Recognition Quiz' : 'Take Sight Recognition Quiz'}</span>
+          <span>{showQuiz ? 'Hide Sight Recognition Quiz' : 'Take Audio Sight Recognition Quiz'}</span>
         </button>
       </div>
 
       {/* Sight Recognition Quiz */}
       {showQuiz && (
         <div className="bg-slate-900/90 rounded-2xl p-6 border border-emerald-500/40 space-y-4 animate-fade-in shadow-xl">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-            <Sparkles size={16} />
-            Sight Recognition Quiz — Select the word that matches the target sound:
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <Sparkles size={16} />
+              Audio Sight Recognition Quiz — Select the word you heard:
+            </span>
+            <button
+              onClick={() => playWordAudio(words[quizTargetIdx])}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 rounded-lg text-xs font-bold flex items-center gap-1"
+            >
+              <Volume2 size={14} />
+              <span>Replay Audio</span>
+            </button>
+          </div>
 
           <div className="grid grid-cols-2 gap-3 pt-2">
             {words.slice(0, 4).map((w, i) => (
               <button
                 key={i}
                 onClick={() => handleQuizSubmit(w)}
-                className="p-3.5 rounded-xl bg-slate-950 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500/60 text-slate-100 font-bold text-sm text-center transition-all cursor-pointer"
+                className="p-3.5 rounded-xl bg-slate-950 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500/60 text-slate-100 font-bold text-sm text-center flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                {w}
+                {getEmojiForWord(w) && <span>{getEmojiForWord(w)}</span>}
+                <span>{w}</span>
               </button>
             ))}
           </div>
 
           {quizScore !== null && (
-            <div className="p-4 bg-emerald-950/50 border border-emerald-500/40 rounded-xl flex items-center justify-between text-xs">
-              <span className="font-extrabold text-emerald-300">
-                🎉 Quiz Result: {quizScore}% Sight Recognition Accuracy!
+            <div className={`p-4 rounded-xl flex items-center justify-between text-xs ${
+              quizScore === 100 ? 'bg-emerald-950/50 border border-emerald-500/40 text-emerald-300' : 'bg-rose-950/40 border border-rose-500/40 text-rose-300'
+            }`}>
+              <span className="font-extrabold">
+                {quizScore === 100 ? '🎉 Correct! 100% Audio Sight Recognition Accuracy!' : '❌ Try again! Replay audio to match the correct word card.'}
               </span>
-              <span className="text-emerald-400 font-semibold">Great visual sight reading progress</span>
             </div>
           )}
         </div>
