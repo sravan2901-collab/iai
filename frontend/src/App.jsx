@@ -186,70 +186,54 @@ export default function App() {
   ];
 
   const sampleLessons = [
-    // 🗣️ SPOKEN CURRICULUM (Category 1: 8 Progressive Stages)
+    // 🗣️ SPOKEN CURRICULUM (Category 1: Zero Level Foundational Modules)
     {
       lesson_id: 101,
       category_id: 1,
-      title: 'Stage 1 [Zero]: Single Letter Sounds & Phonemes',
+      title: 'Module 1: Sound Inventory (Vowels & Unique Consonants)',
       content_type: 'Voice Practice',
-      target_text: 'A-ah, B-buh, C-kuh, D-duh, E-eh',
+      target_text: 'A-ah, B-buh, C-kuh, D-duh, E-eh, Th-sound, Ph-sound',
       difficulty_level: 'Zero'
     },
     {
       lesson_id: 102,
       category_id: 1,
-      title: 'Stage 2 [Absolute Beginner]: Short Syllables & Sound Blends',
+      title: 'Module 2: Passive Listening Exposure (Rhythm & Intonation)',
       content_type: 'Voice Practice',
-      target_text: 'Ba, Be, Bi, Bo, Bu — Syllable Blends',
-      difficulty_level: 'Absolute Beginner'
+      target_text: 'Hello friend, how are you today? Welcome to our practice lesson.',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 103,
       category_id: 1,
-      title: 'Stage 3 [Beginner]: 2-Letter Word Oral Practice',
+      title: 'Module 3: Core Survival Phrases (Hello, Goodbye, Please, Thank You, Yes, No, Excuse Me, Sorry)',
       content_type: 'Voice Practice',
-      target_text: 'Go, Be, In, On, At, Up — Oral Practice',
-      difficulty_level: 'Beginner'
+      target_text: 'Hello, Goodbye, Please, Thank You, Yes, No, Excuse Me, Sorry',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 104,
       category_id: 1,
-      title: 'Stage 4 [Elementary]: Everyday Nouns & Object Pronunciation',
+      title: 'Module 4: Numbers 0 to 10 (Counting Sound Phonemes)',
       content_type: 'Voice Practice',
-      target_text: 'Cat, Dog, Sun, Cup, Book — Object Names',
-      difficulty_level: 'Elementary'
+      target_text: 'Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 105,
       category_id: 1,
-      title: 'Stage 5 [Intermediate]: Daily Conversation & Greetings',
+      title: 'Module 5: Fixed Self-Intro Chunks ("My name is...", "I am from...")',
       content_type: 'Voice Practice',
-      target_text: 'Good Morning, Hello, Thank You, Welcome',
-      difficulty_level: 'Intermediate'
+      target_text: 'Hello, my name is Alex. I am from New York.',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 106,
       category_id: 1,
-      title: 'Stage 6 [Upper Intermediate]: Workplace Team Communication',
+      title: 'Module 6: Audio Shadowing Practice (Repeating Audio Clips)',
       content_type: 'Voice Practice',
-      target_text: 'Let us review our daily project goals clearly',
-      difficulty_level: 'Upper Intermediate'
-    },
-    {
-      lesson_id: 107,
-      category_id: 1,
-      title: 'Stage 7 [Advanced]: Customer Service & Public Speaking',
-      content_type: 'Voice Practice',
-      target_text: 'Thank you for calling, I am happy to assist you today',
-      difficulty_level: 'Advanced'
-    },
-    {
-      lesson_id: 108,
-      category_id: 1,
-      title: 'Stage 8 [Mastery]: Literary Articulation & Fluent Oratory',
-      content_type: 'Voice Practice',
-      target_text: 'Mastery over language transforms thought into eloquent expression',
-      difficulty_level: 'Mastery'
+      target_text: 'Repeat after me: I learn language with confidence and clarity.',
+      difficulty_level: 'Zero'
     },
 
     // ✍️ WRITTEN CURRICULUM (Category 2: 8 Progressive Stages)
