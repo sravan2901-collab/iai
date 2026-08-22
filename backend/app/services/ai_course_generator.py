@@ -547,6 +547,55 @@ class AICourseGenerator:
             # Fallback to English skill-matched exercise if target language entry missing
             exercise = fallback_db["en"].get((clean_skill, clean_diff), fallback_db["en"][("READING", "FOUNDATIONAL")])
 
+        # Progressive 5-Step Roadmap from Zero Knowledge to Beginner
+        course_steps = [
+            {
+                "step_no": 1,
+                "stage": "ZERO KNOWLEDGE",
+                "stage_label": "Step 1: Single Letter Phonemes & Sounds",
+                "title": "Alphabet Letter Sounds",
+                "target_text": "A, B, C, D — Single Letter Sound Phonemes",
+                "phonetic_script": ["A-ah", "B-buh", "C-kuh", "D-duh"],
+                "focus": "Absolute starter: Learn fundamental single letter sounds."
+            },
+            {
+                "step_no": 2,
+                "stage": "ABSOLUTE STARTER",
+                "stage_label": "Step 2: Vowel Recognition & Sounds",
+                "title": "Vowel Sounds & Recognition",
+                "target_text": "A, E, I, O, U — Short Vowel Sounds",
+                "phonetic_script": ["A-apple", "E-egg", "I-ink", "O-owl", "U-up"],
+                "focus": "Recognize and pronounce basic long and short vowel sounds."
+            },
+            {
+                "step_no": 3,
+                "stage": "BEGINNER TIER 1",
+                "stage_label": "Step 3: Two-Letter Word Blends",
+                "title": "Two-Letter Word Formation",
+                "target_text": "In, On, At, Go, To, Up, Me, He, We",
+                "phonetic_script": ["In", "On", "At", "Go", "To", "Up"],
+                "focus": "Combine vowels and consonants to form 2-letter words."
+            },
+            {
+                "step_no": 4,
+                "stage": "BEGINNER TIER 2",
+                "stage_label": "Step 4: Three-Letter Everyday Nouns",
+                "title": "Everyday 3-Letter Object Words",
+                "target_text": "Cat, Dog, Sun, Cup, Pen, Book, Box",
+                "phonetic_script": ["Cat", "Dog", "Sun", "Cup", "Pen"],
+                "focus": "Read and understand common 3-letter everyday nouns."
+            },
+            {
+                "step_no": 5,
+                "stage": "BEGINNER TIER 3",
+                "stage_label": "Step 5: Simple Expressive Sentences",
+                "title": "Simple Expressive Sentence Reading",
+                "target_text": exercise["target_text"],
+                "phonetic_script": exercise["phonetic_script"],
+                "focus": "Read short complete sentences with confidence."
+            }
+        ]
+
         return {
             "title": exercise["title"],
             "title_english": exercise.get("title_english", f"{clean_skill.title()} Practice"),
@@ -556,7 +605,8 @@ class AICourseGenerator:
             "questions": exercise.get("questions", []),
             "explanation": exercise.get("explanation", f"Beginner {clean_skill.lower()} exercise for {lang_name}."),
             "difficulty_level": clean_diff,
-            "skill_type": clean_skill
+            "skill_type": clean_skill,
+            "course_steps": course_steps
         }
 
 

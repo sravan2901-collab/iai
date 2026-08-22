@@ -545,40 +545,80 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
           </div>
         ) : null}
 
-        {/* Generated Exercise Display */}
+        {/* Generated Exercise & Progressive Beginner Roadmap Display */}
         {genExercise && genExercise.exercise && (
           <div className="mt-4 rounded-xl border border-teal-500/30 bg-teal-500/5 p-5 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Sparkles size={14} className="text-teal-400" />
-                <span className="text-xs font-bold text-teal-300">AI-Generated Exercise</span>
+                <span className="text-xs font-bold text-teal-300">Progressive AI Beginner Module Roadmap (Zero Knowledge → Beginner)</span>
               </div>
               <span className="text-[9px] px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 font-semibold">
-                {genExercise.ai_provider === 'groq' ? 'Llama 3.3' : genExercise.ai_provider === 'ollama' ? 'Ollama' : 'Smart Fallback'}
+                {genExercise.ai_provider === 'groq' ? 'Llama 3.3' : genExercise.ai_provider === 'ollama' ? 'Ollama' : 'Smart Analysis'}
               </span>
             </div>
+            
             <h4 className="text-sm font-bold text-slate-200 mb-1">{genExercise.exercise.title}</h4>
-            {genExercise.exercise.title_english && (
-              <p className="text-[10px] text-slate-500 mb-2 italic">{genExercise.exercise.title_english}</p>
-            )}
-            <div className="bg-black/20 rounded-lg p-3 mb-3">
-              <p className="text-sm text-emerald-300 font-medium leading-relaxed">
-                "{genExercise.exercise.target_text}"
-              </p>
-              {genExercise.exercise.phonetic_script && genExercise.exercise.phonetic_script.length > 0 && (
-                <p className="text-[10px] text-slate-500 mt-1">
-                  Phonetic: {Array.isArray(genExercise.exercise.phonetic_script) ? genExercise.exercise.phonetic_script.join(' · ') : genExercise.exercise.phonetic_script}
-                </p>
-              )}
-            </div>
             {genExercise.exercise.explanation && (
-              <p className="text-[10px] text-slate-400 mb-3 italic">💡 {genExercise.exercise.explanation}</p>
+              <p className="text-[10px] text-slate-400 mb-4 italic">💡 {genExercise.exercise.explanation}</p>
             )}
-            <div className="flex gap-2">
+
+            {/* Render 5-Step Progressive Roadmap if course_steps present */}
+            {genExercise.exercise.course_steps && genExercise.exercise.course_steps.length > 0 ? (
+              <div className="space-y-3 my-4">
+                <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                  📚 Step-by-Step Curriculum: Zero Knowledge to Beginner
+                </p>
+                <div className="grid grid-cols-1 gap-2.5">
+                  {genExercise.exercise.course_steps.map((step, sIdx) => (
+                    <div key={sIdx} className="bg-black/30 rounded-lg p-3 border border-white/5 hover:border-emerald-500/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 uppercase tracking-wider">
+                            {step.stage}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-200">{step.title}</span>
+                        </div>
+                        <p className="text-xs font-medium text-emerald-300 italic">"{step.target_text}"</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{step.focus}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const practiceLesson = {
+                            lesson_id: `ai-gen-step-${sIdx + 1}`,
+                            title: step.title,
+                            target_text: step.target_text,
+                            content_type: 'Voice Practice',
+                            phonetic_script: Array.isArray(step.phonetic_script) ? step.phonetic_script.join(' ') : step.phonetic_script
+                          };
+                          onSelectLesson(practiceLesson);
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 transition-all flex items-center justify-center gap-1 shrink-0"
+                      >
+                        <Play size={10} /> Practice Step {step.step_no}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-black/20 rounded-lg p-3 mb-3">
+                <p className="text-sm text-emerald-300 font-medium leading-relaxed">
+                  "{genExercise.exercise.target_text}"
+                </p>
+                {genExercise.exercise.phonetic_script && genExercise.exercise.phonetic_script.length > 0 && (
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Phonetic: {Array.isArray(genExercise.exercise.phonetic_script) ? genExercise.exercise.phonetic_script.join(' · ') : genExercise.exercise.phonetic_script}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-2 mt-4 pt-2 border-t border-white/5">
               <button
                 onClick={() => {
                   const practiceLesson = {
-                    lesson_id: `ai-gen-${genExercise.content_id}`,
+                    lesson_id: `ai-gen-${genExercise.content_id || '1'}`,
                     title: genExercise.exercise.title,
                     target_text: genExercise.exercise.target_text,
                     content_type: genExercise.exercise.content_type || 'Voice Practice',
@@ -588,7 +628,7 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
                 }}
                 className="flex-1 py-2 rounded-lg text-xs font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 transition-all flex items-center justify-center gap-1"
               >
-                <Play size={12} /> Practice Now
+                <Play size={12} /> Practice All Modules
               </button>
               <button
                 onClick={() => setGenExercise(null)}
