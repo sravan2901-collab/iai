@@ -35,6 +35,28 @@ const resolveLangCode = (input) => {
   return 'en';
 };
 
+const getCurriculumPillarType = (les) => {
+  if (!les) return 'SPOKEN';
+  
+  const catId = Number(les.category_id);
+  const skill = (les.skill_type || les.skill || les.category || '').toUpperCase();
+  const cType = (les.content_type || '').toLowerCase();
+  const title = (les.title || les.module_name || '').toLowerCase();
+
+  // 1. Written Curriculum Check
+  if (catId === 2 || skill === 'WRITTEN' || cType.includes('written') || title.includes('written') || title.includes('లేఖన') || title.includes('लेखन') || title.includes('எழுத்து') || title.includes('লিখন') || title.includes('ಬರಹ')) {
+    return 'WRITTEN';
+  }
+
+  // 2. Reading Curriculum Check
+  if (catId === 3 || skill === 'READING' || cType.includes('reading') || cType.includes('functional') || title.includes('reading') || title.includes('పఠన') || title.includes('पठन') || title.includes('வாசிப்பு') || title.includes('वाचन') || title.includes('ಓದುವ')) {
+    return 'READING';
+  }
+
+  // 3. Default: Spoken Curriculum
+  return 'SPOKEN';
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [activeLesson, setActiveLesson] = useState(null);
@@ -593,12 +615,12 @@ export default function App() {
               ← Return to Curriculum Catalog
             </button>
 
-            {activeLesson.category_id === 2 || activeLesson.content_type === 'Written Practice' ? (
+            {getCurriculumPillarType(activeLesson) === 'WRITTEN' ? (
               <InteractiveWritingCanvas
                 lesson={activeLesson}
                 onClose={() => setActiveLesson(null)}
               />
-            ) : activeLesson.category_id === 3 || activeLesson.content_type === 'Functional Reading' ? (
+            ) : getCurriculumPillarType(activeLesson) === 'READING' ? (
               <ReadingStudioCard
                 lesson={activeLesson}
                 onClose={() => setActiveLesson(null)}
