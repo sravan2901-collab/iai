@@ -403,39 +403,160 @@ class AICourseGenerator:
         return recs
 
     def _get_fallback_exercise(self, language: str, skill_type: str, difficulty: str) -> dict:
-        """Return a pre-built fallback exercise when AI is unavailable."""
+        """Return a pre-built beginner-friendly exercise tailored specifically to skill_type and difficulty level."""
         lang_name = LANG_NAMES.get(language, "English")
+        clean_skill = (skill_type or "READING").upper()
+        clean_diff = (difficulty or "FOUNDATIONAL").upper()
 
-        fallback_texts = {
-            "en": {"target": "Practice makes perfect in language learning", "phonemes": ["Prac-tice", "makes", "per-fect"]},
-            "hi": {"target": "निरंतर अभ्यास से ही भाषा में निपुणता आती है", "phonemes": ["नि-रं-त-र", "अभ्-या-स"]},
-            "te": {"target": "నిరంతర సాధన ద్వారా భాషా ప్రావీణ్యం లభిస్తుంది", "phonemes": ["నిరం-త-ర", "సా-ధ-న"]},
-            "ta": {"target": "தொடர் பயிற்சியால் மொழி திறன் வளரும்", "phonemes": ["தொ-ட-ர்", "ப-யிற்-சி"]},
-            "mr": {"target": "सातत्याने सरावाने भाषेत प्रगती होते", "phonemes": ["सा-त-त्या-ने", "स-रा-वा-ने"]},
-            "bn": {"target": "নিয়মিত অভ্যাসে ভাষার দক্ষতা বাড়ে", "phonemes": ["নি-য়-মি-ত", "অভ্-যা-সে"]},
-            "kn": {"target": "ನಿರಂತರ ಅಭ್ಯಾಸದಿಂದ ಭಾಷಾ ಪ್ರಾವೀಣ್ಯ ಬರುತ್ತದೆ", "phonemes": ["ನಿ-ರಂ-ತ-ರ", "ಅಭ್-ಯಾ-ಸ"]},
-            "es": {"target": "La práctica constante mejora el dominio del idioma", "phonemes": ["prác-ti-ca", "cons-tan-te"]},
+        fallback_db = {
+            "en": {
+                ("VOICE", "FOUNDATIONAL"): {
+                    "title": "Alphabet Vowels & Phonics Fundamentals",
+                    "title_english": "Alphabet Vowels & Phonics Fundamentals",
+                    "target_text": "A, B, C, D — Long & Short Vowel Sounds",
+                    "phonetic_script": ["A", "B", "C", "D", "Vow-els"],
+                    "content_type": "Voice Practice",
+                    "questions": [
+                        {"question": "Which letter is a vowel sound?", "options": ["A", "B", "C", "D"], "correct_answer": "A"},
+                        {"question": "How many basic vowel letters are in English?", "options": ["5", "2", "10", "26"], "correct_answer": "5"}
+                    ],
+                    "explanation": "Beginner Voice Exercise: Learn and speak aloud fundamental alphabet sounds and vowel phonemes."
+                },
+                ("COMPREHENSION", "FOUNDATIONAL"): {
+                    "title": "Everyday 3-Letter Vocabulary Words",
+                    "title_english": "Everyday 3-Letter Vocabulary Words",
+                    "target_text": "Cat, Dog, Sun, Book, Cup",
+                    "phonetic_script": ["Cat", "Dog", "Sun", "Book", "Cup"],
+                    "content_type": "Functional Reading",
+                    "questions": [
+                        {"question": "Which word refers to an everyday pet?", "options": ["Dog", "Sun", "Cup", "Book"], "correct_answer": "Dog"},
+                        {"question": "Which word refers to the bright star in the sky?", "options": ["Sun", "Cat", "Cup", "Dog"], "correct_answer": "Sun"}
+                    ],
+                    "explanation": "Beginner Vocabulary Exercise: Recognize and read basic everyday 3-letter nouns."
+                },
+                ("READING", "FOUNDATIONAL"): {
+                    "title": "Simple Beginner Sentence Reading",
+                    "title_english": "Simple Beginner Sentence Reading",
+                    "target_text": "I can read simple English words",
+                    "phonetic_script": ["I", "can", "read", "sim-ple", "words"],
+                    "content_type": "Voice Practice",
+                    "questions": [
+                        {"question": "What is the primary action in the sentence?", "options": ["Read", "Run", "Sleep", "Write"], "correct_answer": "Read"},
+                        {"question": "What language is being practiced?", "options": ["English", "Spanish", "French", "German"], "correct_answer": "English"}
+                    ],
+                    "explanation": "Beginner Sentence Reading: Read short 5-word English sentences with clarity and confidence."
+                },
+                ("VOICE", "FUNCTIONAL"): {
+                    "title": "Workplace Team Meeting Greetings",
+                    "title_english": "Workplace Team Meeting Greetings",
+                    "target_text": "Good morning team, let us review our daily goals",
+                    "phonetic_script": ["Good", "morn-ing", "team", "dai-ly", "goals"],
+                    "content_type": "Voice Practice",
+                    "questions": [
+                        {"question": "What time of day is referenced in the greeting?", "options": ["Morning", "Night", "Evening", "Afternoon"], "correct_answer": "Morning"}
+                    ],
+                    "explanation": "Functional Voice Exercise: Practice speaking professional workplace greetings with clear intonation."
+                },
+                ("COMPREHENSION", "FUNCTIONAL"): {
+                    "title": "ATM PIN Security Guidelines",
+                    "title_english": "ATM PIN Security Guidelines",
+                    "target_text": "Never share your ATM PIN with anyone",
+                    "phonetic_script": ["Ne-ver", "share", "ATM", "PIN", "any-one"],
+                    "content_type": "Functional Reading",
+                    "questions": [
+                        {"question": "Should you share your ATM PIN?", "options": ["Never", "Always", "Sometimes", "With friends"], "correct_answer": "Never"}
+                    ],
+                    "explanation": "Functional Reading Exercise: Understand practical banking and security guidelines."
+                },
+                ("READING", "FUNCTIONAL"): {
+                    "title": "Health & Medical Prescription Reading",
+                    "title_english": "Health & Medical Prescription Reading",
+                    "target_text": "Take one tablet after breakfast with water",
+                    "phonetic_script": ["Take", "one", "tab-let", "af-ter", "break-fast"],
+                    "content_type": "Functional Reading",
+                    "questions": [
+                        {"question": "When should the tablet be taken?", "options": ["After breakfast", "Before sleep", "At midnight", "Never"], "correct_answer": "After breakfast"}
+                    ],
+                    "explanation": "Functional Reading Exercise: Read medical prescription instructions accurately."
+                }
+            },
+            "te": {
+                ("VOICE", "FOUNDATIONAL"): {
+                    "title": "అక్షరాలు మరియు స్వరాలు (Alphabet Vowels)",
+                    "title_english": "Alphabet Vowels & Phonics",
+                    "target_text": "అ, ఆ, ఇ, ఈ — ప్రాథమిక అక్షర గుర్తింపు",
+                    "phonetic_script": ["అ", "ఆ", "ఇ", "ఈ"],
+                    "content_type": "Voice Practice",
+                    "questions": [{"question": "మొదటి అక్షరం ఏది?", "options": ["అ", "ఆ", "ఇ", "ఈ"], "correct_answer": "అ"}],
+                    "explanation": "ప్రారంభ స్థాయి ఉచ్చారణ సాధన: తెలుగు అచ్చులు మరియు ప్రాథమిక అక్షర గుర్తింపు."
+                },
+                ("COMPREHENSION", "FOUNDATIONAL"): {
+                    "title": "దైనందిన 3 అక్షరాల పదాలు (Everyday Words)",
+                    "title_english": "Everyday 3-Letter Words",
+                    "target_text": "అమ్మ, ఇల్లు, నీరు, పుస్తకం",
+                    "phonetic_script": ["అమ్మ", "ఇల్లు", "నీరు", "పుస్తకం"],
+                    "content_type": "Functional Reading",
+                    "questions": [{"question": "ఇంటికి ఉపయోగించే పదం ఏది?", "options": ["ఇల్లు", "నీరు", "అమ్మ", "పుస్తకం"], "correct_answer": "ఇల్లు"}],
+                    "explanation": "ప్రారంభ స్థాయి పదజాలం: రోజువారీ ఉపయోగించే ముఖ్యమైన పదాలు."
+                },
+                ("READING", "FOUNDATIONAL"): {
+                    "title": "లఘు వాక్య పఠనం (Simple Sentence Reading)",
+                    "title_english": "Simple Sentence Reading",
+                    "target_text": "నేను ప్రతిరోజూ పుస్తకాలు చదువుతాను",
+                    "phonetic_script": ["నేను", "ప్రతిరోజూ", "పుస్తకాలు", "చదువుతాను"],
+                    "content_type": "Voice Practice",
+                    "questions": [{"question": "ఈ వాక్యం దేని గురించి?", "options": ["చదవడం", "పరిగెత్తడం", "నిద్రించడం", "రాయడం"], "correct_answer": "చదవడం"}],
+                    "explanation": "ప్రారంభ స్థాయి వాక్య పఠనం: చిన్న వాక్యాలను స్పష్టంగా చదవడం సాధన చేయండి."
+                }
+            },
+            "hi": {
+                ("VOICE", "FOUNDATIONAL"): {
+                    "title": "वर्णमाला एवं स्वर उच्चारण (Alphabet Vowels)",
+                    "title_english": "Alphabet Vowels & Phonics",
+                    "target_text": "अ, आ, इ, ई — बुनियादी स्वर पहचान",
+                    "phonetic_script": ["अ", "आ", "इ", "ई"],
+                    "content_type": "Voice Practice",
+                    "questions": [{"question": "पहला स्वर कौन सा है?", "options": ["अ", "आ", "इ", "ई"], "correct_answer": "अ"}],
+                    "explanation": "शुरुआती स्वर अभ्यास: हिंदी वर्णमाला और प्राथमिक स्वर पहचान।"
+                },
+                ("COMPREHENSION", "FOUNDATIONAL"): {
+                    "title": "दैनिक व्यावहारिक शब्द (Everyday Words)",
+                    "title_english": "Everyday Words",
+                    "target_text": "घर, जल, फल, पुस्तक, मित्र",
+                    "phonetic_script": ["घर", "जल", "फल", "पुस्तक"],
+                    "content_type": "Functional Reading",
+                    "questions": [{"question": "पानी के लिए कौन सा शब्द प्रयुक्त है?", "options": ["जल", "फल", "घर", "मित्र"], "correct_answer": "जल"}],
+                    "explanation": "शुरुआती शब्दावली अभ्यास: दैनिक जीवन के आसान शब्द।"
+                },
+                ("READING", "FOUNDATIONAL"): {
+                    "title": "सरल वाक्य वाचन (Simple Sentence Reading)",
+                    "title_english": "Simple Sentence Reading",
+                    "target_text": "मैं प्रतिदिन अच्छी पुस्तकें पढ़ता हूँ",
+                    "phonetic_script": ["मैं", "प्रतिदिन", "पुस्तकें", "पढ़ता"],
+                    "content_type": "Voice Practice",
+                    "questions": [{"question": "वाक्य में क्या कार्य हो रहा है?", "options": ["पढ़ना", "दौड़ना", "सोना", "लिखना"], "correct_answer": "पढ़ना"}],
+                    "explanation": "शुरुआती वाक्य वाचन: छोटे वाक्यों का स्पष्ट उच्चारण।"
+                }
+            }
         }
 
-        fb = fallback_texts.get(language, fallback_texts["en"])
+        lang_db = fallback_db.get(language, fallback_db["en"])
+        exercise = lang_db.get((clean_skill, clean_diff))
+
+        if not exercise:
+            # Fallback to English skill-matched exercise if target language entry missing
+            exercise = fallback_db["en"].get((clean_skill, clean_diff), fallback_db["en"][("READING", "FOUNDATIONAL")])
 
         return {
-            "title": f"{skill_type.title()} Practice — {lang_name}",
-            "title_english": f"{skill_type.title()} Practice Exercise",
-            "target_text": fb["target"],
-            "phonetic_script": fb["phonemes"],
-            "content_type": "Voice Practice",
-            "questions": [
-                {
-                    "question": f"What skill does this exercise focus on?",
-                    "options": ["Reading", "Comprehension", "Voice", "Writing"],
-                    "correct_answer": skill_type.title()
-                }
-            ],
-            "explanation": f"This is a {difficulty.lower()} level {skill_type.lower()} exercise. "
-                          f"Practice reading the text aloud with correct pronunciation.",
-            "difficulty_level": difficulty,
-            "skill_type": skill_type
+            "title": exercise["title"],
+            "title_english": exercise.get("title_english", f"{clean_skill.title()} Practice"),
+            "target_text": exercise["target_text"],
+            "phonetic_script": exercise["phonetic_script"],
+            "content_type": exercise.get("content_type", "Voice Practice"),
+            "questions": exercise.get("questions", []),
+            "explanation": exercise.get("explanation", f"Beginner {clean_skill.lower()} exercise for {lang_name}."),
+            "difficulty_level": clean_diff,
+            "skill_type": clean_skill
         }
 
 

@@ -78,10 +78,10 @@ export const recommendationApi = {
   getRecommendations: async () => {
     return apiRequest('/recommendations');
   },
-  generateExercise: async (skillType, difficultyLevel) => {
+  generateExercise: async (skillType, difficultyLevel = 'FOUNDATIONAL', forceNew = true) => {
     return apiRequest('/recommendations/generate-exercise', {
       method: 'POST',
-      body: JSON.stringify({ skill_type: skillType, difficulty_level: difficultyLevel })
+      body: JSON.stringify({ skill_type: skillType, difficulty_level: difficultyLevel, force_new: forceNew })
     });
   },
   getAIStatus: async () => {

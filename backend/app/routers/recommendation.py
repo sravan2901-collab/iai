@@ -130,6 +130,7 @@ async def generate_exercise(
     """
     skill_type = payload.get("skill_type", "READING").upper()
     difficulty = payload.get("difficulty_level", "FOUNDATIONAL").upper()
+    force_new = payload.get("force_new", False)
     learner_id = current_learner.learner_id
 
     if skill_type not in ("READING", "COMPREHENSION", "VOICE"):
@@ -146,23 +147,24 @@ async def generate_exercise(
         if lang:
             lang_code = lang.iso_code
 
-    # Check for recently cached exercise (within 24h)
-    recent_cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
-    cached = db.query(models.AIGeneratedContent).filter(
-        models.AIGeneratedContent.learner_id == learner_id,
-        models.AIGeneratedContent.language_code == lang_code,
-        models.AIGeneratedContent.skill_type == skill_type,
-        models.AIGeneratedContent.difficulty_level == difficulty,
-        models.AIGeneratedContent.generated_at >= recent_cutoff
-    ).first()
+    # Check for recently cached exercise (within 24h) unless force_new requested
+    if not force_new:
+        recent_cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+        cached = db.query(models.AIGeneratedContent).filter(
+            models.AIGeneratedContent.learner_id == learner_id,
+            models.AIGeneratedContent.language_code == lang_code,
+            models.AIGeneratedContent.skill_type == skill_type,
+            models.AIGeneratedContent.difficulty_level == difficulty,
+            models.AIGeneratedContent.generated_at >= recent_cutoff
+        ).first()
 
-    if cached:
-        return {
-            "exercise": json.loads(cached.content_json),
-            "ai_provider": cached.generated_by,
-            "cached": True,
-            "content_id": cached.content_id
-        }
+        if cached:
+            return {
+                "exercise": json.loads(cached.content_json),
+                "ai_provider": cached.generated_by,
+                "cached": True,
+                "content_id": cached.content_id
+            }
 
     # Get existing lesson titles to avoid duplicates
     existing_titles = []
