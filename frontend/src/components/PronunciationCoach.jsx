@@ -339,6 +339,20 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
     return { text: 'Needs Practice', color: 'text-rose-400', dot: '🔴' };
   };
 
+  const LANG_VOICE_CONFIG = {
+    'hi': { label: 'Test Hindi Voice', sample: 'अ आ इ ई उ ऊ' },
+    'te': { label: 'Test Telugu Voice', sample: 'అ ఆ ఇ ఈ ఉ ఊ' },
+    'ta': { label: 'Test Tamil Voice', sample: 'அ ஆ இ ஈ உ ஊ' },
+    'mr': { label: 'Test Marathi Voice', sample: 'अ आ इ ई उ ऊ' },
+    'bn': { label: 'Test Bengali Voice', sample: 'অ আ ই ঈ উ ঊ' },
+    'kn': { label: 'Test Kannada Voice', sample: 'ಅ ಆ ಇ ಈ ಉ ಊ' },
+    'es': { label: 'Test Spanish Voice', sample: 'A E I O U' },
+    'en': { label: 'Test English Voice', sample: 'A B C D E F' }
+  };
+
+  const activeLang = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'hi');
+  const voiceConfig = LANG_VOICE_CONFIG[activeLang] || LANG_VOICE_CONFIG['hi'];
+
   return (
     <div className="glass-panel max-w-2xl mx-auto rounded-2xl p-6 md:p-8 space-y-6">
       <div className="flex items-center justify-between border-b border-slate-700/60 pb-4">
@@ -350,12 +364,12 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => playNaturalSpeechAudio("అ ఆ ఇ ఈ ఉ ఊ", 0.85)}
-            title="Test natural Telugu speech audio"
+            onClick={() => playNaturalSpeechAudio(voiceConfig.sample, 0.85)}
+            title={`Test natural ${voiceConfig.label} audio sample`}
             className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
           >
             <Volume2 size={16} className="text-emerald-400" />
-            <span>Test Telugu Voice</span>
+            <span>{voiceConfig.label}</span>
           </button>
 
           <button
