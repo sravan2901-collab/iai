@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { BookOpen, Volume2, CheckCircle, Sparkles, Eye, ArrowLeft, ArrowRight, RefreshCw } from 'lucide-react';
 
 export default function ReadingStudioCard({ lesson, onClose }) {
+  const targetText = lesson?.target_text || "Open, Closed, Exit, Stop";
+  const words = (targetText || "").split(/[\s,–—]+/).filter(Boolean);
+
   const [selectedWordIdx, setSelectedWordIdx] = useState(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [completedWords, setCompletedWords] = useState(new Set());
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizScore, setQuizScore] = useState(null);
-
   const [quizTargetIdx, setQuizTargetIdx] = useState(0);
 
   const EMOJI_MAP = {
@@ -22,16 +24,40 @@ export default function ReadingStudioCard({ lesson, onClose }) {
   };
 
   const getEmojiForWord = (w) => {
+    if (!w) return null;
     const cleanW = w.replace(/[(),]/g, '').trim();
     return EMOJI_MAP[cleanW] || null;
   };
 
+  const playWordAudio = (wordToSpeak) => {
+    setIsPlayingAudio(true);
+    try {
+      const cleanText = (wordToSpeak || targetText).replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
+      const encodedText = encodeURIComponent(cleanText.slice(0, 200));
+      const audioUrl = `http://127.0.0.1:8000/api/voice/tts?text=${encodedText}&lang=${lesson?.lang || 'te'}`;
+      const audio = new Audio(audioUrl);
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => setIsPlayingAudio(false);
+      audio.play().catch(() => setIsPlayingAudio(false));
+    } catch (e) {
+      setIsPlayingAudio(false);
+    }
+  };
+
+  const markWordRead = (idx) => {
+    const newSet = new Set(completedWords);
+    newSet.add(idx);
+    setCompletedWords(newSet);
+    playWordAudio(words[idx]);
+  };
+
   const startAudioQuiz = () => {
     setShowQuiz(true);
-    const randomIdx = Math.floor(Math.random() * Math.min(4, words.length));
+    const validWords = words.length > 0 ? words : ["Open", "Closed", "Exit", "Stop"];
+    const randomIdx = Math.floor(Math.random() * Math.min(4, validWords.length));
     setQuizTargetIdx(randomIdx);
     setQuizScore(null);
-    playWordAudio(words[randomIdx]);
+    playWordAudio(validWords[randomIdx]);
   };
 
   const handleQuizSubmit = (selectedWord) => {
