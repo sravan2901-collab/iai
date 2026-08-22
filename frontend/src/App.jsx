@@ -707,18 +707,20 @@ export default function App() {
               {categories.map(cat => {
                 const IconComp = cat.icon;
                 const isSelected = selectedCategoryFilter === cat.id;
+                const catSubModules = sampleLessons.filter(les => les.category_id === cat.id);
+
                 return (
                   <div 
                     key={cat.id} 
                     onClick={() => setSelectedCategoryFilter(isSelected ? null : cat.id)}
                     className={`glass-panel p-5 rounded-2xl border transition-all cursor-pointer group ${
                       isSelected 
-                        ? 'border-emerald-500 bg-slate-900/95 ring-2 ring-emerald-500/30 shadow-xl' 
+                        ? 'border-emerald-500 bg-slate-900/95 ring-2 ring-emerald-500/30 shadow-xl col-span-1 md:col-span-3' 
                         : 'border-slate-700/60 hover:border-emerald-500/50 hover:bg-slate-900/80 shadow-md'
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform`}>
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform flex-shrink-0`}>
                         <IconComp size={24} />
                       </div>
                       <div className="flex-1 space-y-1">
@@ -726,18 +728,62 @@ export default function App() {
                           <h4 className="font-bold text-base text-slate-100 group-hover:text-emerald-400 transition-colors">
                             {cat.title}
                           </h4>
-                          {isSelected && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                              Active Filter
-                            </span>
-                          )}
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
+                            isSelected 
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                              : 'bg-slate-800 text-slate-400 border-slate-700 group-hover:border-emerald-500/30'
+                          }`}>
+                            {isSelected ? "▲ Hide 8 Sub-Modules" : "▼ Click to Expand 8 Sub-Modules"}
+                          </span>
                         </div>
                         <p className="text-xs text-slate-400 leading-relaxed">{cat.description}</p>
                         <span className="text-[11px] text-emerald-400 font-semibold inline-block pt-1">
-                          {cat.lessonsCount} Progressive Sub-Modules → Click to View
+                          {cat.lessonsCount} Progressive Sub-Modules Available (Zero → Mastery)
                         </span>
                       </div>
                     </div>
+
+                    {/* Expandable Sub-Modules Drawer when card is clicked */}
+                    {isSelected && (
+                      <div className="mt-5 pt-5 border-t border-slate-700/80 space-y-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <Sparkles size={14} className="text-amber-400" />
+                            {cat.title} — 8 Progressive Difficulty Sub-Modules:
+                          </span>
+                          <span className="text-xs text-slate-400 font-medium">Click any sub-module below to start practicing</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1">
+                          {catSubModules.map((les, idx) => (
+                            <div
+                              key={les.lesson_id}
+                              onClick={() => setActiveLesson(les)}
+                              className="p-3.5 rounded-xl bg-slate-950/90 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500/60 transition-all flex items-center justify-between group/sub cursor-pointer shadow-sm hover:shadow-emerald-500/10"
+                            >
+                              <div className="space-y-1 pr-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase">
+                                    Sub-Module {idx + 1}: {les.difficulty_level}
+                                  </span>
+                                  <span className="text-[10px] font-semibold text-slate-400">
+                                    {les.content_type}
+                                  </span>
+                                </div>
+                                <h5 className="font-bold text-xs text-slate-100 group-hover/sub:text-emerald-300 transition-colors">
+                                  {les.title}
+                                </h5>
+                                <p className="text-[11px] text-slate-300 italic">"{les.target_text}"</p>
+                              </div>
+                              <button className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md group-hover/sub:scale-105 transition-all flex-shrink-0">
+                                <Play size={12} />
+                                <span>Practice</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
