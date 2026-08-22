@@ -147,6 +147,14 @@ export default function App() {
 
   const categories = [
     {
+      id: 0,
+      title: 'Zero Knowledge & Absolute Starter Literacy',
+      icon: BookOpen,
+      color: 'from-cyan-500 to-blue-600',
+      description: 'Single letter consonant sounds, vowel recognition, 2-letter word blends, numbers 1-10, and daily greetings',
+      lessonsCount: 14
+    },
+    {
       id: 1,
       title: 'Phonemes & Alphabet Fundamentals',
       icon: BookOpen,
@@ -189,6 +197,30 @@ export default function App() {
   ];
 
   const sampleLessons = [
+    {
+      lesson_id: 101,
+      category_id: 0,
+      title: 'Alphabet Phonemes Part 1 (A-E)',
+      content_type: 'Voice Practice',
+      target_text: 'A-ah, B-buh, C-kuh, D-duh, E-eh',
+      difficulty_level: 'FOUNDATIONAL'
+    },
+    {
+      lesson_id: 102,
+      category_id: 0,
+      title: '2-Letter Vowel-Consonant Words',
+      content_type: 'Functional Reading',
+      target_text: 'Am, An, As, At, If, In, Is, It, Of, On',
+      difficulty_level: 'FOUNDATIONAL'
+    },
+    {
+      lesson_id: 103,
+      category_id: 0,
+      title: 'Number Names One to Five',
+      content_type: 'Voice Practice',
+      target_text: 'One, Two, Three, Four, Five',
+      difficulty_level: 'FOUNDATIONAL'
+    },
     {
       lesson_id: 1,
       category_id: 1,
