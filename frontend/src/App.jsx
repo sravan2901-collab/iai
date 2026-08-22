@@ -36,6 +36,7 @@ const resolveLangCode = (input) => {
 export default function App() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [activeLesson, setActiveLesson] = useState(null);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(true);
   const [isNewRegistration, setIsNewRegistration] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState(null);
@@ -520,28 +521,87 @@ export default function App() {
         ) : activeTab === 'catalog' ? (
           /* Catalog View */
           <div className="space-y-6">
-            <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-              <BookOpen size={20} className="text-emerald-400" />
-              Language Literacy Curriculum Modules
-            </h3>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                  <BookOpen size={20} className="text-emerald-400" />
+                  Language Literacy Curriculum Core Pillars
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Click any curriculum pillar below to explore its 8 progressive difficulty sub-modules (Zero → Mastery).
+                </p>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="flex items-center gap-1 bg-slate-900/90 p-1.5 rounded-xl border border-slate-700 text-xs">
+                <button
+                  onClick={() => setSelectedCategoryFilter(null)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    selectedCategoryFilter === null ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  All (24 Sub-Modules)
+                </button>
+                <button
+                  onClick={() => setSelectedCategoryFilter(1)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    selectedCategoryFilter === 1 ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Spoken (8 Stages)
+                </button>
+                <button
+                  onClick={() => setSelectedCategoryFilter(2)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    selectedCategoryFilter === 2 ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Written (8 Stages)
+                </button>
+                <button
+                  onClick={() => setSelectedCategoryFilter(3)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    selectedCategoryFilter === 3 ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Reading (8 Stages)
+                </button>
+              </div>
+            </div>
 
             {/* Category Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {categories.map(cat => {
                 const IconComp = cat.icon;
+                const isSelected = selectedCategoryFilter === cat.id;
                 return (
-                  <div key={cat.id} className="glass-panel p-5 rounded-2xl border border-slate-700/60 hover:border-emerald-500/40 transition-all group">
+                  <div 
+                    key={cat.id} 
+                    onClick={() => setSelectedCategoryFilter(isSelected ? null : cat.id)}
+                    className={`glass-panel p-5 rounded-2xl border transition-all cursor-pointer group ${
+                      isSelected 
+                        ? 'border-emerald-500 bg-slate-900/95 ring-2 ring-emerald-500/30 shadow-xl' 
+                        : 'border-slate-700/60 hover:border-emerald-500/50 hover:bg-slate-900/80 shadow-md'
+                    }`}
+                  >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-md`}>
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform`}>
                         <IconComp size={24} />
                       </div>
                       <div className="flex-1 space-y-1">
-                        <h4 className="font-bold text-base text-slate-100 group-hover:text-emerald-400 transition-colors">
-                          {cat.title}
-                        </h4>
-                        <p className="text-xs text-slate-400">{cat.description}</p>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-base text-slate-100 group-hover:text-emerald-400 transition-colors">
+                            {cat.title}
+                          </h4>
+                          {isSelected && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              Active Filter
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">{cat.description}</p>
                         <span className="text-[11px] text-emerald-400 font-semibold inline-block pt-1">
-                          {cat.lessonsCount} Practice Lessons Available
+                          {cat.lessonsCount} Progressive Sub-Modules → Click to View
                         </span>
                       </div>
                     </div>
@@ -550,30 +610,57 @@ export default function App() {
               })}
             </div>
 
-            {/* Sample Lessons List */}
+            {/* Sub-Modules Practice Lessons List */}
             <div className="space-y-3 pt-4">
-              <h4 className="text-md font-bold text-slate-300">Recommended Language Literacy Practice Lessons</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {sampleLessons.map(les => (
-                  <div 
-                    key={les.lesson_id}
-                    onClick={() => setActiveLesson(les)}
-                    className="glass-card p-4 rounded-xl border border-slate-700/80 hover:border-emerald-500/50 cursor-pointer transition-all flex items-center justify-between group"
+              <div className="flex items-center justify-between">
+                <h4 className="text-md font-bold text-slate-200 flex items-center gap-2">
+                  <Sparkles size={16} className="text-emerald-400" />
+                  {selectedCategoryFilter === 1 
+                    ? 'Spoken Curriculum: 8 Progressive Difficulty Sub-Modules' 
+                    : selectedCategoryFilter === 2 
+                    ? 'Written Curriculum: 8 Progressive Difficulty Sub-Modules' 
+                    : selectedCategoryFilter === 3 
+                    ? 'Reading Curriculum: 8 Progressive Difficulty Sub-Modules' 
+                    : 'Recommended Progressive Sub-Modules (Zero → Mastery)'}
+                </h4>
+                {selectedCategoryFilter !== null && (
+                  <button 
+                    onClick={() => setSelectedCategoryFilter(null)}
+                    className="text-xs text-emerald-400 hover:underline font-semibold"
                   >
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold uppercase text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                        {les.content_type}
-                      </span>
-                      <h5 className="font-bold text-sm text-slate-100 group-hover:text-emerald-300 transition-colors">
-                        {les.title}
-                      </h5>
-                      <p className="text-xs text-slate-400 italic">"{les.target_text}"</p>
+                    Show All Curriculums
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {sampleLessons
+                  .filter(les => selectedCategoryFilter === null || les.category_id === selectedCategoryFilter)
+                  .map(les => (
+                    <div 
+                      key={les.lesson_id}
+                      onClick={() => setActiveLesson(les)}
+                      className="glass-card p-4 rounded-xl border border-slate-700/80 hover:border-emerald-500/60 cursor-pointer transition-all flex items-center justify-between group hover:bg-slate-800/90 shadow-md"
+                    >
+                      <div className="space-y-1.5 pr-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold uppercase text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                            {les.content_type}
+                          </span>
+                          <span className="text-[10px] font-extrabold uppercase text-amber-300 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                            Stage: {les.difficulty_level}
+                          </span>
+                        </div>
+                        <h5 className="font-bold text-sm text-slate-100 group-hover:text-emerald-300 transition-colors">
+                          {les.title}
+                        </h5>
+                        <p className="text-xs text-slate-300 italic font-medium">"{les.target_text}"</p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-md flex-shrink-0">
+                        <Play size={18} />
+                      </div>
                     </div>
-                    <div className="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-md">
-                      <Play size={16} />
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>
