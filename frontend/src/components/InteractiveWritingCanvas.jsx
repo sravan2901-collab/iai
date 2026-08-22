@@ -51,6 +51,13 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
 
     ctx.setLineDash([]); // Reset dash
 
+    // Render faint tracing watermark template of targetText
+    ctx.font = 'bold 36px sans-serif';
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.28)'; // Slate watermark tracing guide
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(targetText.slice(0, 26), width / 2, 130);
+
     // Capture initial background & guidelines image data baseline
     initialImgDataRef.current = ctx.getImageData(0, 0, width, height);
   };
@@ -110,108 +117,75 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
     const currentImgData = ctx.getImageData(0, 0, width, height).data;
     const baseImgData = initialImgDataRef.current.data;
 
+    // Render exact target text template on offscreen canvas for shape matching
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = width;
+    offCanvas.height = height;
+    const offCtx = offCanvas.getContext('2d');
+    offCtx.fillStyle = '#000000';
+    offCtx.fillRect(0, 0, width, height);
+    offCtx.font = 'bold 36px sans-serif';
+    offCtx.fillStyle = '#ffffff';
+    offCtx.textAlign = 'center';
+    offCtx.textBaseline = 'middle';
+    offCtx.fillText(targetText.slice(0, 26), width / 2, 130);
+    const targetMaskData = offCtx.getImageData(0, 0, width, height).data;
+
     let drawnPixels = 0;
-    let minX = width, maxX = 0, minY = height, maxY = 0;
-    let leftPixels = 0, rightPixels = 0;
-    let pixelsInGuideLines = 0; // Notebook guidelines: y = 50 to y = 220
+    let targetPixelsCount = 0;
+    let overlapPixelsCount = 0;
+    let userStrayPixelsCount = 0;
 
-    // Slice canvas horizontally into 12 vertical buckets to detect separate letter clusters
-    const bucketCount = 12;
-    const bucketWidth = width / bucketCount;
-    const bucketPixels = new Array(bucketCount).fill(0);
-
-    // Scan pixels: compare against initial notebook background baseline
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const index = (y * width + x) * 4;
+        const isTargetPixel = targetMaskData[index] > 100;
+
         const rDiff = Math.abs(currentImgData[index] - baseImgData[index]);
         const gDiff = Math.abs(currentImgData[index + 1] - baseImgData[index + 1]);
         const bDiff = Math.abs(currentImgData[index + 2] - baseImgData[index + 2]);
+        const isUserPixel = (rDiff + gDiff + bDiff > 40);
 
-        const isUserStroke = (rDiff + gDiff + bDiff > 40);
-        if (isUserStroke) {
+        if (isTargetPixel) targetPixelsCount++;
+        if (isUserPixel) {
           drawnPixels++;
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
-
-          if (x < width / 2) leftPixels++;
-          else rightPixels++;
-
-          if (y >= 50 && y <= 220) {
-            pixelsInGuideLines++;
+          if (isTargetPixel) {
+            overlapPixelsCount++;
+          } else {
+            userStrayPixelsCount++;
           }
-
-          const bucketIdx = Math.min(bucketCount - 1, Math.floor(x / bucketWidth));
-          bucketPixels[bucketIdx]++;
         }
       }
     }
 
-    // Determine target character count
-    const targetClean = targetText.replace(/[^a-zA-Z0-9\u0900-\u0D7F]/g, '');
-    const expectedLettersCount = Math.max(1, Math.min(8, targetClean.length || 4));
-
-    // Count active letter clusters (buckets with >40 stroke pixels)
-    let activeClusters = 0;
-    bucketPixels.forEach(count => {
-      if (count > 40) activeClusters++;
-    });
-
-    const strokeWidth = Math.max(1, maxX - minX);
-    const strokeHeight = Math.max(1, maxY - minY);
-    const widthCoverage = strokeWidth / width;
-
-    // 1. Line Discipline (% of strokes within notebook guidelines)
-    const lineDisciplineRatio = drawnPixels > 0 ? (pixelsInGuideLines / drawnPixels) : 0;
-    const lineDisciplineScore = Math.round(lineDisciplineRatio * 100);
-
-    // 2. Letter Cluster Separation & Completeness
-    const clusterRatio = Math.min(1.0, activeClusters / Math.max(2, expectedLettersCount * 1.1));
-    const clusterScore = Math.round(clusterRatio * 100);
-
-    // 3. Width Spacing Score
-    const spacingScore = Math.round(Math.min(1.0, widthCoverage / 0.40) * 100);
+    const precisionRatio = targetPixelsCount > 0 ? (overlapPixelsCount / targetPixelsCount) : 0;
+    const strayRatio = drawnPixels > 0 ? (userStrayPixelsCount / drawnPixels) : 0;
 
     let strokeAccuracy = 0;
     let formationScore = 0;
     let directionAccuracy = "Correct (Left-to-Right)";
     let feedback = "";
 
-    if (drawnPixels < 120) {
-      // Tiny dot or 1 short line
-      strokeAccuracy = Math.min(35, Math.max(15, Math.round(15 + drawnPixels / 6)));
-      formationScore = Math.max(12, strokeAccuracy - 5);
-      feedback = `Minimal strokes detected. You drew only a small mark. Please write all ${expectedLettersCount} target characters along the guidelines.`;
+    if (drawnPixels < 100) {
+      strokeAccuracy = Math.min(30, Math.max(15, Math.round(15 + drawnPixels / 5)));
+      formationScore = Math.max(12, strokeAccuracy - 4);
+      feedback = "Minimal strokes detected. Please trace directly over the watermark letters on the notebook pad.";
       directionAccuracy = "Incomplete Strokes";
-    } else if (drawnPixels > 18000) {
-      // Heavy clutter
-      strokeAccuracy = Math.max(42, Math.min(55, Math.round(60 - (drawnPixels - 18000) / 1000)));
-      formationScore = strokeAccuracy - 5;
-      feedback = "Canvas is overdrawn with stroke clutter. Try writing individual letters neatly separated along guidelines.";
-      directionAccuracy = "Cluttered Strokes";
     } else {
-      // Composite Structural Score combining Line Discipline, Cluster Separation, and Width Spacing
-      const rawScore = Math.round((lineDisciplineScore * 0.45) + (clusterScore * 0.35) + (spacingScore * 0.20));
+      // Calculate precision overlap vs stray penalties
+      const shapeCoveragePercent = Math.min(100, Math.round(precisionRatio * 140)); // Coverage of target letter strokes
+      const strayPenalty = Math.round(strayRatio * 35);
 
-      strokeAccuracy = Math.min(98, Math.max(35, rawScore));
-      formationScore = Math.min(99, Math.max(36, Math.round((strokeAccuracy * 0.7) + (lineDisciplineScore * 0.3))));
+      const rawAccuracy = Math.round(shapeCoveragePercent - strayPenalty);
+      strokeAccuracy = Math.min(98, Math.max(25, rawAccuracy));
+      formationScore = Math.min(99, Math.max(26, Math.round(shapeCoveragePercent * 0.9)));
 
-      if (leftPixels > 0 && rightPixels > 0) {
-        directionAccuracy = "Correct (Left-to-Right)";
-      } else if (rightPixels === 0 && leftPixels > 200) {
-        directionAccuracy = "Left-heavy (Write across guidelines)";
-      }
-
-      if (strokeAccuracy >= 86) {
-        feedback = `Excellent handwriting! All ${expectedLettersCount} letters are well-separated, proportional, and perfectly aligned on guidelines.`;
-      } else if (strokeAccuracy >= 70) {
-        feedback = `Good attempt! You wrote ${activeClusters} stroke segments out of ${expectedLettersCount} target characters. Keep strokes centered on guidelines.`;
-      } else if (strokeAccuracy >= 50) {
-        feedback = `Incomplete writing. Only ${activeClusters} letter segment detected. Spread out strokes across the guidelines to complete all target characters.`;
+      if (strokeAccuracy >= 82) {
+        feedback = "Excellent tracing accuracy! Your handwriting matches the target letter shapes perfectly.";
+      } else if (strokeAccuracy >= 62) {
+        feedback = "Good attempt! Trace all target characters completely along the watermark guides.";
       } else {
-        feedback = "Strokes exceed guidelines or lack letter separation. Follow line guides and write each letter clearly.";
+        feedback = "Strokes strayed from target characters. Trace directly over the guided watermark letters on the pad.";
       }
     }
 
