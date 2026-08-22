@@ -7,7 +7,7 @@ import LearnerProfileView from './components/LearnerProfileView';
 import ProficiencyBenchmarks from './components/ProficiencyBenchmarks';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
-import { BookOpen, Type, Sparkles, Feather, Award, CheckCircle, ArrowRight, Play, User, LogIn, Globe } from 'lucide-react';
+import { BookOpen, Type, Sparkles, Feather, Award, CheckCircle, ArrowRight, Play, User, LogIn, Globe, Mic } from 'lucide-react';
 import { getAuthToken, removeAuthToken, apiRequest } from './services/api';
 
 const LANG_MAP = {
