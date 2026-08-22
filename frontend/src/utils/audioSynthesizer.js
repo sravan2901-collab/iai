@@ -49,11 +49,11 @@ export function playSynthesizedPhoneme(text, rate = 1.0) {
   const chars = Array.from(text.replace(/[\s,.!?;:'"\\\/\-_]/g, ''));
   if (chars.length === 0) return false;
 
-  let startTime = ctx.currentTime + 0.05;
+  let startTime = ctx.currentTime + 0.02;
 
   chars.forEach((char, idx) => {
     const config = PHONEME_FREQ_MAP[char] || {
-      freq: 200 + ((char.charCodeAt(0) * 7) % 300),
+      freq: 220 + ((char.charCodeAt(0) * 11) % 350),
       type: 'triangle',
       duration: 0.35
     };
@@ -64,26 +64,25 @@ export function playSynthesizedPhoneme(text, rate = 1.0) {
     osc.type = config.type || 'triangle';
     osc.frequency.setValueAtTime(config.freq, startTime);
 
-    // Formant filter simulation for vocal warmth
+    // Warm formant filter simulation
     const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(config.freq * 1.5, startTime);
-    filter.Q.setValueAtTime(3.0, startTime);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(config.freq * 2.5, startTime);
 
-    // Envelope
-    const duration = (config.duration || 0.4) / rate;
-    gain.gain.setValueAtTime(0.001, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.3, startTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    // Linear Envelope for guaranteed loud, crisp sound without DOMException
+    const duration = Math.max((config.duration || 0.4) / rate, 0.2);
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.6, startTime + 0.04);
+    gain.gain.linearRampToValueAtTime(0.001, startTime + duration);
 
     osc.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
 
     osc.start(startTime);
-    osc.stop(startTime + duration + 0.05);
+    osc.stop(startTime + duration + 0.02);
 
-    startTime += duration + (0.1 / rate);
+    startTime += duration + 0.08;
   });
 
   return true;

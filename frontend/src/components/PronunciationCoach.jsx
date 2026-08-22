@@ -102,6 +102,7 @@ function computePronunciationScore(targetText, spokenText) {
 
 export default function PronunciationCoach({ lesson, onScoreUpdate }) {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [mediaStream, setMediaStream] = useState(null);
   const [evaluation, setEvaluation] = useState(null);
   const [recognizedText, setRecognizedText] = useState('');
@@ -151,9 +152,34 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
     }
   };
 
+  const playTestTone = () => {
+    setIsPlayingAudio(true);
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        const ctx = new AudioContextClass();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 chime
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+        gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+      }
+    } catch (e) {}
+    setTimeout(() => setIsPlayingAudio(false), 600);
+  };
+
   const playBenchmarkAudio = (rateMultiplier = 0.85) => {
     const langCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'te');
     const ttsLang = TTS_LANG_MAP[langCode] || 'te-IN';
+
+    setIsPlayingAudio(true);
+    setTimeout(() => setIsPlayingAudio(false), 2500);
 
     // 1. Always trigger Web Audio API Phoneme Synthesizer immediately so user hears sound right away
     playSynthesizedPhoneme(targetText, rateMultiplier);
@@ -335,13 +361,28 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
           </span>
           <h3 className="text-xl font-bold text-slate-100">{lesson?.title || "Speech Practice Module"}</h3>
         </div>
-        <button
-          onClick={playBenchmarkAudio}
-          className="p-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-sm font-medium transition-all"
-        >
-          <Volume2 size={18} />
-          <span>Listen</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={playTestTone}
+            title="Test system speakers with chime tone"
+            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+          >
+            <Volume2 size={16} className="text-amber-400" />
+            <span>Test Sound</span>
+          </button>
+
+          <button
+            onClick={() => playBenchmarkAudio(0.85)}
+            className={`p-3 rounded-xl flex items-center gap-2 text-sm font-bold transition-all ${
+              isPlayingAudio
+                ? 'bg-emerald-500 text-white shadow-lg ring-4 ring-emerald-500/30 animate-pulse'
+                : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30'
+            }`}
+          >
+            <Volume2 size={18} className={isPlayingAudio ? 'animate-bounce' : ''} />
+            <span>{isPlayingAudio ? 'Playing Audio...' : 'Listen'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Target Word Highlight Card */}
