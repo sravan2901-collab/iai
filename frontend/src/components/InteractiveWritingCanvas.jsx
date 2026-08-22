@@ -14,6 +14,8 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
 
   const targetText = lesson?.target_text || "A, B, C";
 
+  const initialImgDataRef = useRef(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -48,6 +50,9 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
     }
 
     ctx.setLineDash([]); // Reset dash
+
+    // Capture initial background & guidelines image data baseline
+    initialImgDataRef.current = ctx.getImageData(0, 0, width, height);
   };
 
   const clearCanvas = () => {
@@ -98,29 +103,28 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
 
   const evaluateHandwriting = () => {
     const canvas = canvasRef.current;
-    if (!canvas || !hasWritten) return;
+    if (!canvas || !hasWritten || !initialImgDataRef.current) return;
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
-    const imgData = ctx.getImageData(0, 0, width, height);
-    const data = imgData.data;
+    const currentImgData = ctx.getImageData(0, 0, width, height).data;
+    const baseImgData = initialImgDataRef.current.data;
 
     let drawnPixels = 0;
     let minX = width, maxX = 0, minY = height, maxY = 0;
     let leftPixels = 0, rightPixels = 0;
     const midX = width / 2;
 
-    // Scan canvas pixels
+    // Scan pixels: compare against initial notebook background baseline
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const index = (y * width + x) * 4;
-        const r = data[index];
-        const g = data[index + 1];
-        const b = data[index + 2];
+        const rDiff = Math.abs(currentImgData[index] - baseImgData[index]);
+        const gDiff = Math.abs(currentImgData[index + 1] - baseImgData[index + 1]);
+        const bDiff = Math.abs(currentImgData[index + 2] - baseImgData[index + 2]);
 
-        // Background is slate-900 (#0f172a = r:15, g:23, b:42)
-        const isBackground = (r < 30 && g < 45 && b < 60);
-        if (!isBackground) {
+        const isUserStroke = (rDiff + gDiff + bDiff > 40);
+        if (isUserStroke) {
           drawnPixels++;
           if (x < minX) minX = x;
           if (x > maxX) maxX = x;
@@ -133,8 +137,6 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
       }
     }
 
-    const totalCanvasPixels = width * height;
-    const densityRatio = drawnPixels / totalCanvasPixels;
     const strokeWidth = Math.max(1, maxX - minX);
     const strokeHeight = Math.max(1, maxY - minY);
     const widthCoverage = strokeWidth / width;
@@ -145,50 +147,54 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
     let directionAccuracy = "Correct (Left-to-Right)";
     let feedback = "";
 
-    if (drawnPixels < 150) {
-      // Too few strokes / tiny scribble
-      strokeAccuracy = Math.floor(Math.random() * 10) + 32; // 32-42%
-      formationScore = strokeAccuracy - 4;
-      feedback = "Minimal strokes detected. Please trace and write the full character set.";
+    if (drawnPixels < 120) {
+      // Tiny dot or 1 short line -> Low score (20-38%)
+      strokeAccuracy = Math.min(38, Math.max(20, Math.round(20 + drawnPixels / 5)));
+      formationScore = Math.max(18, strokeAccuracy - 4);
+      feedback = "Minimal strokes detected. Please write all target characters along the guidelines.";
       directionAccuracy = "Incomplete Strokes";
-    } else if (densityRatio > 0.4) {
-      // Scribbled everywhere covering canvas
-      strokeAccuracy = Math.floor(Math.random() * 10) + 48; // 48-58%
+    } else if (drawnPixels > 16000) {
+      // Scribbled everywhere covering canvas -> Low score (45-58%)
+      strokeAccuracy = Math.max(45, Math.min(58, Math.round(65 - (drawnPixels - 16000) / 1000)));
       formationScore = strokeAccuracy - 5;
-      feedback = "Canvas is overdrawn with stroke clutter. Try writing neatly along guidelines.";
-      directionAccuracy = "Irregular Strokes";
+      feedback = "Canvas is overdrawn with heavy stroke clutter. Keep letter strokes clean and neat.";
+      directionAccuracy = "Cluttered Strokes";
     } else {
-      let baseAccuracy = 75;
+      let baseAccuracy = 60;
 
-      // Reward balanced width coverage (0.25 to 0.85)
-      if (widthCoverage >= 0.25 && widthCoverage <= 0.85) {
+      // Add points based on pixels drawn (120 to 5000 is sweet spot for writing 3-5 letters)
+      const idealPixels = Math.min(4500, drawnPixels);
+      baseAccuracy += Math.round((idealPixels / 4500) * 20);
+
+      // Reward width coverage (0.30 to 0.85)
+      if (widthCoverage >= 0.30 && widthCoverage <= 0.85) {
         baseAccuracy += 12;
-      } else if (widthCoverage < 0.2) {
+      } else if (widthCoverage < 0.20) {
         baseAccuracy -= 15;
       }
 
-      // Reward proper height alignment within notebook lines (0.2 to 0.75)
-      if (heightCoverage >= 0.2 && heightCoverage <= 0.75) {
+      // Reward height coverage (0.25 to 0.75)
+      if (heightCoverage >= 0.25 && heightCoverage <= 0.75) {
         baseAccuracy += 8;
       }
 
-      // Left-to-right progression
+      // Left-to-right progression check
       if (leftPixels > 0 && rightPixels > 0) {
         directionAccuracy = "Correct (Left-to-Right)";
-      } else if (rightPixels === 0 && leftPixels > 500) {
+      } else if (rightPixels === 0 && leftPixels > 300) {
         directionAccuracy = "Left-heavy (Extend across canvas)";
         baseAccuracy -= 8;
       }
 
-      strokeAccuracy = Math.min(98, Math.max(40, Math.round(baseAccuracy + (Math.random() * 4 - 2))));
-      formationScore = Math.min(99, Math.max(42, Math.round(strokeAccuracy + (widthCoverage * 8 - 2))));
+      strokeAccuracy = Math.min(98, Math.max(45, baseAccuracy));
+      formationScore = Math.min(99, Math.max(46, Math.round(strokeAccuracy + (widthCoverage * 6))));
 
       if (strokeAccuracy >= 88) {
         feedback = "Excellent handwriting precision! Letter alignment and stroke density match the target script.";
       } else if (strokeAccuracy >= 75) {
         feedback = "Good handwriting attempt! Keep strokes centered along the line guidelines.";
       } else {
-        feedback = "Incomplete letter formation. Ensure strokes follow line guidelines evenly.";
+        feedback = "Incomplete letter formation. Ensure strokes follow line guidelines evenly across the canvas.";
       }
     }
 
