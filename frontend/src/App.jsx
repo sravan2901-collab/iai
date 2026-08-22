@@ -162,6 +162,7 @@ export default function App() {
   useEffect(() => {
     const fetchLanguagePillars = async () => {
       try {
+        setDbLessons(null); // Instantly reset lessons when changing language to avoid cross-language bleed
         const langToFetch = learner.preferred_lang || 'en';
         const data = await apiRequest(`/curriculum/pillars/${langToFetch}`);
         if (data && data.pillars && data.pillars.length > 0) {
@@ -176,7 +177,8 @@ export default function App() {
                   title: sub.module_name || les.title,
                   content_type: les.content_type,
                   target_text: les.target_text,
-                  difficulty_level: les.difficulty_level || 'Zero'
+                  difficulty_level: les.difficulty_level || 'Zero',
+                  lang: data.lang_code || langToFetch
                 });
               });
             });
@@ -186,7 +188,7 @@ export default function App() {
           }
         }
       } catch (err) {
-        console.log('Using default sample lessons fallback:', err.message);
+        console.log('Error fetching language pillars:', err.message);
       }
     };
     fetchLanguagePillars();
@@ -693,7 +695,7 @@ export default function App() {
               {categories.map(cat => {
                 const IconComp = cat.icon;
                 const isSelected = selectedCategoryFilter === cat.id;
-                const activeLessonsList = dbLessons || sampleLessons;
+                const activeLessonsList = dbLessons || [];
                 const catSubModules = activeLessonsList.filter(les => les.category_id === cat.id);
 
                 return (
