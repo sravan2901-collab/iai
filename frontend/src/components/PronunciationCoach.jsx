@@ -142,34 +142,30 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
     const cleanText = text.replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
 
     setIsPlayingAudio(true);
-    setTimeout(() => setIsPlayingAudio(false), 3000);
 
-    let playedNaturalAudio = false;
-
-    // 1. Try HTML5 Natural Spoken Speech Audio (Google Speech TTS Engine)
     try {
-      const encodedText = encodeURIComponent(cleanText.slice(0, 200));
-      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${langCode}&client=tw-ob`;
-      const audio = new Audio(audioUrl);
+      // 1. Primary: High-Fidelity Local Backend Spoken Audio Endpoint (/api/voice/tts)
+      const backendTtsUrl = `/api/voice/tts?text=${encodeURIComponent(cleanText.slice(0, 250))}&lang=${langCode}`;
+      const audio = new Audio(backendTtsUrl);
       audio.playbackRate = rateMultiplier;
       
-      audio.onplay = () => {
-        playedNaturalAudio = true;
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+      };
+
+      audio.onerror = (err) => {
+        console.warn("Backend TTS stream fallback to browser Web Speech API:", err);
+        playWebSpeechAPI(cleanText, ttsLang, langCode, rateMultiplier);
       };
 
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
-          console.log("Natural Audio stream fallback to Web Speech API:", err.message);
+          console.warn("Audio play promise fallback:", err.message);
           playWebSpeechAPI(cleanText, ttsLang, langCode, rateMultiplier);
         });
       }
     } catch (e) {
-      playWebSpeechAPI(cleanText, ttsLang, langCode, rateMultiplier);
-    }
-
-    // 2. Dual Fallback: Web Speech API
-    if (!playedNaturalAudio) {
       playWebSpeechAPI(cleanText, ttsLang, langCode, rateMultiplier);
     }
   };

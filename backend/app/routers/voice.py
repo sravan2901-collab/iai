@@ -79,10 +79,32 @@ async def evaluate_voice_session(
         "remediation_tip": eval_result["remediation_tip"]
     }
 
+from io import BytesIO
+from fastapi.responses import StreamingResponse
+from gtts import gTTS
+
 @router.get("/tts")
-async def text_to_speech(text: str, lang_code: str = "hi-IN"):
+async def text_to_speech(text: str, lang: str = "te"):
     """
-    Generates Sarvam Bulbul v3 TTS audio stream for lesson targets.
+    Generates high-fidelity natural spoken human speech MP3 audio for any target text and language.
+    Supports: te (Telugu), hi (Hindi), ta (Tamil), en (English), mr (Marathi), bn (Bengali), kn (Kannada), es (Spanish).
     """
-    audio_bytes = await sarvam_service.generate_speech(text, lang_code)
-    return {"status": "success", "text": text, "bytes_length": len(audio_bytes)}
+    try:
+        clean_text = text.strip() or "అ ఆ ఇ ఈ"
+        clean_lang = lang.split('-')[0].lower() # e.g. 'te-IN' -> 'te'
+        if clean_lang not in ['te', 'hi', 'ta', 'en', 'mr', 'bn', 'kn', 'es']:
+            clean_lang = 'te'
+        
+        mp3_fp = BytesIO()
+        tts = gTTS(text=clean_text, lang=clean_lang)
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+
+        return StreamingResponse(mp3_fp, media_type="audio/mpeg", headers={
+            "Content-Disposition": f"inline; filename=tts_{clean_lang}.mp3",
+            "Cache-Control": "public, max-age=3600"
+        })
+    except Exception as e:
+        print(f"TTS generation error: {e}")
+        audio_bytes = await sarvam_service.generate_speech(text, lang)
+        return Response(content=audio_bytes, media_type="audio/mpeg")
