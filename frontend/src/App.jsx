@@ -40,6 +40,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(true);
   const [isNewRegistration, setIsNewRegistration] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState(null);
+  const [dbLessons, setDbLessons] = useState(null);
   const [learner, setLearner] = useState({
     isLoggedIn: false,
     name: 'Guest Learner',
@@ -157,6 +158,39 @@ export default function App() {
       preferred_lang: userLang
     }));
   };
+
+  useEffect(() => {
+    const fetchLanguagePillars = async () => {
+      try {
+        const langToFetch = learner.preferred_lang || 'en';
+        const data = await apiRequest(`/curriculum/pillars/${langToFetch}`);
+        if (data && data.pillars && data.pillars.length > 0) {
+          const parsedLessons = [];
+          data.pillars.forEach(pillar => {
+            const catId = pillar.skill_type === 'SPOKEN' ? 1 : (pillar.skill_type === 'WRITTEN' ? 2 : 3);
+            (pillar.sub_modules || []).forEach(sub => {
+              (sub.lessons || []).forEach(les => {
+                parsedLessons.push({
+                  lesson_id: les.lesson_id,
+                  category_id: catId,
+                  title: sub.module_name || les.title,
+                  content_type: les.content_type,
+                  target_text: les.target_text,
+                  difficulty_level: les.difficulty_level || 'Zero'
+                });
+              });
+            });
+          });
+          if (parsedLessons.length > 0) {
+            setDbLessons(parsedLessons);
+          }
+        }
+      } catch (err) {
+        console.log('Using default sample lessons fallback:', err.message);
+      }
+    };
+    fetchLanguagePillars();
+  }, [learner.preferred_lang]);
 
   const categories = [
     {
@@ -659,7 +693,8 @@ export default function App() {
               {categories.map(cat => {
                 const IconComp = cat.icon;
                 const isSelected = selectedCategoryFilter === cat.id;
-                const catSubModules = sampleLessons.filter(les => les.category_id === cat.id);
+                const activeLessonsList = dbLessons || sampleLessons;
+                const catSubModules = activeLessonsList.filter(les => les.category_id === cat.id);
 
                 return (
                   <div 
@@ -685,12 +720,12 @@ export default function App() {
                               ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
                               : 'bg-slate-800 text-slate-400 border-slate-700 group-hover:border-emerald-500/30'
                           }`}>
-                            {isSelected ? "▲ Hide 8 Sub-Modules" : "▼ Click to Expand 8 Sub-Modules"}
+                            {isSelected ? "▲ Hide 6 Zero Modules" : "▼ Click to Expand 6 Zero Modules"}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 leading-relaxed">{cat.description}</p>
                         <span className="text-[11px] text-emerald-400 font-semibold inline-block pt-1">
-                          {cat.lessonsCount} Progressive Sub-Modules Available (Zero → Mastery)
+                          {catSubModules.length} Zero Level Foundational Modules Available
                         </span>
                       </div>
                     </div>
@@ -701,7 +736,7 @@ export default function App() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                             <Sparkles size={14} className="text-amber-400" />
-                            {cat.title} — 8 Progressive Difficulty Sub-Modules:
+                            {cat.title} — 6 Zero Level Foundational Modules ({learner.preferred_lang.toUpperCase()}):
                           </span>
                           <span className="text-xs text-slate-400 font-medium">Click any sub-module below to start practicing</span>
                         </div>
@@ -716,16 +751,16 @@ export default function App() {
                               <div className="space-y-1 pr-3">
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase">
-                                    Sub-Module {idx + 1}: {les.difficulty_level}
+                                    Module {idx + 1}: {les.difficulty_level}
                                   </span>
                                   <span className="text-[10px] font-semibold text-slate-400">
                                     {les.content_type}
                                   </span>
                                 </div>
-                                <h5 className="font-bold text-xs text-slate-100 group-hover/sub:text-emerald-300 transition-colors">
+                                <h5 className="font-bold text-xs text-slate-100 group-hover/sub:text-emerald-300 transition-colors leading-relaxed">
                                   {les.title}
                                 </h5>
-                                <p className="text-[11px] text-slate-300 italic">"{les.target_text}"</p>
+                                <p className="text-[11px] text-slate-300 italic font-medium">"{les.target_text}"</p>
                               </div>
                               <button className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md group-hover/sub:scale-105 transition-all flex-shrink-0">
                                 <Play size={12} />
@@ -747,12 +782,12 @@ export default function App() {
                 <h4 className="text-md font-bold text-slate-200 flex items-center gap-2">
                   <Sparkles size={16} className="text-emerald-400" />
                   {selectedCategoryFilter === 1 
-                    ? 'Spoken Curriculum: 8 Progressive Difficulty Sub-Modules' 
+                    ? 'Spoken Curriculum: Zero Level Foundational Modules' 
                     : selectedCategoryFilter === 2 
-                    ? 'Written Curriculum: 8 Progressive Difficulty Sub-Modules' 
+                    ? 'Written Curriculum: Zero Level Foundational Modules' 
                     : selectedCategoryFilter === 3 
-                    ? 'Reading Curriculum: 8 Progressive Difficulty Sub-Modules' 
-                    : 'Recommended Progressive Sub-Modules (Zero → Mastery)'}
+                    ? 'Reading Curriculum: Zero Level Foundational Modules' 
+                    : 'Recommended Zero Level Foundational Modules'}
                 </h4>
                 {selectedCategoryFilter !== null && (
                   <button 
@@ -765,7 +800,7 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {sampleLessons
+                {(dbLessons || sampleLessons)
                   .filter(les => selectedCategoryFilter === null || les.category_id === selectedCategoryFilter)
                   .map(les => (
                     <div 
