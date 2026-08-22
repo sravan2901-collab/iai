@@ -164,24 +164,24 @@ export default function App() {
       title: 'Spoken Curriculum',
       icon: Mic,
       color: 'from-amber-500 to-orange-600',
-      description: 'Progressive 8-stage oral communication: Zero → Absolute Beginner → Beginner → Elementary → Intermediate → Upper Intermediate → Advanced → Mastery.',
-      lessonsCount: 8
+      description: 'Zero Level foundational oral communication: Sound Inventory → Passive Listening → Survival Phrases → Numbers 0-10 → Self-Intro → Audio Shadowing.',
+      lessonsCount: 6
     },
     {
       id: 2,
       title: 'Written Curriculum',
       icon: Type,
       color: 'from-blue-500 to-indigo-600',
-      description: 'Progressive 8-stage sentence writing: Zero → Absolute Beginner → Beginner → Elementary → Intermediate → Upper Intermediate → Advanced → Mastery.',
-      lessonsCount: 8
+      description: 'Zero Level foundational script writing: Letter Strokes → Vowel Marks → 2-Letter Combinations → Numbers 0-10 → Survival Words → Self-Intro Sentence.',
+      lessonsCount: 6
     },
     {
       id: 3,
       title: 'Reading Curriculum',
       icon: BookOpen,
       color: 'from-emerald-500 to-teal-600',
-      description: 'Progressive 8-stage reading comprehension: Zero → Absolute Beginner → Beginner → Elementary → Intermediate → Upper Intermediate → Advanced → Mastery.',
-      lessonsCount: 8
+      description: 'Zero Level foundational functional reading: Alphabet Recognition → Vowel Sight Reading → 2-Letter Sight Words → Numbers 0-10 → Survival Signs → Greetings.',
+      lessonsCount: 6
     }
   ];
 
@@ -236,136 +236,104 @@ export default function App() {
       difficulty_level: 'Zero'
     },
 
-    // ✍️ WRITTEN CURRICULUM (Category 2: 8 Progressive Stages)
+    // ✍️ WRITTEN CURRICULUM (Category 2: Zero Level Foundational Modules)
     {
       lesson_id: 201,
       category_id: 2,
-      title: 'Stage 1 [Zero]: Letter Formation & Native Script Strokes',
+      title: 'Module 1: Script Strokes & Letter Shapes',
       content_type: 'Written Practice',
-      target_text: 'A, B, C, D, E — Letter Strokes',
+      target_text: 'A, B, C, D, E — Basic Letter Strokes',
       difficulty_level: 'Zero'
     },
     {
       lesson_id: 202,
       category_id: 2,
-      title: 'Stage 2 [Absolute Beginner]: Vowel Marks & Accent Spelling',
+      title: 'Module 2: Vowel Marks & Accent Symbols',
       content_type: 'Written Practice',
-      target_text: 'Am, An, As, At — Vowel Spelling',
-      difficulty_level: 'Absolute Beginner'
+      target_text: 'Am, An, As, At — Vowel Mark Spelling',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 203,
       category_id: 2,
-      title: 'Stage 3 [Beginner]: 2-Letter Word Composition',
+      title: 'Module 3: 2-Letter Syllable Combinations',
       content_type: 'Written Practice',
-      target_text: 'In, On, It, To, Up, Go — Word Writing',
-      difficulty_level: 'Beginner'
+      target_text: 'In, On, It, To, Up, Go — Syllable Combinations',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 204,
       category_id: 2,
-      title: 'Stage 4 [Elementary]: 3-Letter Word Spelling',
+      title: 'Module 4: Writing Numbers 0 to 10',
       content_type: 'Written Practice',
-      target_text: 'Sun, Pen, Box, Bag, Car — Noun Spelling',
-      difficulty_level: 'Elementary'
+      target_text: '0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 — Digits',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 205,
       category_id: 2,
-      title: 'Stage 5 [Intermediate]: Short Sentence Writing & Grammar',
+      title: 'Module 5: Writing Survival Courtesy Words',
       content_type: 'Written Practice',
-      target_text: 'I write simple words correctly every day',
-      difficulty_level: 'Intermediate'
+      target_text: 'Hello, Thank You, Yes, No — Survival Spelling',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 206,
       category_id: 2,
-      title: 'Stage 6 [Upper Intermediate]: Workplace Memo & Email Writing',
+      title: 'Module 6: Writing Fixed Self-Intro Sentence',
       content_type: 'Written Practice',
-      target_text: 'Please find attached the quarterly project report for your review',
-      difficulty_level: 'Upper Intermediate'
-    },
-    {
-      lesson_id: 207,
-      category_id: 2,
-      title: 'Stage 7 [Advanced]: Paragraph Composition & Essays',
-      content_type: 'Written Practice',
-      target_text: 'Continuous practice enhances writing fluency and structured expression',
-      difficulty_level: 'Advanced'
-    },
-    {
-      lesson_id: 208,
-      category_id: 2,
-      title: 'Stage 8 [Mastery]: Literary Writing & Formal Documentation',
-      content_type: 'Written Practice',
-      target_text: 'Written communication is an essential cornerstone of human knowledge',
-      difficulty_level: 'Mastery'
+      target_text: 'My name is Alex. I am from New York.',
+      difficulty_level: 'Zero'
     },
 
-    // 📖 READING CURRICULUM (Category 3: 8 Progressive Stages)
+    // 📖 READING CURRICULUM (Category 3: Zero Level Foundational Modules)
     {
       lesson_id: 301,
       category_id: 3,
-      title: 'Stage 1 [Zero]: Visual Alphabet Recognition',
+      title: 'Module 1: Visual Alphabet & Symbol Recognition',
       content_type: 'Functional Reading',
-      target_text: 'A, B, C, D, E, F — Letter Recognition',
+      target_text: 'A, B, C, D, E, F — Visual Letter Recognition',
       difficulty_level: 'Zero'
     },
     {
       lesson_id: 302,
       category_id: 3,
-      title: 'Stage 2 [Absolute Beginner]: Short Sound & Syllable Sight Reading',
+      title: 'Module 2: Vowel Sound Sight Reading',
       content_type: 'Functional Reading',
       target_text: 'Ba, Ca, Da, Fa, Ga — Sight Reading',
-      difficulty_level: 'Absolute Beginner'
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 303,
       category_id: 3,
-      title: 'Stage 3 [Beginner]: 2-Letter Word Reading',
+      title: 'Module 3: 2-Letter Sight Word Reading',
       content_type: 'Functional Reading',
       target_text: 'In, On, At, Is, It, Up — Short Word Reading',
-      difficulty_level: 'Beginner'
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 304,
       category_id: 3,
-      title: 'Stage 4 [Elementary]: Everyday Label & Sign Reading',
+      title: 'Module 4: Reading Numbers 0 to 10',
       content_type: 'Functional Reading',
-      target_text: 'Open, Closed, Exit, Stop, Push — Label Reading',
-      difficulty_level: 'Elementary'
+      target_text: '0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 — Digits',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 305,
       category_id: 3,
-      title: 'Stage 5 [Intermediate]: Short Passage Reading Comprehension',
+      title: 'Module 5: Reading Survival Signs & Labels',
       content_type: 'Functional Reading',
-      target_text: 'Reading daily unlocks wisdom and opens new doors of opportunity',
-      difficulty_level: 'Intermediate'
+      target_text: 'Open, Closed, Exit, Stop, Push — Label Reading',
+      difficulty_level: 'Zero'
     },
     {
       lesson_id: 306,
       category_id: 3,
-      title: 'Stage 6 [Upper Intermediate]: Workplace Safety & Policy Reading',
+      title: 'Module 6: Reading Fixed Greetings & Intro Chunks',
       content_type: 'Functional Reading',
-      target_text: 'Always wear protective safety equipment and follow supervisor instructions',
-      difficulty_level: 'Upper Intermediate'
-    },
-    {
-      lesson_id: 307,
-      category_id: 3,
-      title: 'Stage 7 [Advanced]: News Article & Editorial Reading',
-      content_type: 'Functional Reading',
-      target_text: 'Technology and digital literacy transform modern education globally',
-      difficulty_level: 'Advanced'
-    },
-    {
-      lesson_id: 308,
-      category_id: 3,
-      title: 'Stage 8 [Mastery]: Literary Prose & Classical Literature Reading',
-      content_type: 'Functional Reading',
-      target_text: 'Profound literature reflects the timeless beauty and wisdom of humanity',
-      difficulty_level: 'Mastery'
+      target_text: 'Hello, Welcome, Good Morning — Sight Reading',
+      difficulty_level: 'Zero'
     }
   ];
 
