@@ -110,9 +110,9 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
         setLoading(true);
         let data = null;
         try {
-          data = await apiRequest('/learners/100/learning-path');
-        } catch (e1) {
           data = await apiRequest(`/learning-path/active?lang=${selectedLang}`);
+        } catch (e1) {
+          data = await apiRequest(`/learners/100/learning-path?lang=${selectedLang}`);
         }
 
         const formatted = formatPathDataWithMilestones(data);

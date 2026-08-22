@@ -61,13 +61,13 @@ def generate_learner_learning_path_api(learner_id: int, db: Session = Depends(ge
 
 
 @router.get("/{learner_id}/learning-path", summary="Get Active Learning Path")
-def get_learner_active_path_api(learner_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_learner_active_path_api(learner_id: int, lang: Optional[str] = Query(None), db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     GET /api/learners/{learner_id}/learning-path
-    Returns the current ACTIVE learning path for the learner. Raises HTTP 404 if no ACTIVE path exists.
+    Returns the current ACTIVE learning path for the learner matching target lang.
     """
     _verify_learner_exists(learner_id, db=db)
-    active_path = get_active_path(learner_id, db=db)
+    active_path = get_active_path(learner_id, target_lang=lang, db=db)
     if not active_path:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

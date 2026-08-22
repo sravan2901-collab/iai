@@ -242,7 +242,13 @@ def generate_learning_path(learner_id: int, target_lang: Optional[str] = None, d
                     candidate_lessons.extend(mod_lessons)
 
             if not candidate_lessons:
-                candidate_lessons = db.query(models.Lesson).all()
+                candidate_lessons = (
+                    db.query(models.Lesson)
+                    .join(models.Module, models.Lesson.module_id == models.Module.module_id)
+                    .join(models.Curriculum, models.Module.curriculum_id == models.Curriculum.curriculum_id)
+                    .filter(models.Curriculum.lang_id == lang_id)
+                    .all()
+                )
 
             if candidate_lessons:
                 candidate_lessons.sort(
@@ -250,7 +256,7 @@ def generate_learning_path(learner_id: int, target_lang: Optional[str] = None, d
                 )
                 selected_lessons = candidate_lessons[:5]
 
-        # Emergency Lesson Seeding if repository is completely empty for target language
+        # Emergency Lesson Seeding if repository has no lessons for target language
         if not selected_lessons:
             emergency_mod = db.query(models.Module).filter(models.Module.curriculum_id == curriculum.curriculum_id).first()
             if not emergency_mod:
@@ -307,10 +313,10 @@ def generate_learning_path(learner_id: int, target_lang: Optional[str] = None, d
             db.close()
 
 
-def get_active_path(learner_id: int, db: Optional[Session] = None) -> Optional[Dict[str, Any]]:
+def get_active_path(learner_id: int, target_lang: Optional[str] = None, db: Optional[Session] = None) -> Optional[Dict[str, Any]]:
     """
     Retrieves the current ACTIVE learning_path for a learner along with its ordered path_lesson list
-    and structured milestones.
+    and structured milestones. Guarantees that lessons match target_lang if provided.
     """
     close_db = False
     if db is None:
@@ -318,6 +324,13 @@ def get_active_path(learner_id: int, db: Optional[Session] = None) -> Optional[D
         close_db = True
 
     try:
+        req_lang_id = None
+        if target_lang:
+            target_iso = target_lang.strip().lower()
+            lang_rec = db.query(models.Language).filter(models.Language.iso_code == target_iso).first()
+            if lang_rec:
+                req_lang_id = lang_rec.lang_id
+
         active_path = (
             db.query(models.LearningPath)
             .filter(
@@ -327,6 +340,42 @@ def get_active_path(learner_id: int, db: Optional[Session] = None) -> Optional[D
             .order_by(desc(models.LearningPath.path_id))
             .first()
         )
+
+        # If active_path exists and req_lang_id specified, check language match
+        if active_path and req_lang_id:
+            first_pl = (
+                db.query(models.PathLesson, models.Lesson, models.Module, models.Curriculum)
+                .join(models.Lesson, models.PathLesson.lesson_id == models.Lesson.lesson_id)
+                .join(models.Module, models.Lesson.module_id == models.Module.module_id)
+                .join(models.Curriculum, models.Module.curriculum_id == models.Curriculum.curriculum_id)
+                .filter(models.PathLesson.path_id == active_path.path_id)
+                .first()
+            )
+            if first_pl and first_pl.Curriculum.lang_id != req_lang_id:
+                # Language mismatch! Generate a new learning path strictly for target_lang
+                generate_learning_path(learner_id, target_lang=target_lang, db=db)
+                active_path = (
+                    db.query(models.LearningPath)
+                    .filter(
+                        models.LearningPath.learner_id == learner_id,
+                        models.LearningPath.status == "ACTIVE"
+                    )
+                    .order_by(desc(models.LearningPath.path_id))
+                    .first()
+                )
+
+        if not active_path:
+            if target_lang:
+                generate_learning_path(learner_id, target_lang=target_lang, db=db)
+                active_path = (
+                    db.query(models.LearningPath)
+                    .filter(
+                        models.LearningPath.learner_id == learner_id,
+                        models.LearningPath.status == "ACTIVE"
+                    )
+                    .order_by(desc(models.LearningPath.path_id))
+                    .first()
+                )
 
         if not active_path:
             return None
