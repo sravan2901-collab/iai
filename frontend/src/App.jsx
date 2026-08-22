@@ -11,14 +11,26 @@ import { BookOpen, Type, Sparkles, Feather, Award, CheckCircle, ArrowRight, Play
 import { getAuthToken, removeAuthToken, apiRequest } from './services/api';
 
 const LANG_MAP = {
-  1: 'en',
-  2: 'hi',
+  1: 'hi',
+  2: 'en',
   3: 'ta',
   4: 'te',
-  5: 'bn',
-  6: 'mr',
+  5: 'mr',
+  6: 'bn',
   7: 'kn',
   8: 'es'
+};
+
+const resolveLangCode = (input) => {
+  if (!input) return 'en';
+  if (typeof input === 'string') {
+    const cleanStr = input.trim().toLowerCase();
+    if (cleanStr.length === 2) return cleanStr;
+    const parsed = parseInt(cleanStr, 10);
+    if (!isNaN(parsed) && LANG_MAP[parsed]) return LANG_MAP[parsed];
+  }
+  if (typeof input === 'number' && LANG_MAP[input]) return LANG_MAP[input];
+  return 'en';
 };
 
 export default function App() {
@@ -31,7 +43,7 @@ export default function App() {
     isLoggedIn: false,
     name: 'Guest Learner',
     email: '',
-    native_lang_id: 1,
+    native_lang_id: 2,
     literacy_level: 'FOUNDATIONAL',
     streak_count: 0,
     total_points: 0,
@@ -76,12 +88,12 @@ export default function App() {
     if (token) {
       apiRequest('/auth/me')
         .then(data => {
-          const userLang = LANG_MAP[data.native_lang_id] || data.current_lang_id || 'en';
+          const userLang = resolveLangCode(data.native_lang_id || data.current_lang_id || data.preferred_lang);
           setLearner({
             isLoggedIn: true,
-            name: data.first_name || data.username || data.email,
-            email: data.email,
-            native_lang_id: data.native_lang_id || 1,
+            name: data.first_name || data.username || data.email || 'Learner',
+            email: data.email || '',
+            native_lang_id: data.native_lang_id || 2,
             literacy_level: data.literacy_level || 'FOUNDATIONAL',
             streak_count: data.streak_count || 1,
             total_points: data.total_points || 50,
@@ -99,12 +111,12 @@ export default function App() {
   }, []);
 
   const handleAuthSuccess = (userData, authType = 'login') => {
-    const userLang = LANG_MAP[userData.native_lang_id] || userData.preferred_lang || 'en';
+    const userLang = resolveLangCode(userData.native_lang_id || userData.current_lang_id || userData.preferred_lang);
     setLearner({
       isLoggedIn: true,
-      name: userData.username || userData.first_name,
+      name: userData.username || userData.first_name || 'Learner',
       email: userData.email || '',
-      native_lang_id: userData.native_lang_id || 1,
+      native_lang_id: userData.native_lang_id || 2,
       literacy_level: userData.literacy_level || 'FOUNDATIONAL',
       streak_count: 1,
       total_points: 50,
@@ -124,7 +136,7 @@ export default function App() {
       isLoggedIn: false,
       name: 'Guest Learner',
       email: '',
-      native_lang_id: 1,
+      native_lang_id: 2,
       literacy_level: 'FOUNDATIONAL',
       streak_count: 0,
       total_points: 0,
@@ -135,7 +147,7 @@ export default function App() {
   };
 
   const handleProfileUpdate = (updatedProfile) => {
-    const userLang = LANG_MAP[updatedProfile.native_lang_id] || 'en';
+    const userLang = resolveLangCode(updatedProfile.native_lang_id || updatedProfile.preferred_lang);
     setLearner(prev => ({
       ...prev,
       name: updatedProfile.first_name || prev.name,
@@ -236,7 +248,7 @@ export default function App() {
                 Level: {learner.literacy_level}
               </span>
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
-                <Globe size={12} /> Language: {learner.preferred_lang.toUpperCase()}
+                <Globe size={12} /> Language: {(learner.preferred_lang || 'en').toString().toUpperCase()}
               </span>
               {learner.isLoggedIn && (
                 <span className="text-xs font-semibold text-emerald-300 flex items-center gap-1">
