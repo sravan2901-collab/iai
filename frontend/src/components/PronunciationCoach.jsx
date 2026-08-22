@@ -136,66 +136,53 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
     return fallback;
   };
 
-  const fallbackAudioPlayback = (text, langCode) => {
-    try {
-      // 1. Play synthesized Web Audio API phonemes first for guaranteed sound
-      playSynthesizedPhoneme(text);
+  const playNaturalSpeechAudio = (text, rateMultiplier = 0.85) => {
+    const langCode = detectScriptLang(text, lesson?.lang || lesson?.lang_code || 'te');
+    const ttsLang = TTS_LANG_MAP[langCode] || 'te-IN';
+    const cleanText = text.replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
 
-      // 2. Try HTML5 Audio fallback
-      const cleanText = text.replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
+    setIsPlayingAudio(true);
+    setTimeout(() => setIsPlayingAudio(false), 3000);
+
+    let playedNaturalAudio = false;
+
+    // 1. Try HTML5 Natural Spoken Speech Audio (Google Speech TTS Engine)
+    try {
       const encodedText = encodeURIComponent(cleanText.slice(0, 200));
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${langCode}&client=tw-ob`;
       const audio = new Audio(audioUrl);
-      audio.play().catch(() => {});
-    } catch (err) {
-      console.log('Audio playback error:', err.message);
-    }
-  };
+      audio.playbackRate = rateMultiplier;
+      
+      audio.onplay = () => {
+        playedNaturalAudio = true;
+      };
 
-  const playTestTone = () => {
-    setIsPlayingAudio(true);
-    try {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextClass) {
-        const ctx = new AudioContextClass();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 chime
-        gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
-        gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.5);
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.log("Natural Audio stream fallback to Web Speech API:", err.message);
+          playWebSpeechAPI(cleanText, ttsLang, langCode, rateMultiplier);
+        });
       }
-    } catch (e) {}
-    setTimeout(() => setIsPlayingAudio(false), 600);
+    } catch (e) {
+      playWebSpeechAPI(cleanText, ttsLang, langCode, rateMultiplier);
+    }
+
+    // 2. Dual Fallback: Web Speech API
+    if (!playedNaturalAudio) {
+      playWebSpeechAPI(cleanText, ttsLang, langCode, rateMultiplier);
+    }
   };
 
-  const playBenchmarkAudio = (rateMultiplier = 0.85) => {
-    const langCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'te');
-    const ttsLang = TTS_LANG_MAP[langCode] || 'te-IN';
-
-    setIsPlayingAudio(true);
-    setTimeout(() => setIsPlayingAudio(false), 2500);
-
-    // 1. Always trigger Web Audio API Phoneme Synthesizer immediately so user hears sound right away
-    playSynthesizedPhoneme(targetText, rateMultiplier);
-
-    if (!('speechSynthesis' in window)) {
-      fallbackAudioPlayback(targetText, langCode);
-      return;
-    }
+  const playWebSpeechAPI = (cleanText, ttsLang, langCode, rateMultiplier) => {
+    if (!('speechSynthesis' in window)) return;
 
     try {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(targetText);
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = ttsLang;
       utterance.rate = rateMultiplier;
 
-      // Find best matching native voice
       const voices = window.speechSynthesis.getVoices() || [];
       const matchedVoice = voices.find(v => 
         v.lang.toLowerCase().startsWith(langCode) || 
@@ -208,12 +195,16 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
 
       window.speechSynthesis.speak(utterance);
     } catch (err) {
-      fallbackAudioPlayback(targetText, langCode);
+      console.warn("SpeechSynthesis error:", err);
     }
   };
 
+  const playBenchmarkAudio = (rateMultiplier = 0.85) => {
+    playNaturalSpeechAudio(targetText, rateMultiplier);
+  };
+
   const playSlowMotionAudio = () => {
-    playBenchmarkAudio(0.5);
+    playNaturalSpeechAudio(targetText, 0.5);
   };
 
   const stopRecording = useCallback(() => {
@@ -363,12 +354,12 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={playTestTone}
-            title="Test system speakers with chime tone"
+            onClick={() => playNaturalSpeechAudio("అ ఆ ఇ ఈ ఉ ఊ", 0.85)}
+            title="Test natural Telugu speech audio"
             className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
           >
-            <Volume2 size={16} className="text-amber-400" />
-            <span>Test Sound</span>
+            <Volume2 size={16} className="text-emerald-400" />
+            <span>Test Telugu Voice</span>
           </button>
 
           <button
