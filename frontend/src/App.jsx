@@ -163,24 +163,24 @@ export default function App() {
       title: 'Spoken Curriculum',
       icon: Mic,
       color: 'from-amber-500 to-orange-600',
-      description: 'Clean slate curriculum for spoken language practice, pronunciation, and oral communication.',
-      lessonsCount: 1
+      description: 'Progressive 8-stage oral communication: Zero → Absolute Beginner → Beginner → Elementary → Intermediate → Upper Intermediate → Advanced → Mastery.',
+      lessonsCount: 8
     },
     {
       id: 2,
       title: 'Written Curriculum',
       icon: Type,
       color: 'from-blue-500 to-indigo-600',
-      description: 'Clean slate curriculum for written language practice, spelling, and sentence composition.',
-      lessonsCount: 1
+      description: 'Progressive 8-stage sentence writing: Zero → Absolute Beginner → Beginner → Elementary → Intermediate → Upper Intermediate → Advanced → Mastery.',
+      lessonsCount: 8
     },
     {
       id: 3,
       title: 'Reading Curriculum',
       icon: BookOpen,
       color: 'from-emerald-500 to-teal-600',
-      description: 'Clean slate curriculum for reading comprehension, phonics, and literary understanding.',
-      lessonsCount: 1
+      description: 'Progressive 8-stage reading comprehension: Zero → Absolute Beginner → Beginner → Elementary → Intermediate → Upper Intermediate → Advanced → Mastery.',
+      lessonsCount: 8
     }
   ];
 
@@ -188,26 +188,66 @@ export default function App() {
     {
       lesson_id: 1,
       category_id: 1,
-      title: 'Blank Spoken Practice Lesson',
+      title: 'Stage 1 [Zero]: Single Letter Sounds & Phonemes',
       content_type: 'Voice Practice',
-      target_text: 'Practice spoken words clearly',
-      difficulty_level: 'FOUNDATIONAL'
+      target_text: 'A-ah, B-buh, C-kuh, D-duh, E-eh',
+      difficulty_level: 'ZERO'
     },
     {
       lesson_id: 2,
-      category_id: 2,
-      title: 'Blank Written Practice Lesson',
-      content_type: 'Written Practice',
-      target_text: 'Write simple words correctly',
-      difficulty_level: 'FOUNDATIONAL'
+      category_id: 1,
+      title: 'Stage 2 [Absolute Beginner]: Short Syllables & Sound Blends',
+      content_type: 'Voice Practice',
+      target_text: 'Ba, Be, Bi, Bo, Bu — Syllable Blends',
+      difficulty_level: 'ABSOLUTE_BEGINNER'
     },
     {
       lesson_id: 3,
+      category_id: 1,
+      title: 'Stage 5 [Intermediate]: Daily Conversation & Greetings',
+      content_type: 'Voice Practice',
+      target_text: 'Good Morning, Hello, Thank You, Welcome',
+      difficulty_level: 'INTERMEDIATE'
+    },
+    {
+      lesson_id: 4,
+      category_id: 2,
+      title: 'Stage 1 [Zero]: Letter Formation & Native Script Strokes',
+      content_type: 'Written Practice',
+      target_text: 'A, B, C, D, E — Letter Strokes',
+      difficulty_level: 'ZERO'
+    },
+    {
+      lesson_id: 5,
+      category_id: 2,
+      title: 'Stage 4 [Elementary]: 3-Letter Word Spelling',
+      content_type: 'Written Practice',
+      target_text: 'Sun, Pen, Box, Bag, Car — Noun Spelling',
+      difficulty_level: 'ELEMENTARY'
+    },
+    {
+      lesson_id: 6,
       category_id: 3,
-      title: 'Blank Reading Practice Lesson',
+      title: 'Stage 1 [Zero]: Visual Alphabet Recognition',
       content_type: 'Functional Reading',
-      target_text: 'Read text with accuracy and understanding',
-      difficulty_level: 'FOUNDATIONAL'
+      target_text: 'A, B, C, D, E, F — Letter Recognition',
+      difficulty_level: 'ZERO'
+    },
+    {
+      lesson_id: 7,
+      category_id: 3,
+      title: 'Stage 6 [Upper Intermediate]: Workplace Safety & Policy Reading',
+      content_type: 'Functional Reading',
+      target_text: 'Always wear protective safety equipment and follow supervisor instructions',
+      difficulty_level: 'UPPER_INTERMEDIATE'
+    },
+    {
+      lesson_id: 8,
+      category_id: 3,
+      title: 'Stage 8 [Mastery]: Literary Prose & Classical Literature Reading',
+      content_type: 'Functional Reading',
+      target_text: 'Profound literature reflects the timeless beauty and wisdom of humanity',
+      difficulty_level: 'MASTERY'
     }
   ];
 
