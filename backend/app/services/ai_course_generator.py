@@ -267,8 +267,8 @@ class AICourseGenerator:
             {
                 "role": "system",
                 "content": (
-                    f"You are an expert {lang_name} literacy content creator. "
-                    f"You create educational exercises for language learners. "
+                    f"You are an expert {lang_name} literacy curriculum AI creator. "
+                    f"You create progressive step-by-step learning modules for language learners starting from zero knowledge to beginner level. "
                     f"All content in {lang_name} must use the {script_name} script. "
                     f"Always respond with valid JSON only."
                 )
@@ -276,24 +276,72 @@ class AICourseGenerator:
             {
                 "role": "user",
                 "content": (
-                    f"Create a {difficulty} level {skill_type} exercise for a {lang_name} language learner.\n\n"
+                    f"Generate a full progressive 5-step beginner learning module curriculum for a {lang_name} language learner starting from ZERO KNOWLEDGE up to BEGINNER level.\n"
+                    f"Focus Skill: {skill_type}\n"
+                    f"Target Language: {lang_name} ({script_name} script)\n"
+                    f"Difficulty Level: {difficulty}\n\n"
                     f"REQUIREMENTS:\n"
-                    f"- The target practice text MUST be in {lang_name} using {script_name} script\n"
-                    f"- Include phonetic syllable breakdown of the practice text\n"
-                    f"- Create 3 multiple-choice questions about the text\n"
-                    f"- Avoid duplicating these existing lessons: {existing}\n\n"
+                    f"- Generate exactly 5 progressive course steps:\n"
+                    f"  Step 1: ZERO KNOWLEDGE (Alphabet Single Letter Sounds & Phonemes)\n"
+                    f"  Step 2: ABSOLUTE STARTER (Vowels & Short Sound Recognition)\n"
+                    f"  Step 3: BEGINNER TIER 1 (2-Letter Word Blends & Syllables)\n"
+                    f"  Step 4: BEGINNER TIER 2 (3-Letter Everyday Object Nouns)\n"
+                    f"  Step 5: BEGINNER TIER 3 (Simple Expressive Sentences)\n"
+                    f"- Avoid duplicating these existing titles: {existing}\n\n"
                     f"Return a JSON object with this exact structure:\n"
-                    f'{{"title": "Lesson title in {lang_name}",\n'
-                    f' "title_english": "English translation of the title",\n'
-                    f' "target_text": "A meaningful practice sentence in {lang_name} ({script_name} script)",\n'
+                    f'{{\n'
+                    f' "title": "Course Title in {lang_name}",\n'
+                    f' "title_english": "English translation of course title",\n'
+                    f' "explanation": "Brief pedagogical note explaining the zero-knowledge to beginner progression",\n'
+                    f' "target_text": "Sample practice sentence for final step in {lang_name}",\n'
                     f' "phonetic_script": ["syl-la-ble-1", "syl-la-ble-2"],\n'
                     f' "content_type": "Voice Practice",\n'
-                    f' "questions": [\n'
-                    f'   {{"question": "Question text in English",\n'
-                    f'    "options": ["A", "B", "C", "D"],\n'
-                    f'    "correct_answer": "A"}}\n'
+                    f' "course_steps": [\n'
+                    f'   {{\n'
+                    f'     "step_no": 1,\n'
+                    f'     "stage": "ZERO KNOWLEDGE",\n'
+                    f'     "title": "Step 1 Title",\n'
+                    f'     "target_text": "Single letter sounds text in {lang_name}",\n'
+                    f'     "phonetic_script": ["A-ah", "B-buh"],\n'
+                    f'     "focus": "Pedagogical focus for Step 1"\n'
+                    f'   }},\n'
+                    f'   {{\n'
+                    f'     "step_no": 2,\n'
+                    f'     "stage": "ABSOLUTE STARTER",\n'
+                    f'     "title": "Step 2 Title",\n'
+                    f'     "target_text": "Vowels text in {lang_name}",\n'
+                    f'     "phonetic_script": ["A-apple", "E-egg"],\n'
+                    f'     "focus": "Pedagogical focus for Step 2"\n'
+                    f'   }},\n'
+                    f'   {{\n'
+                    f'     "step_no": 3,\n'
+                    f'     "stage": "BEGINNER TIER 1",\n'
+                    f'     "title": "Step 3 Title",\n'
+                    f'     "target_text": "2-letter words text in {lang_name}",\n'
+                    f'     "phonetic_script": ["In", "On", "At"],\n'
+                    f'     "focus": "Pedagogical focus for Step 3"\n'
+                    f'   }},\n'
+                    f'   {{\n'
+                    f'     "step_no": 4,\n'
+                    f'     "stage": "BEGINNER TIER 2",\n'
+                    f'     "title": "Step 4 Title",\n'
+                    f'     "target_text": "3-letter words text in {lang_name}",\n'
+                    f'     "phonetic_script": ["Cat", "Dog", "Sun"],\n'
+                    f'     "focus": "Pedagogical focus for Step 4"\n'
+                    f'   }},\n'
+                    f'   {{\n'
+                    f'     "step_no": 5,\n'
+                    f'     "stage": "BEGINNER TIER 3",\n'
+                    f'     "title": "Step 5 Title",\n'
+                    f'     "target_text": "Simple sentence text in {lang_name}",\n'
+                    f'     "phonetic_script": ["I", "can", "read"],\n'
+                    f'     "focus": "Pedagogical focus for Step 5"\n'
+                    f'   }}\n'
                     f' ],\n'
-                    f' "explanation": "Brief teaching note about this exercise"}}'
+                    f' "questions": [\n'
+                    f'   {{"question": "Question text in English", "options": ["A", "B", "C", "D"], "correct_answer": "A"}}\n'
+                    f' ]\n'
+                    f'}}\n'
                 )
             }
         ]
@@ -302,7 +350,7 @@ class AICourseGenerator:
 
         if ai_response:
             parsed = self._parse_json_response(ai_response)
-            if parsed and "target_text" in parsed:
+            if parsed and ("target_text" in parsed or "course_steps" in parsed):
                 exercise = {
                     "title": parsed.get("title", f"{skill_type} Practice"),
                     "title_english": parsed.get("title_english", ""),
@@ -312,7 +360,8 @@ class AICourseGenerator:
                     "questions": parsed.get("questions", []),
                     "explanation": parsed.get("explanation", ""),
                     "difficulty_level": difficulty,
-                    "skill_type": skill_type
+                    "skill_type": skill_type,
+                    "course_steps": parsed.get("course_steps", [])
                 }
                 return exercise, provider
 
