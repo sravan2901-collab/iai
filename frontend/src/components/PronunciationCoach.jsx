@@ -112,22 +112,96 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
 
   const targetText = lesson?.target_text || "Hello, how are you today?";
 
-  const playBenchmarkAudio = () => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(targetText);
-    utterance.lang = "en-US";
-    utterance.rate = 0.85;
-    window.speechSynthesis.speak(utterance);
+  const TTS_LANG_MAP = {
+    'en': 'en-US',
+    'te': 'te-IN',
+    'hi': 'hi-IN',
+    'ta': 'ta-IN',
+    'mr': 'mr-IN',
+    'bn': 'bn-IN',
+    'kn': 'kn-IN',
+    'es': 'es-ES'
+  };
+
+  const detectScriptLang = (text, fallback = 'en') => {
+    if (!text) return fallback;
+    if (/[\u0C00-\u0C7F]/.test(text)) return 'te'; // Telugu
+    if (/[\u0900-\u097F]/.test(text)) return 'hi'; // Hindi / Devanagari
+    if (/[\u0B80-\u0BFF]/.test(text)) return 'ta'; // Tamil
+    if (/[\u0980-\u09FF]/.test(text)) return 'bn'; // Bengali
+    if (/[\u0C80-\u0CFF]/.test(text)) return 'kn'; // Kannada
+    if (/[áéíóúñÁÉÍÓÚÑ]/.test(text)) return 'es';  // Spanish
+    return fallback;
+  };
+
+  const fallbackAudioPlayback = (text, langCode) => {
+    try {
+      const cleanText = text.replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
+      const encodedText = encodeURIComponent(cleanText.slice(0, 200));
+      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${langCode}&client=tw-ob`;
+      const audio = new Audio(audioUrl);
+      audio.play().catch(err => {
+        console.log('Google TTS audio fallback attempt:', err.message);
+      });
+    } catch (err) {
+      console.log('Audio playback error:', err.message);
+    }
+  };
+
+  const playBenchmarkAudio = (rateMultiplier = 0.85) => {
+    const langCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'te');
+    const ttsLang = TTS_LANG_MAP[langCode] || 'te-IN';
+
+    if (!('speechSynthesis' in window)) {
+      fallbackAudioPlayback(targetText, langCode);
+      return;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(targetText);
+      utterance.lang = ttsLang;
+      utterance.rate = rateMultiplier;
+
+      // Find best matching native voice
+      const voices = window.speechSynthesis.getVoices() || [];
+      const matchedVoice = voices.find(v => 
+        v.lang.toLowerCase().startsWith(langCode) || 
+        v.lang.toLowerCase().replaceAll('_', '-') === ttsLang.toLowerCase().replaceAll('_', '-')
+      );
+
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+
+      let playedViaBrowser = false;
+
+      utterance.onstart = () => {
+        playedViaBrowser = true;
+      };
+
+      utterance.onerror = (e) => {
+        console.warn('Browser SpeechSynthesis error, using audio fallback:', e);
+        if (!playedViaBrowser) {
+          fallbackAudioPlayback(targetText, langCode);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+
+      // Fallback check if SpeechSynthesis fails to start
+      setTimeout(() => {
+        if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending && !playedViaBrowser) {
+          fallbackAudioPlayback(targetText, langCode);
+        }
+      }, 400);
+    } catch (err) {
+      fallbackAudioPlayback(targetText, langCode);
+    }
   };
 
   const playSlowMotionAudio = () => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(targetText);
-    utterance.lang = "en-US";
-    utterance.rate = 0.5;
-    window.speechSynthesis.speak(utterance);
+    playBenchmarkAudio(0.5);
   };
 
   const stopRecording = useCallback(() => {
