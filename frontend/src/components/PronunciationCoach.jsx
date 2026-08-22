@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Mic, Volume2, RotateCcw, Sparkles, MicOff, Loader } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
 import { apiRequest } from '../services/api';
+import { playSynthesizedPhoneme } from '../utils/audioSynthesizer';
 
 /**
  * Compute word-level similarity between target and spoken text.
@@ -136,13 +137,15 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
 
   const fallbackAudioPlayback = (text, langCode) => {
     try {
+      // 1. Play synthesized Web Audio API phonemes first for guaranteed sound
+      playSynthesizedPhoneme(text);
+
+      // 2. Try HTML5 Audio fallback
       const cleanText = text.replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
       const encodedText = encodeURIComponent(cleanText.slice(0, 200));
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${langCode}&client=tw-ob`;
       const audio = new Audio(audioUrl);
-      audio.play().catch(err => {
-        console.log('Google TTS audio fallback attempt:', err.message);
-      });
+      audio.play().catch(() => {});
     } catch (err) {
       console.log('Audio playback error:', err.message);
     }
@@ -151,6 +154,9 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
   const playBenchmarkAudio = (rateMultiplier = 0.85) => {
     const langCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'te');
     const ttsLang = TTS_LANG_MAP[langCode] || 'te-IN';
+
+    // 1. Always trigger Web Audio API Phoneme Synthesizer immediately so user hears sound right away
+    playSynthesizedPhoneme(targetText, rateMultiplier);
 
     if (!('speechSynthesis' in window)) {
       fallbackAudioPlayback(targetText, langCode);
@@ -174,27 +180,7 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
         utterance.voice = matchedVoice;
       }
 
-      let playedViaBrowser = false;
-
-      utterance.onstart = () => {
-        playedViaBrowser = true;
-      };
-
-      utterance.onerror = (e) => {
-        console.warn('Browser SpeechSynthesis error, using audio fallback:', e);
-        if (!playedViaBrowser) {
-          fallbackAudioPlayback(targetText, langCode);
-        }
-      };
-
       window.speechSynthesis.speak(utterance);
-
-      // Fallback check if SpeechSynthesis fails to start
-      setTimeout(() => {
-        if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending && !playedViaBrowser) {
-          fallbackAudioPlayback(targetText, langCode);
-        }
-      }, 400);
     } catch (err) {
       fallbackAudioPlayback(targetText, langCode);
     }
