@@ -113,7 +113,12 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
     let drawnPixels = 0;
     let minX = width, maxX = 0, minY = height, maxY = 0;
     let leftPixels = 0, rightPixels = 0;
-    const midX = width / 2;
+    let pixelsInGuideLines = 0; // Notebook guidelines: y = 50 to y = 220
+
+    // Slice canvas horizontally into 12 vertical buckets to detect separate letter clusters
+    const bucketCount = 12;
+    const bucketWidth = width / bucketCount;
+    const bucketPixels = new Array(bucketCount).fill(0);
 
     // Scan pixels: compare against initial notebook background baseline
     for (let y = 0; y < height; y++) {
@@ -131,16 +136,43 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
           if (y < minY) minY = y;
           if (y > maxY) maxY = y;
 
-          if (x < midX) leftPixels++;
+          if (x < width / 2) leftPixels++;
           else rightPixels++;
+
+          if (y >= 50 && y <= 220) {
+            pixelsInGuideLines++;
+          }
+
+          const bucketIdx = Math.min(bucketCount - 1, Math.floor(x / bucketWidth));
+          bucketPixels[bucketIdx]++;
         }
       }
     }
 
+    // Determine target character count
+    const targetClean = targetText.replace(/[^a-zA-Z0-9\u0900-\u0D7F]/g, '');
+    const expectedLettersCount = Math.max(1, Math.min(8, targetClean.length || 4));
+
+    // Count active letter clusters (buckets with >40 stroke pixels)
+    let activeClusters = 0;
+    bucketPixels.forEach(count => {
+      if (count > 40) activeClusters++;
+    });
+
     const strokeWidth = Math.max(1, maxX - minX);
     const strokeHeight = Math.max(1, maxY - minY);
     const widthCoverage = strokeWidth / width;
-    const heightCoverage = strokeHeight / height;
+
+    // 1. Line Discipline (% of strokes within notebook guidelines)
+    const lineDisciplineRatio = drawnPixels > 0 ? (pixelsInGuideLines / drawnPixels) : 0;
+    const lineDisciplineScore = Math.round(lineDisciplineRatio * 100);
+
+    // 2. Letter Cluster Separation & Completeness
+    const clusterRatio = Math.min(1.0, activeClusters / Math.max(2, expectedLettersCount * 1.1));
+    const clusterScore = Math.round(clusterRatio * 100);
+
+    // 3. Width Spacing Score
+    const spacingScore = Math.round(Math.min(1.0, widthCoverage / 0.40) * 100);
 
     let strokeAccuracy = 0;
     let formationScore = 0;
@@ -148,53 +180,38 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
     let feedback = "";
 
     if (drawnPixels < 120) {
-      // Tiny dot or 1 short line -> Low score (20-38%)
-      strokeAccuracy = Math.min(38, Math.max(20, Math.round(20 + drawnPixels / 5)));
-      formationScore = Math.max(18, strokeAccuracy - 4);
-      feedback = "Minimal strokes detected. Please write all target characters along the guidelines.";
+      // Tiny dot or 1 short line
+      strokeAccuracy = Math.min(35, Math.max(15, Math.round(15 + drawnPixels / 6)));
+      formationScore = Math.max(12, strokeAccuracy - 5);
+      feedback = `Minimal strokes detected. You drew only a small mark. Please write all ${expectedLettersCount} target characters along the guidelines.`;
       directionAccuracy = "Incomplete Strokes";
-    } else if (drawnPixels > 16000) {
-      // Scribbled everywhere covering canvas -> Low score (45-58%)
-      strokeAccuracy = Math.max(45, Math.min(58, Math.round(65 - (drawnPixels - 16000) / 1000)));
+    } else if (drawnPixels > 18000) {
+      // Heavy clutter
+      strokeAccuracy = Math.max(42, Math.min(55, Math.round(60 - (drawnPixels - 18000) / 1000)));
       formationScore = strokeAccuracy - 5;
-      feedback = "Canvas is overdrawn with heavy stroke clutter. Keep letter strokes clean and neat.";
+      feedback = "Canvas is overdrawn with stroke clutter. Try writing individual letters neatly separated along guidelines.";
       directionAccuracy = "Cluttered Strokes";
     } else {
-      let baseAccuracy = 60;
+      // Composite Structural Score combining Line Discipline, Cluster Separation, and Width Spacing
+      const rawScore = Math.round((lineDisciplineScore * 0.45) + (clusterScore * 0.35) + (spacingScore * 0.20));
 
-      // Add points based on pixels drawn (120 to 5000 is sweet spot for writing 3-5 letters)
-      const idealPixels = Math.min(4500, drawnPixels);
-      baseAccuracy += Math.round((idealPixels / 4500) * 20);
+      strokeAccuracy = Math.min(98, Math.max(35, rawScore));
+      formationScore = Math.min(99, Math.max(36, Math.round((strokeAccuracy * 0.7) + (lineDisciplineScore * 0.3))));
 
-      // Reward width coverage (0.30 to 0.85)
-      if (widthCoverage >= 0.30 && widthCoverage <= 0.85) {
-        baseAccuracy += 12;
-      } else if (widthCoverage < 0.20) {
-        baseAccuracy -= 15;
-      }
-
-      // Reward height coverage (0.25 to 0.75)
-      if (heightCoverage >= 0.25 && heightCoverage <= 0.75) {
-        baseAccuracy += 8;
-      }
-
-      // Left-to-right progression check
       if (leftPixels > 0 && rightPixels > 0) {
         directionAccuracy = "Correct (Left-to-Right)";
-      } else if (rightPixels === 0 && leftPixels > 300) {
-        directionAccuracy = "Left-heavy (Extend across canvas)";
-        baseAccuracy -= 8;
+      } else if (rightPixels === 0 && leftPixels > 200) {
+        directionAccuracy = "Left-heavy (Write across guidelines)";
       }
 
-      strokeAccuracy = Math.min(98, Math.max(45, baseAccuracy));
-      formationScore = Math.min(99, Math.max(46, Math.round(strokeAccuracy + (widthCoverage * 6))));
-
-      if (strokeAccuracy >= 88) {
-        feedback = "Excellent handwriting precision! Letter alignment and stroke density match the target script.";
-      } else if (strokeAccuracy >= 75) {
-        feedback = "Good handwriting attempt! Keep strokes centered along the line guidelines.";
+      if (strokeAccuracy >= 86) {
+        feedback = `Excellent handwriting! All ${expectedLettersCount} letters are well-separated, proportional, and perfectly aligned on guidelines.`;
+      } else if (strokeAccuracy >= 70) {
+        feedback = `Good attempt! You wrote ${activeClusters} stroke segments out of ${expectedLettersCount} target characters. Keep strokes centered on guidelines.`;
+      } else if (strokeAccuracy >= 50) {
+        feedback = `Incomplete writing. Only ${activeClusters} letter segment detected. Spread out strokes across the guidelines to complete all target characters.`;
       } else {
-        feedback = "Incomplete letter formation. Ensure strokes follow line guidelines evenly across the canvas.";
+        feedback = "Strokes exceed guidelines or lack letter separation. Follow line guides and write each letter clearly.";
       }
     }
 
