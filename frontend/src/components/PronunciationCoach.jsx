@@ -144,8 +144,8 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
     setIsPlayingAudio(true);
 
     try {
-      // 1. Primary: High-Fidelity Local Backend Spoken Audio Endpoint (/api/voice/tts)
-      const backendTtsUrl = `/api/voice/tts?text=${encodeURIComponent(cleanText.slice(0, 250))}&lang=${langCode}`;
+      // 1. Primary: High-Fidelity Local Backend Spoken Audio Endpoint (http://127.0.0.1:8000/api/voice/tts)
+      const backendTtsUrl = `http://127.0.0.1:8000/api/voice/tts?text=${encodeURIComponent(cleanText.slice(0, 250))}&lang=${langCode}`;
       const audio = new Audio(backendTtsUrl);
       audio.playbackRate = rateMultiplier;
       
