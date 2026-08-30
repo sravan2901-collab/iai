@@ -245,11 +245,12 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
       mediaRecorder.start();
 
       // 3. Set up Web Speech API for real-time recognition
+      const currentLangCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'en');
       const recognition = new SpeechRecognition();
       recognitionRef.current = recognition;
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-US'; // Default — could be dynamic per language
+      recognition.lang = TTS_LANG_MAP[currentLangCode] || 'en-US';
 
       let finalTranscript = '';
       let interimTranscript = '';
@@ -285,18 +286,27 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
           setRecognizedText(spokenText);
           if (onScoreUpdate) onScoreUpdate(evalResult.overall_score);
 
-          // Also try to send to backend for server-side scoring (non-blocking)
+          // Also send to backend for server-side scoring & persistence
           try {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            if (audioBlob.size > 0 && lesson?.lesson_id && typeof lesson.lesson_id === 'number') {
+            if (lesson?.lesson_id && typeof lesson.lesson_id === 'number') {
               const formData = new FormData();
-              formData.append('audio_file', audioBlob, 'recording.webm');
+              if (audioBlob.size > 0) {
+                formData.append('audio_file', audioBlob, 'recording.webm');
+              }
               formData.append('learner_id', '0');
               formData.append('lesson_id', String(lesson.lesson_id));
+              formData.append('transcript', spokenText);
+              formData.append('language_code', currentLangCode);
+              
               apiRequest('/voice/evaluate', {
                 method: 'POST',
                 body: formData,
                 isFormData: true
+              }).then((backendRes) => {
+                if (backendRes && backendRes.stt_provider) {
+                  console.info(`[Voice Coach] Evaluated via STT Provider: ${backendRes.stt_provider}`);
+                }
               }).catch(() => {}); // Silent fail — frontend scoring is primary
             }
           } catch (e) { /* ignore backend send errors */ }

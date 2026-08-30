@@ -14,10 +14,15 @@ class Settings(BaseSettings):
     )
     
     # Sarvam AI Credentials
-    SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "mock_sarvam_api_key")
+    SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "")
     SARVAM_STT_ENDPOINT: str = "https://api.sarvam.ai/speech-to-text"
     SARVAM_TTS_ENDPOINT: str = "https://api.sarvam.ai/text-to-speech"
     SARVAM_TRANSLATE_ENDPOINT: str = "https://api.sarvam.ai/translate"
+
+    @property
+    def is_sarvam_configured(self) -> bool:
+        key = (self.SARVAM_API_KEY or os.getenv("SARVAM_API_KEY", "")).strip().strip("'\"")
+        return bool(key and key != "mock_sarvam_api_key")
 
     # SMTP Email Configuration
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
