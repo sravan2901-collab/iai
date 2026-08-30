@@ -26,6 +26,11 @@ build/
 *.sqlite
 *.sqlite3
 backend/sent_emails.json
+storage/
+backend/storage/
+*.wav
+*.mp3
+*.webm
 
 # Environment Variables & Keys
 .env

@@ -185,6 +185,35 @@ class TestVoiceSTTPipeline(unittest.TestCase):
         self.assertEqual(data["language_code"], "te")
         print(f"  ✓ [REST API Telugu Practice] Evaluated in Telugu: language_code={data['language_code']}")
 
+    def test_13_audio_bytes_saved_to_disk_and_served_via_endpoint(self):
+        """Verify uploaded audio bytes are physically written to disk and served via /api/voice/audio/{filename}."""
+        # Create a small valid WAV byte array
+        import io, wave, struct, math
+        buf = io.BytesIO()
+        with wave.open(buf, 'wb') as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(16000)
+            samples = [int(1000 * math.sin(2 * math.pi * 440 * i / 16000)) for i in range(16000)]
+            wf.writeframes(struct.pack('<' + 'h'*len(samples), *samples))
+        wav_bytes = buf.getvalue()
+
+        # Submit to voice evaluate with audio file
+        files = {"audio_file": ("test_recording.wav", wav_bytes, "audio/wav")}
+        data = {"learner_id": 1, "lesson_id": 1, "transcript": "Hello world", "language_code": "en"}
+        
+        res = client.post("/api/voice/evaluate", data=data, files=files)
+        self.assertEqual(res.status_code, 200)
+        res_json = res.json()
+        audio_url = res_json.get("audio_url")
+        self.assertTrue(bool(audio_url and audio_url.startswith("/api/voice/audio/")))
+        
+        # Verify physical retrieval of saved audio file from disk
+        stream_res = client.get(audio_url)
+        self.assertEqual(stream_res.status_code, 200)
+        self.assertEqual(len(stream_res.content), len(wav_bytes))
+        print(f"  ✓ [Audio Disk Persistence] Successfully saved & served audio from disk: {audio_url} ({len(stream_res.content)} bytes)")
+
 
 if __name__ == "__main__":
     unittest.main()
