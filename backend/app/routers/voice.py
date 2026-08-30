@@ -49,7 +49,7 @@ async def evaluate_voice_session(
     lesson = db.query(models.Lesson).filter(models.Lesson.lesson_id == lesson_id).first()
     
     target_text = "Hello, how are you today?"
-    inferred_lang = language_code or "en"
+    inferred_lang = language_code
 
     if lesson:
         if lesson.target_text:
@@ -57,10 +57,26 @@ async def evaluate_voice_session(
         
         # Determine language from module -> curriculum -> language relationship
         try:
-            if lesson.module and lesson.module.curriculum and lesson.module.curriculum.language:
-                inferred_lang = lesson.module.curriculum.language.iso_code or inferred_lang
+            if not inferred_lang and lesson.module and lesson.module.curriculum and lesson.module.curriculum.language:
+                inferred_lang = lesson.module.curriculum.language.iso_code
         except Exception:
             pass
+
+    # If language is still undetermined or default, detect directly from target_text script characters
+    from app.services.sarvam_service import detect_script_language
+    if not inferred_lang or inferred_lang in ("en", ""):
+        inferred_lang = detect_script_language(target_text, fallback=inferred_lang or "en")
+
+    # If learner exists and still undetermined, fallback to learner's native language preference
+    if (not inferred_lang or inferred_lang == "en") and learner_id:
+        try:
+            learner = db.query(models.Learner).filter(models.Learner.learner_id == learner_id).first()
+            if learner and learner.current_language:
+                inferred_lang = learner.current_language.iso_code or inferred_lang
+        except Exception:
+            pass
+
+    inferred_lang = inferred_lang or "en"
 
     # Read audio bytes if file was provided
     audio_bytes = None

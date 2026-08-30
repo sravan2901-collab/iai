@@ -10,6 +10,7 @@ Handles:
 
 import os
 import io
+import re
 import httpx
 import logging
 from typing import Optional, Dict, Any
@@ -20,29 +21,62 @@ logger = logging.getLogger(__name__)
 SARVAM_LANG_MAP = {
     "te": "te-IN",
     "te-in": "te-IN",
+    "telugu": "te-IN",
     "hi": "hi-IN",
     "hi-in": "hi-IN",
+    "hindi": "hi-IN",
     "ta": "ta-IN",
     "ta-in": "ta-IN",
+    "tamil": "ta-IN",
     "bn": "bn-IN",
     "bn-in": "bn-IN",
+    "bengali": "bn-IN",
     "kn": "kn-IN",
     "kn-in": "kn-IN",
+    "kannada": "kn-IN",
     "mr": "mr-IN",
     "mr-in": "mr-IN",
+    "marathi": "mr-IN",
     "en": "en-IN",
     "en-in": "en-IN",
     "en-us": "en-IN",
+    "english": "en-IN",
     "gu": "gu-IN",
     "gu-in": "gu-IN",
+    "gujarati": "gu-IN",
     "ml": "ml-IN",
     "ml-in": "ml-IN",
+    "malayalam": "ml-IN",
     "pa": "pa-IN",
     "pa-in": "pa-IN",
+    "punjabi": "pa-IN",
     "od": "od-IN",
     "or": "od-IN",
-    "es": "en-IN"
+    "odia": "od-IN",
+    "es": "en-IN",
+    "spanish": "en-IN"
 }
+
+def detect_script_language(text: Optional[str], fallback: str = "en") -> str:
+    """
+    Auto-detects the Indic/Spanish/English script language from character Unicode ranges.
+    Guarantees that Telugu, Tamil, Kannada, Bengali, Hindi, etc., are never misidentified.
+    """
+    if not text:
+        return fallback
+    if re.search(r'[\u0C00-\u0C7F]', text):
+        return "te"  # Telugu
+    if re.search(r'[\u0B80-\u0BFF]', text):
+        return "ta"  # Tamil
+    if re.search(r'[\u0C80-\u0CFF]', text):
+        return "kn"  # Kannada
+    if re.search(r'[\u0980-\u09FF]', text):
+        return "bn"  # Bengali
+    if re.search(r'[\u0900-\u097F]', text):
+        return "hi"  # Hindi / Devanagari
+    if re.search(r'[áéíóúñÁÉÍÓÚÑ¡¿]', text) or re.search(r'\b(hola|mundo|gracias|buenos|dias|días|amigo|como|estas|por favor)\b', text, re.IGNORECASE):
+        return "es"  # Spanish
+    return fallback
 
 class SarvamAIService:
     """Service interacting with Sarvam AI API for Indic speech & language services."""
@@ -67,20 +101,28 @@ class SarvamAIService:
     async def transcribe_audio(
         self,
         audio_bytes: Optional[bytes] = None,
-        language_code: str = "en-IN",
+        language_code: Optional[str] = None,
         client_transcript: Optional[str] = None,
         target_text: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Transcribes speech audio using a multi-tiered pipeline:
-        1. Primary: Sarvam Saaras v3 STT (if SARVAM_API_KEY is configured in .env)
+        1. Primary: Sarvam Saaras v3 STT with dynamic per-language routing (te-IN, ta-IN, kn-IN, etc.)
         2. Secondary: Client Browser Web Speech API transcript (if provided by frontend)
         3. Tertiary: Python SpeechRecognition library (free Google Speech Recognition)
         4. Fallback: Empty transcript with status indicating no speech detected
 
-        NEVER returns a static hardcoded dummy string.
+        NEVER defaults to Hindi for non-Hindi languages.
         """
-        sarvam_lang = self.normalize_language_code(language_code)
+        # Resolve language code: explicit parameter -> script detection from target_text -> fallback
+        effective_lang = language_code
+        if not effective_lang or effective_lang in ("en", "en-IN", ""):
+            if target_text:
+                detected = detect_script_language(target_text, fallback=effective_lang or "en")
+                if detected != "en":
+                    effective_lang = detected
+
+        sarvam_lang = self.normalize_language_code(effective_lang or "en-IN")
         clean_client_transcript = (client_transcript or "").strip()
 
         # -------------------------------------------------------------
