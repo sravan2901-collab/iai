@@ -61,6 +61,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [activeLesson, setActiveLesson] = useState(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(true);
   const [isNewRegistration, setIsNewRegistration] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState(null);
@@ -218,13 +219,26 @@ export default function App() {
     fetchLanguagePillars();
   }, [learner.preferred_lang]);
 
+  const difficultyLevels = [
+    { key: 'Zero', label: 'Zero', color: 'bg-emerald-600', short: 'Z' },
+    { key: 'Absolute Beginner', label: 'Abs. Beginner', color: 'bg-lime-600', short: 'AB' },
+    { key: 'Beginner', label: 'Beginner', color: 'bg-amber-600', short: 'B' },
+    { key: 'Elementary', label: 'Elementary', color: 'bg-orange-600', short: 'E' },
+    { key: 'Intermediate', label: 'Intermediate', color: 'bg-blue-600', short: 'I' },
+    { key: 'Upper Intermediate', label: 'Upper Int.', color: 'bg-indigo-600', short: 'UI' },
+    { key: 'Advanced', label: 'Advanced', color: 'bg-purple-600', short: 'A' },
+    { key: 'Mastery', label: 'Mastery', color: 'bg-rose-600', short: 'M' },
+  ];
+
+  const diffLabel = selectedDifficulty || 'All Levels';
+
   const categories = [
     {
       id: 1,
       title: 'Spoken Curriculum',
       icon: Mic,
       color: 'from-amber-500 to-orange-600',
-      description: 'Zero Level foundational oral communication: Sound Inventory → Passive Listening → Survival Phrases → Numbers 0-10 → Self-Intro → Audio Shadowing.',
+      description: `${diffLabel} — Oral communication: pronunciation, listening, conversation, and speech fluency.`,
       lessonsCount: 6
     },
     {
@@ -232,7 +246,7 @@ export default function App() {
       title: 'Written Curriculum',
       icon: Type,
       color: 'from-blue-500 to-indigo-600',
-      description: 'Zero Level foundational script writing: Letter Strokes → Vowel Marks → 2-Letter Combinations → Numbers 0-10 → Survival Words → Self-Intro Sentence.',
+      description: `${diffLabel} — Script writing: letter formation, spelling, sentence construction, and composition.`,
       lessonsCount: 6
     },
     {
@@ -240,7 +254,7 @@ export default function App() {
       title: 'Reading Curriculum',
       icon: BookOpen,
       color: 'from-emerald-500 to-teal-600',
-      description: 'Zero Level foundational functional reading: Alphabet Recognition → Vowel Sight Reading → 2-Letter Sight Words → Numbers 0-10 → Survival Signs → Greetings.',
+      description: `${diffLabel} — Functional reading: sight words, labels, passages, and comprehension.`,
       lessonsCount: 6
     }
   ];
@@ -670,137 +684,213 @@ export default function App() {
           /* Admin Content Studio Panel */
           <AdminPanel />
         ) : activeTab === 'catalog' ? (
-          /* Catalog View */
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                  <BookOpen size={20} className="text-emerald-400" />
-                  Language Literacy Curriculum Core Pillars
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Click any curriculum pillar below to explore its 8 progressive difficulty sub-modules (Zero → Mastery).
-                </p>
+          /* ══════════════ CATALOG VIEW ══════════════ */
+          <div className="space-y-7 animate-fade-in">
+
+            {/* ── Header + Skill Tabs ── */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                <div>
+                  <h3 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 flex items-center gap-2.5">
+                    <BookOpen size={22} className="text-emerald-400" />
+                    Curriculum Library
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 max-w-md leading-relaxed">
+                    Master literacy from Zero to Mastery — 8 progressive levels across speaking, writing, and reading.
+                  </p>
+                </div>
+
+                {/* Skill Tabs */}
+                <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700/60 text-[11px] backdrop-blur-sm">
+                  <button
+                    onClick={() => setSelectedCategoryFilter(null)}
+                    className={`px-3.5 py-1.5 rounded-lg font-bold transition-all duration-200 ${
+                      selectedCategoryFilter === null
+                        ? 'bg-emerald-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                  >
+                    All Skills
+                  </button>
+                  <button
+                    onClick={() => setSelectedCategoryFilter(1)}
+                    className={`px-3.5 py-1.5 rounded-lg font-bold transition-all duration-200 ${
+                      selectedCategoryFilter === 1
+                        ? 'bg-amber-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                  >
+                    🗣️ Speaking
+                  </button>
+                  <button
+                    onClick={() => setSelectedCategoryFilter(2)}
+                    className={`px-3.5 py-1.5 rounded-lg font-bold transition-all duration-200 ${
+                      selectedCategoryFilter === 2
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                  >
+                    ✍️ Writing
+                  </button>
+                  <button
+                    onClick={() => setSelectedCategoryFilter(3)}
+                    className={`px-3.5 py-1.5 rounded-lg font-bold transition-all duration-200 ${
+                      selectedCategoryFilter === 3
+                        ? 'bg-teal-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                  >
+                    📖 Reading
+                  </button>
+                </div>
               </div>
 
-              {/* Filter Tabs */}
-              <div className="flex items-center gap-1 bg-slate-900/90 p-1.5 rounded-xl border border-slate-700 text-xs">
-                <button
-                  onClick={() => setSelectedCategoryFilter(null)}
-                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                    selectedCategoryFilter === null ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  All (24 Sub-Modules)
-                </button>
-                <button
-                  onClick={() => setSelectedCategoryFilter(1)}
-                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                    selectedCategoryFilter === 1 ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Spoken (8 Stages)
-                </button>
-                <button
-                  onClick={() => setSelectedCategoryFilter(2)}
-                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                    selectedCategoryFilter === 2 ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Written (8 Stages)
-                </button>
-                <button
-                  onClick={() => setSelectedCategoryFilter(3)}
-                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                    selectedCategoryFilter === 3 ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Reading (8 Stages)
-                </button>
+              {/* ── Difficulty Level Strip ── */}
+              <div className="relative">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  <button
+                    onClick={() => setSelectedDifficulty(null)}
+                    className={`diff-pill px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
+                      selectedDifficulty === null
+                        ? 'bg-slate-600 text-white shadow-lg ring-1 ring-slate-400 active'
+                        : 'text-slate-500 hover:text-slate-200 bg-slate-900/50 border border-slate-800/60'
+                    }`}
+                  >
+                    All Levels
+                  </button>
+                  {difficultyLevels.map((dl, i) => (
+                    <button
+                      key={dl.key}
+                      onClick={() => setSelectedDifficulty(dl.key)}
+                      className={`diff-pill px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
+                        selectedDifficulty === dl.key
+                          ? `${dl.color} text-white shadow-lg ring-1 ring-white/20 active`
+                          : 'text-slate-500 hover:text-slate-200 bg-slate-900/50 border border-slate-800/60'
+                      }`}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        <span className={`inline-block w-1.5 h-1.5 rounded-full ${selectedDifficulty === dl.key ? 'bg-white/80' : `${dl.color} opacity-60`}`}></span>
+                        {dl.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                {/* Fade edge */}
+                <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-[#0b132b] to-transparent pointer-events-none md:hidden"></div>
               </div>
             </div>
 
-            {/* Category Cards */}
+            {/* ── Three Pillar Cards ── */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {categories.map(cat => {
+              {categories.map((cat, catIdx) => {
                 const IconComp = cat.icon;
                 const isSelected = selectedCategoryFilter === cat.id;
                 const activeLessonsList = dbLessons || [];
-                const catSubModules = activeLessonsList.filter(les => les.category_id === cat.id);
+                const catSubModules = activeLessonsList.filter(les => 
+                  les.category_id === cat.id && 
+                  (selectedDifficulty === null || les.difficulty_level === selectedDifficulty)
+                );
 
                 return (
                   <div 
                     key={cat.id} 
                     onClick={() => setSelectedCategoryFilter(isSelected ? null : cat.id)}
-                    className={`glass-panel p-5 rounded-2xl border transition-all cursor-pointer group ${
+                    className={`pillar-card p-5 rounded-2xl cursor-pointer group animate-fade-in-up ${
                       isSelected 
-                        ? 'border-emerald-500 bg-slate-900/95 ring-2 ring-emerald-500/30 shadow-xl col-span-1 md:col-span-3' 
-                        : 'border-slate-700/60 hover:border-emerald-500/50 hover:bg-slate-900/80 shadow-md'
+                        ? 'expanded col-span-1 md:col-span-3' 
+                        : 'hover:translate-y-[-2px]'
                     }`}
+                    style={{ animationDelay: `${catIdx * 0.08}s` }}
                   >
+                    {/* Card Header */}
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform flex-shrink-0`}>
-                        <IconComp size={24} />
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
+                        <IconComp size={22} />
                       </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-bold text-base text-slate-100 group-hover:text-emerald-400 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-extrabold text-base text-slate-100 group-hover:text-emerald-400 transition-colors duration-200 truncate">
                             {cat.title}
                           </h4>
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
-                            isSelected 
-                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
-                              : 'bg-slate-800 text-slate-400 border-slate-700 group-hover:border-emerald-500/30'
+                          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${
+                            isSelected
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : 'bg-slate-800/60 text-slate-400 border-slate-700/50 group-hover:border-emerald-500/25'
                           }`}>
-                            {isSelected ? "▲ Hide 6 Zero Modules" : "▼ Click to Expand 6 Zero Modules"}
-                          </span>
+                            <span>{catSubModules.length} modules</span>
+                            <ArrowRight size={10} className={`transition-transform duration-300 ${isSelected ? 'rotate-90' : 'group-hover:translate-x-0.5'}`} />
+                          </div>
                         </div>
-                        <p className="text-xs text-slate-400 leading-relaxed">{cat.description}</p>
-                        <span className="text-[11px] text-emerald-400 font-semibold inline-block pt-1">
-                          {catSubModules.length} Zero Level Foundational Modules Available
-                        </span>
+                        <p className="text-[11px] text-slate-400 leading-relaxed mt-1">{cat.description}</p>
                       </div>
                     </div>
 
-                    {/* Expandable Sub-Modules Drawer when card is clicked */}
+                    {/* ── Expanded Sub-Modules Drawer ── */}
                     {isSelected && (
-                      <div className="mt-5 pt-5 border-t border-slate-700/80 space-y-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                            <Sparkles size={14} className="text-amber-400" />
-                            {cat.title} — 6 Zero Level Foundational Modules ({learner.preferred_lang.toUpperCase()}):
+                      <div className="mt-5 pt-5 border-t border-slate-700/50 animate-slide-down" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-[11px] font-bold text-emerald-400/90 uppercase tracking-widest flex items-center gap-1.5">
+                            <Sparkles size={13} className="text-amber-400 animate-pulse-soft" />
+                            {cat.title} — {selectedDifficulty || 'All Levels'} ({learner.preferred_lang.toUpperCase()})
                           </span>
-                          <span className="text-xs text-slate-400 font-medium">Click any sub-module below to start practicing</span>
+                          <span className="text-[10px] text-slate-500 font-medium">Click any module to practice</span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1">
-                          {catSubModules.map((les, idx) => (
-                            <div
-                              key={les.lesson_id}
-                              onClick={() => setActiveLesson(les)}
-                              className="p-3.5 rounded-xl bg-slate-950/90 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500/60 transition-all flex items-center justify-between group/sub cursor-pointer shadow-sm hover:shadow-emerald-500/10"
-                            >
-                              <div className="space-y-1 pr-3">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase">
-                                    Module {idx + 1}: {les.difficulty_level}
-                                  </span>
-                                  <span className="text-[10px] font-semibold text-slate-400">
-                                    {les.content_type}
-                                  </span>
+                        {catSubModules.length === 0 ? (
+                          <div className="text-center py-10 text-slate-500 text-sm">
+                            No modules found for this difficulty level.
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto pr-1">
+                            {catSubModules.map((les, idx) => {
+                              const dl = difficultyLevels.find(d => d.key === les.difficulty_level);
+                              const badgeColor = dl ? dl.color : 'bg-slate-600';
+                              
+                              return (
+                                <div
+                                  key={les.lesson_id}
+                                  onClick={() => setActiveLesson(les)}
+                                  className="module-card p-4 rounded-xl cursor-pointer group/sub animate-fade-in-up"
+                                  style={{ animationDelay: `${idx * 0.04}s` }}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    {/* Number Badge */}
+                                    <div className={`number-badge ${badgeColor} text-white`}>
+                                      {idx + 1}
+                                    </div>
+
+                                    <div className="flex-1 min-w-0 space-y-1.5">
+                                      {/* Tags Row */}
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeColor} text-white uppercase`}>
+                                          {les.difficulty_level}
+                                        </span>
+                                        <span className="text-[9px] font-semibold text-slate-500 bg-slate-800/80 px-1.5 py-0.5 rounded">
+                                          {les.content_type}
+                                        </span>
+                                      </div>
+
+                                      {/* Title */}
+                                      <h5 className="font-bold text-[13px] text-slate-200 group-hover/sub:text-emerald-300 transition-colors duration-200 leading-snug line-clamp-2">
+                                        {les.title}
+                                      </h5>
+
+                                      {/* Target Text Preview */}
+                                      <p className="text-[10px] text-slate-400 italic leading-relaxed line-clamp-2">
+                                        "{les.target_text}"
+                                      </p>
+                                    </div>
+
+                                    {/* Play Button */}
+                                    <button className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover/sub:bg-emerald-500 group-hover/sub:text-white transition-all duration-200 flex-shrink-0 mt-1">
+                                      <Play size={14} />
+                                    </button>
+                                  </div>
                                 </div>
-                                <h5 className="font-bold text-xs text-slate-100 group-hover/sub:text-emerald-300 transition-colors leading-relaxed">
-                                  {les.title}
-                                </h5>
-                                <p className="text-[11px] text-slate-300 italic font-medium">"{les.target_text}"</p>
-                              </div>
-                              <button className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md group-hover/sub:scale-105 transition-all flex-shrink-0">
-                                <Play size={12} />
-                                <span>Practice</span>
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -808,57 +898,75 @@ export default function App() {
               })}
             </div>
 
-            {/* Sub-Modules Practice Lessons List */}
-            <div className="space-y-3 pt-4">
+            {/* ── All Modules Grid (flat list) ── */}
+            <div className="space-y-4 pt-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-md font-bold text-slate-200 flex items-center gap-2">
-                  <Sparkles size={16} className="text-emerald-400" />
+                <h4 className="text-sm font-bold text-slate-300 flex items-center gap-2">
+                  <Sparkles size={15} className="text-emerald-400" />
                   {selectedCategoryFilter === 1 
-                    ? 'Spoken Curriculum: Zero Level Foundational Modules' 
+                    ? `Speaking Modules` 
                     : selectedCategoryFilter === 2 
-                    ? 'Written Curriculum: Zero Level Foundational Modules' 
+                    ? `Writing Modules` 
                     : selectedCategoryFilter === 3 
-                    ? 'Reading Curriculum: Zero Level Foundational Modules' 
-                    : 'Recommended Zero Level Foundational Modules'}
+                    ? `Reading Modules` 
+                    : `All Modules`}
+                  <span className="text-slate-500 font-normal">
+                    — {selectedDifficulty || 'All Levels'}
+                  </span>
                 </h4>
                 {selectedCategoryFilter !== null && (
                   <button 
                     onClick={() => setSelectedCategoryFilter(null)}
-                    className="text-xs text-emerald-400 hover:underline font-semibold"
+                    className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold transition-colors flex items-center gap-1"
                   >
-                    Show All Curriculums
+                    Show All
+                    <ArrowRight size={11} />
                   </button>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 {(dbLessons || sampleLessons)
-                  .filter(les => selectedCategoryFilter === null || les.category_id === selectedCategoryFilter)
-                  .map(les => (
-                    <div 
-                      key={les.lesson_id}
-                      onClick={() => setActiveLesson(les)}
-                      className="glass-card p-4 rounded-xl border border-slate-700/80 hover:border-emerald-500/60 cursor-pointer transition-all flex items-center justify-between group hover:bg-slate-800/90 shadow-md"
-                    >
-                      <div className="space-y-1.5 pr-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                            {les.content_type}
-                          </span>
-                          <span className="text-[10px] font-extrabold uppercase text-amber-300 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                            Stage: {les.difficulty_level}
-                          </span>
+                  .filter(les => (selectedCategoryFilter === null || les.category_id === selectedCategoryFilter) && (selectedDifficulty === null || les.difficulty_level === selectedDifficulty))
+                  .map((les, idx) => {
+                    const dl = difficultyLevels.find(d => d.key === les.difficulty_level);
+                    const badgeColor = dl ? dl.color : 'bg-slate-600';
+                    
+                    return (
+                      <div 
+                        key={les.lesson_id}
+                        onClick={() => setActiveLesson(les)}
+                        className="module-card p-4 rounded-xl cursor-pointer group flex items-center justify-between gap-3 animate-fade-in"
+                        style={{ animationDelay: `${Math.min(idx * 0.03, 0.3)}s` }}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          {/* Number */}
+                          <div className={`number-badge ${badgeColor} text-white`}>
+                            {idx + 1}
+                          </div>
+
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[9px] font-bold uppercase text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/15">
+                                {les.content_type}
+                              </span>
+                              <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${badgeColor} text-white`}>
+                                {les.difficulty_level}
+                              </span>
+                            </div>
+                            <h5 className="font-bold text-[13px] text-slate-200 group-hover:text-emerald-300 transition-colors truncate">
+                              {les.title}
+                            </h5>
+                            <p className="text-[10px] text-slate-500 italic truncate">"{les.target_text}"</p>
+                          </div>
                         </div>
-                        <h5 className="font-bold text-sm text-slate-100 group-hover:text-emerald-300 transition-colors">
-                          {les.title}
-                        </h5>
-                        <p className="text-xs text-slate-300 italic font-medium">"{les.target_text}"</p>
+
+                        <div className="w-9 h-9 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all duration-200 shadow-sm flex-shrink-0">
+                          <Play size={16} />
+                        </div>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-md flex-shrink-0">
-                        <Play size={18} />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           </div>

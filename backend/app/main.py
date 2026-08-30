@@ -264,6 +264,18 @@ ensure_schema_migrations()
 seed_languages()
 seed_curriculum_data()
 
+# Seed difficulty level content (Absolute Beginner → Mastery) for all languages
+try:
+    from app.services.seed_difficulty_content import seed_difficulty_content
+    from app.database import SessionLocal as _DiffSessionLocal
+    db_session = _DiffSessionLocal()
+    langs_seeded, lessons_created = seed_difficulty_content(db_session)
+    if lessons_created > 0:
+        print(f"[SEED DIFFICULTY] ✅ Seeded {lessons_created} lessons across {langs_seeded} languages")
+    db_session.close()
+except Exception as e:
+    print(f"[SEED DIFFICULTY NOTICE] Could not seed difficulty content: {e}")
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"

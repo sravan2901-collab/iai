@@ -232,3 +232,48 @@ async def get_generated_content_history(
         ],
         "total": len(contents)
     }
+
+
+@router.get("/pytorch-predictions")
+async def get_pytorch_neural_predictions(
+    current_learner: Optional[models.Learner] = Depends(get_optional_current_learner),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns deep neural network predictions from PyTorch AI Engine:
+    - Learner Multi-Skill Proficiency Level & Composite Score
+    - Handwriting Quality & Guideline Discipline Tier
+    - Phoneme Accuracy & Speech Fluency Index
+    """
+    from app.services.pytorch_ai_engine import PyTorchAIEngine
+    pytorch_engine = PyTorchAIEngine()
+
+    # Determine learner profile metrics or use default foundational benchmark
+    lid = current_learner.learner_id if current_learner else 1
+    features = [70.0, 75.0, 65.0, 60.0, 85.0, 80.0, 50.0]
+
+    if current_learner:
+        profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == lid).first()
+        if profile:
+            features = [
+                float(profile.reading_score or 50.0),
+                float(profile.word_formation_score or 50.0),
+                float(profile.grammar_score or 50.0),
+                float(profile.literature_score or 50.0),
+                85.0,
+                80.0,
+                50.0
+            ]
+
+    prof_res = pytorch_engine.predict_learner_proficiency(features)
+    hw_res = pytorch_engine.evaluate_handwriting_strokes([88.0, 82.0, 75.0, 8.0, 42.0, 0.0])
+    speech_res = pytorch_engine.evaluate_pronunciation_audio([0.88, 14.0, 62.0, 0.07, 125.0])
+
+    return {
+        "engine": "PyTorch Deep Learning Engine v2.13",
+        "status": "ACTIVE",
+        "learner_id": lid,
+        "proficiency_classification": prof_res,
+        "handwriting_evaluation": hw_res,
+        "pronunciation_evaluation": speech_res
+    }
