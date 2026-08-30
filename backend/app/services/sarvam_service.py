@@ -163,7 +163,7 @@ class SarvamAIService:
             "message": "No speech recognized. Please speak clearly into your microphone."
         }
 
-    async def generate_speech(self, text: str, language_code: str = "hi-IN") -> bytes:
+    async def generate_speech(self, text: str, language_code: str = "te-IN") -> bytes:
         """Calls Sarvam Bulbul v3 Text-to-Speech API if key configured."""
         if not self.is_configured():
             return b""
@@ -174,9 +174,9 @@ class SarvamAIService:
             "Content-Type": "application/json"
         }
         payload = {
-            "inputs": [text.strip()],
+            "inputs": [text.strip()[:500]],
             "target_language_code": sarvam_lang,
-            "speaker": "meera",
+            "speaker": "priya",
             "model": "bulbul:v3"
         }
 
@@ -186,17 +186,22 @@ class SarvamAIService:
                     settings.SARVAM_TTS_ENDPOINT,
                     headers=headers,
                     json=payload,
-                    timeout=10.0
+                    timeout=12.0
                 )
                 if response.status_code == 200:
+                    res_json = response.json()
+                    audios = res_json.get("audios", [])
+                    if audios:
+                        import base64
+                        return base64.b64decode(audios[0])
                     return response.content
             except Exception as e:
                 logger.error(f"[SARVAM TTS] API call failed: {e}")
 
         return b""
 
-    async def translate_text(self, text: str, source_lang: str = "en-IN", target_lang: str = "hi-IN") -> str:
-        """Calls Sarvam Mayura v2 Translation API if configured."""
+    async def translate_text(self, text: str, source_lang: str = "en-IN", target_lang: str = "te-IN") -> str:
+        """Calls Sarvam Mayura v1 Translation API if configured."""
         if not self.is_configured():
             return text
 
@@ -208,10 +213,10 @@ class SarvamAIService:
             "Content-Type": "application/json"
         }
         payload = {
-            "input": text.strip(),
+            "input": text.strip()[:1000],
             "source_language_code": src,
             "target_language_code": tgt,
-            "model": "mayura:v2"
+            "model": "mayura:v1"
         }
 
         async with httpx.AsyncClient() as client:
@@ -220,7 +225,7 @@ class SarvamAIService:
                     settings.SARVAM_TRANSLATE_ENDPOINT,
                     headers=headers,
                     json=payload,
-                    timeout=10.0
+                    timeout=12.0
                 )
                 if response.status_code == 200:
                     res_json = response.json()
