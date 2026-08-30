@@ -204,144 +204,145 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
     playNaturalSpeechAudio(targetText, 0.5);
   };
 
-  const stopRecording = useCallback(() => {
-    setIsRecording(false);
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch (e) { /* already stopped */ }
-    }
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-    if (mediaStream) {
-      mediaStream.getTracks().forEach(track => track.stop());
-      setMediaStream(null);
-    }
-  }, [mediaStream]);
-
   const wavRecorderRef = useRef(null);
+  const stopTimeoutRef = useRef(null);
+
+  const stopRecording = useCallback(async (explicitTranscript = null) => {
+    if (stopTimeoutRef.current) {
+      clearTimeout(stopTimeoutRef.current);
+      stopTimeoutRef.current = null;
+    }
+
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+    }
+
+    let wavBlob = null;
+    if (wavRecorderRef.current) {
+      try {
+        wavBlob = await wavRecorderRef.current.stop();
+      } catch (e) {
+        console.warn("WAV capture notice:", e);
+      }
+    }
+
+    const currentLangCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'en');
+    const spokenText = (explicitTranscript || recognizedText).trim();
+
+    setIsProcessing(true);
+
+    try {
+      // 1. Submit audio and transcript to backend for Sarvam Saaras v3 STT & server evaluation
+      if (lesson?.lesson_id && typeof lesson.lesson_id === 'number') {
+        const formData = new FormData();
+        if (wavBlob && wavBlob.size > 0) {
+          formData.append('audio_file', wavBlob, 'recording.wav');
+        }
+        const activeLearnerId = learnerId || localStorage.getItem('aksharai_learner_id') || lesson?.learner_id || '1';
+        formData.append('learner_id', String(activeLearnerId));
+        formData.append('lesson_id', String(lesson.lesson_id || lesson.id));
+        if (spokenText) {
+          formData.append('transcript', spokenText);
+        }
+        formData.append('language_code', currentLangCode);
+
+        const backendRes = await apiRequest('/voice/evaluate', {
+          method: 'POST',
+          body: formData,
+          isFormData: true
+        });
+
+        if (backendRes && backendRes.overall_score !== undefined) {
+          setEvaluation(backendRes);
+          if (backendRes.recognized_text) {
+            setRecognizedText(backendRes.recognized_text);
+          }
+          if (onScoreUpdate) onScoreUpdate(backendRes.overall_score);
+          setIsProcessing(false);
+          setIsRecording(false);
+          return;
+        }
+      }
+    } catch (apiErr) {
+      console.warn("[Voice Coach] Server STT evaluation notice, using local scoring fallback:", apiErr);
+    }
+
+    // 2. Client-side evaluation fallback (if offline or backend unreachable)
+    if (spokenText.length > 0) {
+      const evalResult = computePronunciationScore(targetText, spokenText);
+      setEvaluation(evalResult);
+      setRecognizedText(spokenText);
+      if (onScoreUpdate) onScoreUpdate(evalResult.overall_score);
+    } else {
+      setErrorMsg('No speech was detected. Please press the microphone and speak aloud clearly.');
+    }
+
+    setIsProcessing(false);
+    setIsRecording(false);
+  }, [targetText, lesson, recognizedText, learnerId, onScoreUpdate]);
 
   const startRecording = async () => {
     setEvaluation(null);
     setRecognizedText('');
     setErrorMsg('');
 
-    // Check for SpeechRecognition support
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setErrorMsg('Speech Recognition is not supported in this browser. Please use Chrome or Edge.');
-      return;
-    }
-
     try {
-      // 1. Start 16kHz Mono PCM WAV Audio Recorder (standard audio/wav for Sarvam AI & Speech Engines)
+      // 1. Start 16kHz Mono PCM WAV Audio Recorder (Runs on ALL browsers: Chrome, Safari, Edge, Firefox, iOS, Android)
       const wavRecorder = new PcmWavRecorder(16000);
       wavRecorderRef.current = wavRecorder;
       const stream = await wavRecorder.start();
       setMediaStream(stream);
       setIsRecording(true);
 
-      // 2. Set up Web Speech API for real-time live recognition
       const currentLangCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'en');
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = TTS_LANG_MAP[currentLangCode] || 'en-US';
+      let liveSpokenText = '';
 
-      let finalTranscript = '';
-      let interimTranscript = '';
+      // 2. Optional: Web Speech API for real-time live streaming text (if supported by browser)
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognitionRef.current = recognition;
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = TTS_LANG_MAP[currentLangCode] || 'en-IN';
 
-      recognition.onresult = (event) => {
-        interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-          } else {
-            interimTranscript = transcript;
-          }
-        }
-        setRecognizedText((finalTranscript + interimTranscript).trim());
-      };
-
-      recognition.onerror = (event) => {
-        console.warn('Speech recognition error:', event.error);
-        if (event.error === 'no-speech') {
-          setErrorMsg('No speech detected. Please speak louder and try again.');
-        }
-      };
-
-      recognition.onend = async () => {
-        // Stop audio recorder and produce clean 16kHz audio/wav blob
-        let wavBlob = null;
-        if (wavRecorderRef.current) {
-          try {
-            wavBlob = await wavRecorderRef.current.stop();
-          } catch (e) {
-            console.warn("WAV capture notice:", e);
-          }
-        }
-
-        // When recognition ends, compute the score
-        const spokenText = finalTranscript.trim() || interimTranscript.trim();
-        
-        if (spokenText.length > 0) {
-          setIsProcessing(true);
-          const evalResult = computePronunciationScore(targetText, spokenText);
-          setEvaluation(evalResult);
-          setRecognizedText(spokenText);
-          if (onScoreUpdate) onScoreUpdate(evalResult.overall_score);
-
-          // Also send to backend for server-side scoring, Sarvam Saaras v3 STT & persistence
-          try {
-            if (lesson?.lesson_id && typeof lesson.lesson_id === 'number') {
-              const formData = new FormData();
-              if (wavBlob && wavBlob.size > 0) {
-                formData.append('audio_file', wavBlob, 'recording.wav');
+          recognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const transcript = event.results[i][0].transcript;
+              if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
+              } else {
+                interimTranscript = transcript;
               }
-              const activeLearnerId = learnerId || localStorage.getItem('aksharai_learner_id') || lesson?.learner_id || '1';
-              formData.append('learner_id', String(activeLearnerId));
-              formData.append('lesson_id', String(lesson.lesson_id || lesson.id));
-              formData.append('transcript', spokenText);
-              formData.append('language_code', currentLangCode);
-              
-              apiRequest('/voice/evaluate', {
-                method: 'POST',
-                body: formData,
-                isFormData: true
-              }).then((backendRes) => {
-                if (backendRes && backendRes.stt_provider) {
-                  console.info(`[Voice Coach] Evaluated via STT Provider: ${backendRes.stt_provider}`);
-                }
-              }).catch(() => {}); // Silent fail — frontend scoring is primary
             }
-          } catch (e) { /* ignore backend send errors */ }
+            liveSpokenText = (finalTranscript + interimTranscript).trim();
+            setRecognizedText(liveSpokenText);
+          };
 
-          setIsProcessing(false);
-        } else {
-          setErrorMsg('No speech was recognized. Please try again and speak clearly.');
-          setIsProcessing(false);
+          recognition.onerror = (event) => {
+            console.warn('Speech recognition notice (server STT will evaluate):', event.error);
+          };
+
+          recognition.onend = () => {
+            // If user did not manually stop and timer hasn't stopped it
+          };
+
+          recognition.start();
+        } catch (recErr) {
+          console.warn('Browser speech recognition not initialized, using backend Sarvam STT:', recErr);
         }
+      }
 
-        // Clean up stream
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-        }
-        setMediaStream(null);
-        setIsRecording(false);
-      };
-
-      recognition.start();
-
-      // 3. Auto-stop after 8 seconds to give enough time for practice
-      setTimeout(() => {
-        if (recognitionRef.current) {
-          try { recognitionRef.current.stop(); } catch (e) {}
-        }
+      // 3. Auto-stop after 8 seconds to allow ample time for sentence practice
+      stopTimeoutRef.current = setTimeout(() => {
+        stopRecording(liveSpokenText);
       }, 8000);
 
     } catch (err) {
-      setErrorMsg('Microphone permission required for speech practice.');
+      setErrorMsg('Microphone access is required for speech practice. Please allow microphone permissions.');
       setIsRecording(false);
     }
   };

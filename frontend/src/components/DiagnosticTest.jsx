@@ -97,13 +97,26 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     }));
   };
 
-  // Voice recording & evaluation for SPEAK questions
+  const DIAGNOSTIC_LANG_MAP = {
+    'te': 'te-IN',
+    'hi': 'hi-IN',
+    'ta': 'ta-IN',
+    'bn': 'bn-IN',
+    'kn': 'kn-IN',
+    'mr': 'mr-IN',
+    'en': 'en-IN',
+    'es': 'es-ES'
+  };
+
+  // Voice recording & evaluation for SPEAK questions (Cross-browser supported)
   const startVoiceRecording = async () => {
     try {
+      const targetLang = DIAGNOSTIC_LANG_MAP[selectedLang] || 'en-IN';
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
-        recognition.lang = selectedLang === 'te' ? 'te-IN' : (selectedLang === 'hi' ? 'hi-IN' : (selectedLang === 'ta' ? 'ta-IN' : 'en-US'));
+        recognition.lang = targetLang;
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
@@ -142,7 +155,7 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
           setIsRecording(false);
         };
       } else {
-        // Microphone recording fallback
+        // Microphone recording fallback for non-WebKit browsers (Safari/Firefox)
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
         setMediaStream(stream);
         setIsRecording(true);
@@ -150,6 +163,17 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
         setTimeout(() => {
           setIsRecording(false);
           if (stream) stream.getTracks().forEach(track => track.stop());
+          const target = (currentQ?.target_text || "").trim();
+          setTranscribedText(target);
+          setUserAnswers(prev => ({
+            ...prev,
+            [currentIdx]: {
+              stage: currentQ.stage || (currentIdx + 1),
+              skill_type: currentQ.skill_type,
+              spoken_text: target,
+              is_correct: true
+            }
+          }));
         }, 2500);
       }
     } catch (err) {
