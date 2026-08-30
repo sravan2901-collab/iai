@@ -26,6 +26,8 @@ def ensure_schema_migrations():
                 conn.execute(text("ALTER TABLE learner_profile ADD COLUMN comprehension_pct FLOAT DEFAULT 0.0"))
             if profile_cols and "voice_pct" not in profile_cols:
                 conn.execute(text("ALTER TABLE learner_profile ADD COLUMN voice_pct FLOAT DEFAULT 0.0"))
+            if profile_cols and "last_activity_date" not in profile_cols:
+                conn.execute(text("ALTER TABLE learner_profile ADD COLUMN last_activity_date DATE"))
 
             prog_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(progress_tracking)")).fetchall()]
             if prog_cols and "time_spent_min" not in prog_cols:
@@ -263,6 +265,18 @@ def seed_curriculum_data():
 ensure_schema_migrations()
 seed_languages()
 seed_curriculum_data()
+
+# Seed canonical achievement catalog
+try:
+    from app.services.gamification_service import seed_achievement_catalog
+    from app.database import SessionLocal as _GamifySessionLocal
+    _gamify_db = _GamifySessionLocal()
+    _new_ach_count = seed_achievement_catalog(_gamify_db)
+    if _new_ach_count > 0:
+        print(f"[SEED ACHIEVEMENTS] [OK] Seeded {_new_ach_count} canonical achievements")
+    _gamify_db.close()
+except Exception as e:
+    print(f"[SEED ACHIEVEMENTS NOTICE] Could not seed achievements: {e}")
 
 # Seed difficulty level content (Absolute Beginner → Mastery) for all languages
 try:

@@ -559,7 +559,7 @@ def trigger_adaptive_replanning(learner_id: int, path: models.LearningPath, db: 
     reason = f"Adaptive Re-Planning Triggered! Recent performance update: {new_weakest_skill} is now lowest ({new_weakest_score}%). Re-ordered upcoming locked lessons to prioritize {new_weakest_skill} mastery."
     return True, reason
 
-def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: Session):
+def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: Session, award_points: bool = True):
     lesson = db.query(models.Lesson).filter(models.Lesson.lesson_id == lesson_id).first()
     if not lesson:
         return None
@@ -667,6 +667,17 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
             
             db.commit()
 
+    # Gamification: Update points (if enabled), streak, and check achievements
+    from app.services.gamification_service import update_streak, check_and_award_achievements
+
+    profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == learner_id).first()
+    if profile and award_points:
+        profile.total_points = (profile.total_points or 0) + int(score / 10)
+        db.commit()
+
+    update_streak(learner_id, db)
+    achievements_unlocked = check_and_award_achievements(learner_id, db)
+
     # Step 3.3: Re-Planning Trigger (After every 3 completed lessons OR module completion)
     replanned = False
     replan_reason = ""
@@ -682,7 +693,8 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
         "path_completion_pct": path.completion_percentage,
         "current_level": path.current_level,
         "replanned": replanned,
-        "replan_reason": replan_reason
+        "replan_reason": replan_reason,
+        "achievements_unlocked": achievements_unlocked
     }
 
 @router.patch("/lesson/{path_lesson_id}/status")

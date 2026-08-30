@@ -157,6 +157,7 @@ async def evaluate_voice_session(
     # 6. Save Voice Session in DB and persist audio bytes to backend/storage/audio/{learner_id}/{session_id}.<ext>
     voice_session_id = None
     saved_audio_url = ""
+    achievements_unlocked = []
 
     try:
         if target_learner_id:
@@ -213,7 +214,13 @@ async def evaluate_voice_session(
                 # Step 3.1: Trigger lesson completion if passing score >= 50.0
                 if eval_result["overall_score"] >= 50.0:
                     from app.routers.learning_path import complete_lesson_workflow
-                    complete_lesson_workflow(target_learner_id, lesson_id, eval_result["overall_score"], db)
+                    # Pass award_points=False so complete_lesson_workflow does not double-award points
+                    complete_lesson_workflow(target_learner_id, lesson_id, eval_result["overall_score"], db, award_points=False)
+
+                # Gamification: Update streak and check/award achievements
+                from app.services.gamification_service import update_streak, check_and_award_achievements
+                update_streak(target_learner_id, db)
+                achievements_unlocked = check_and_award_achievements(target_learner_id, db, voice_score=eval_result["overall_score"])
     except Exception as db_err:
         print(f"[VOICE ROUTER] Notice during database save: {db_err}")
 
@@ -228,7 +235,8 @@ async def evaluate_voice_session(
         "syllable_score": eval_result["syllable_score"],
         "overall_score": eval_result["overall_score"],
         "word_feedback": eval_result["word_feedback"],
-        "remediation_tip": eval_result["remediation_tip"]
+        "remediation_tip": eval_result["remediation_tip"],
+        "achievements_unlocked": achievements_unlocked
     }
 
 

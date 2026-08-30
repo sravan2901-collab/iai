@@ -207,7 +207,8 @@ async def complete_lesson(
 
     return {
         "message": "Lesson completed successfully!",
-        "result": result
+        "result": result,
+        "achievements_unlocked": result.get("achievements_unlocked", []) if isinstance(result, dict) else []
     }
 
 

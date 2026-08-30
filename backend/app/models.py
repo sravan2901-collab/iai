@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, Numeric, DateTime, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, Text, Boolean, Numeric, DateTime, Date, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -144,6 +144,7 @@ class LearnerProfile(Base):
     reading_pct = Column(Float, default=0.0)
     comprehension_pct = Column(Float, default=0.0)
     voice_pct = Column(Float, default=0.0)
+    last_activity_date = Column(Date, nullable=True)
     
     learner = relationship("Learner", back_populates="profile")
 
