@@ -214,6 +214,41 @@ class TestVoiceSTTPipeline(unittest.TestCase):
         self.assertEqual(len(stream_res.content), len(wav_bytes))
         print(f"  ✓ [Audio Disk Persistence] Successfully saved & served audio from disk: {audio_url} ({len(stream_res.content)} bytes)")
 
+    def test_14_epitran_g2p_ipa_transduction(self):
+        """Verify Epitran-style G2P accurately transduces native scripts to standard IPA phonemes."""
+        from app.services.phoneme_service import word_to_ipa
+        te_ipa = word_to_ipa("నమస్కారం", "te")
+        self.assertIn("n", te_ipa)
+        self.assertIn("m", te_ipa)
+        self.assertIn("s", te_ipa)
+        self.assertIn("k", te_ipa)
+        self.assertIn("aː", te_ipa)
+
+        hi_ipa = word_to_ipa("नमस्ते", "hi")
+        self.assertIn("n", hi_ipa)
+        self.assertIn("m", hi_ipa)
+        self.assertIn("s", hi_ipa)
+        self.assertIn("t̪", hi_ipa)
+
+        print(f"  ✓ [Epitran G2P] Telugu IPA: {te_ipa} | Hindi IPA: {hi_ipa}")
+
+    def test_15_panphon_articulatory_feature_distance(self):
+        """Verify PanPhon distinctive feature distance correctly scores phonetically related sounds with high similarity."""
+        from app.services.phoneme_service import panphon_articulatory_distance, phonetic_word_similarity
+        # Voicing distinction /p/ vs /b/ has very low distance (< 0.1)
+        voicing_dist = panphon_articulatory_distance('p', 'b')
+        self.assertTrue(voicing_dist < 0.1)
+
+        # Aspiration distinction /k/ vs /kʰ/ has very low distance (< 0.1)
+        aspiration_dist = panphon_articulatory_distance('k', 'kʰ')
+        self.assertTrue(aspiration_dist < 0.1)
+
+        # Phonetic word similarity for near-homophones
+        sim_near = phonetic_word_similarity("నమస్కారం", "నమస్కారము", "te")
+        sim_diff = phonetic_word_similarity("నమస్కారం", "విద్యుత్", "te")
+        self.assertTrue(sim_near > sim_diff)
+        print(f"  ✓ [PanPhon Articulatory Distance] Voicing Dist: {voicing_dist:.3f}, Near Phonetic Sim: {sim_near*100:.1f}% vs Far: {sim_diff*100:.1f}%")
+
 
 if __name__ == "__main__":
     unittest.main()
