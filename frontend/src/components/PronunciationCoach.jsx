@@ -3,6 +3,7 @@ import { Mic, Volume2, RotateCcw, Sparkles, MicOff, Loader } from 'lucide-react'
 import AudioVisualizer from './AudioVisualizer';
 import { apiRequest } from '../services/api';
 import { playSynthesizedPhoneme } from '../utils/audioSynthesizer';
+import { PcmWavRecorder } from '../utils/audioRecorder';
 
 /**
  * Compute word-level similarity between target and spoken text.
@@ -217,11 +218,12 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
     }
   }, [mediaStream]);
 
+  const wavRecorderRef = useRef(null);
+
   const startRecording = async () => {
     setEvaluation(null);
     setRecognizedText('');
     setErrorMsg('');
-    audioChunksRef.current = [];
 
     // Check for SpeechRecognition support
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -231,20 +233,14 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
     }
 
     try {
-      // 1. Get microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // 1. Start 16kHz Mono PCM WAV Audio Recorder (standard audio/wav for Sarvam AI & Speech Engines)
+      const wavRecorder = new PcmWavRecorder(16000);
+      wavRecorderRef.current = wavRecorder;
+      const stream = await wavRecorder.start();
       setMediaStream(stream);
       setIsRecording(true);
 
-      // 2. Set up MediaRecorder to capture audio blob (for backend)
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-      mediaRecorder.start();
-
-      // 3. Set up Web Speech API for real-time recognition
+      // 2. Set up Web Speech API for real-time live recognition
       const currentLangCode = detectScriptLang(targetText, lesson?.lang || lesson?.lang_code || 'en');
       const recognition = new SpeechRecognition();
       recognitionRef.current = recognition;
@@ -275,7 +271,17 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
         }
       };
 
-      recognition.onend = () => {
+      recognition.onend = async () => {
+        // Stop audio recorder and produce clean 16kHz audio/wav blob
+        let wavBlob = null;
+        if (wavRecorderRef.current) {
+          try {
+            wavBlob = await wavRecorderRef.current.stop();
+          } catch (e) {
+            console.warn("WAV capture notice:", e);
+          }
+        }
+
         // When recognition ends, compute the score
         const spokenText = finalTranscript.trim() || interimTranscript.trim();
         
@@ -286,13 +292,12 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
           setRecognizedText(spokenText);
           if (onScoreUpdate) onScoreUpdate(evalResult.overall_score);
 
-          // Also send to backend for server-side scoring & persistence
+          // Also send to backend for server-side scoring, Sarvam Saaras v3 STT & persistence
           try {
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             if (lesson?.lesson_id && typeof lesson.lesson_id === 'number') {
               const formData = new FormData();
-              if (audioBlob.size > 0) {
-                formData.append('audio_file', audioBlob, 'recording.webm');
+              if (wavBlob && wavBlob.size > 0) {
+                formData.append('audio_file', wavBlob, 'recording.wav');
               }
               const activeLearnerId = learnerId || localStorage.getItem('aksharai_learner_id') || lesson?.learner_id || '1';
               formData.append('learner_id', String(activeLearnerId));
@@ -319,20 +324,19 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
         }
 
         // Clean up stream
-        stream.getTracks().forEach(track => track.stop());
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
         setMediaStream(null);
         setIsRecording(false);
       };
 
       recognition.start();
 
-      // 4. Auto-stop after 8 seconds to give enough time for a sentence
+      // 3. Auto-stop after 8 seconds to give enough time for practice
       setTimeout(() => {
         if (recognitionRef.current) {
           try { recognitionRef.current.stop(); } catch (e) {}
-        }
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.stop();
         }
       }, 8000);
 
