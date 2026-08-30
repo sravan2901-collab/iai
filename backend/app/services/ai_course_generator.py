@@ -249,6 +249,82 @@ class AICourseGenerator:
         # Rule-based fallback
         return self._get_rule_based_recommendations(profile_data), "rule-based"
 
+    # ─── Report Narrative Generator ─────────────────────────────────────
+
+    async def generate_report_narrative(self, snapshot_dict: dict) -> Optional[str]:
+        """
+        Generate a cohesive 3-5 sentence narrative pedagogical report for the learner's progress snapshot.
+        Returns AI narrative string, or a sensible rule-based narrative if AI is unavailable.
+        """
+        profile = snapshot_dict.get("profile", {})
+        path_stats = snapshot_dict.get("path_stats", {})
+        lang_name = snapshot_dict.get("language", "English")
+        learner_name = snapshot_dict.get("learner_name", "Learner")
+        
+        reading = profile.get("reading_pct", 0)
+        comprehension = profile.get("comprehension_pct", 0)
+        voice = profile.get("voice_pct", 0)
+        overall = profile.get("overall_pct", 0)
+        level = profile.get("literacy_level", "FOUNDATIONAL")
+        streak = snapshot_dict.get("streak_count", profile.get("streak_count", 0))
+        points = snapshot_dict.get("total_points", profile.get("total_points", 0))
+        completed_lessons = path_stats.get("completed_lessons", 0)
+        total_lessons = path_stats.get("total_lessons", 0)
+        weakest = self._identify_weakest(reading, comprehension, voice)
+
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert literacy education advisor and progress evaluator for the AksharAI platform. "
+                    "Write a concise, encouraging, and actionable 3-5 sentence learning report narrative summarizing "
+                    "the learner's achievements, current strengths, and specific areas to practice next. "
+                    "Respond with plain text only (no JSON, no bullet points, no markdown formatting)."
+                )
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Generate a personalized learning report narrative for {learner_name}.\n\n"
+                    f"LEARNER SNAPSHOT:\n"
+                    f"- Target Language: {lang_name}\n"
+                    f"- Proficiency Tier: {level}\n"
+                    f"- Overall Mastery: {overall}%\n"
+                    f"- Reading & Phonics Score: {reading}%\n"
+                    f"- Comprehension Score: {comprehension}%\n"
+                    f"- Voice & Pronunciation Score: {voice}%\n"
+                    f"- Active Practice Streak: {streak} days\n"
+                    f"- Total Earned Points: {points} XP\n"
+                    f"- Curriculum Lessons Completed: {completed_lessons} of {total_lessons}\n"
+                    f"- Weakest Focus Skill: {weakest}\n\n"
+                    f"Requirements: 3-5 sentences total. Highlight key strengths, acknowledge practice consistency/streak, "
+                    f"and provide a concrete pedagogical recommendation for improving their {weakest.lower()} skills."
+                )
+            }
+        ]
+
+        ai_response, provider = await self._call_ai(messages)
+        if ai_response:
+            clean_text = ai_response.strip()
+            if clean_text.startswith("{") and clean_text.endswith("}"):
+                try:
+                    parsed = json.loads(clean_text)
+                    clean_text = parsed.get("narrative") or parsed.get("report") or list(parsed.values())[0]
+                except Exception:
+                    pass
+            clean_text = re.sub(r'^["\']|["\']$', '', clean_text.strip())
+            if clean_text:
+                return clean_text
+
+        # Rule-based fallback narrative if AI provider is unavailable
+        weak_label = "Voice & Pronunciation" if weakest == "VOICE" else ("Reading & Phonics" if weakest == "READING" else "Comprehension & Vocabulary")
+        fallback_narrative = (
+            f"{learner_name} is making steady progress at the {level} tier in {lang_name} with an overall mastery score of {overall}%. "
+            f"With an active {streak}-day practice streak and {points} XP earned, commitment to daily literacy practice remains strong. "
+            f"To accelerate progress toward fluency, prioritize targeted exercises in {weak_label} while continuing your structured curriculum path."
+        )
+        return fallback_narrative
+
     # ─── Exercise Generator ─────────────────────────────────────────────
 
     async def generate_exercise(

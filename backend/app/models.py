@@ -284,6 +284,8 @@ class LearningReport(Base):
     reporting_period = Column(String(50), nullable=False)
     generated_at = Column(DateTime(timezone=True), server_default=func.now())
     overall_progress = Column(Float, default=0.0)
+    summary_json = Column(Text, nullable=True)
+    narrative = Column(Text, nullable=True)
     
     learner = relationship("Learner", back_populates="reports")
 

@@ -7,6 +7,7 @@ import ReadingStudioCard from './components/ReadingStudioCard';
 import LearningPath from './components/LearningPath';
 import LearnerProfileView from './components/LearnerProfileView';
 import ProgressDashboard from './components/ProgressDashboard';
+import LearningReportView from './components/LearningReportView';
 import ProficiencyBenchmarks from './components/ProficiencyBenchmarks';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
@@ -530,6 +531,14 @@ export default function App() {
         {/* Real Learner Progress Dashboard Analytics View */}
         {activeTab === 'progress' && (
           <ProgressDashboard 
+            learner={learner} 
+            onSelectLesson={(les) => { setActiveLesson(les); changeTab('catalog'); }} 
+          />
+        )}
+
+        {/* AI Learning Reports & Recommendations View */}
+        {activeTab === 'reports' && (
+          <LearningReportView 
             learner={learner} 
             onSelectLesson={(les) => { setActiveLesson(les); changeTab('catalog'); }} 
           />

@@ -13,18 +13,11 @@ from typing import Optional
 router = APIRouter(prefix="/api/progress", tags=["Progress Tracking & Dashboard"])
 
 
-@router.get("/dashboard")
-async def get_progress_dashboard(
-    current_learner: Optional[models.Learner] = Depends(get_optional_current_learner),
-    db: Session = Depends(get_db)
-):
+def build_learner_progress_snapshot(current_learner: models.Learner, db: Session) -> dict:
     """
-    Returns aggregated progress dashboard data for the authenticated learner.
-    Includes: skill scores, completion stats, recent activity, streak info.
+    Core reusable aggregation logic for progress dashboard and learning reports.
+    Aggregates skill mastery, path stats, module progress, voice history, and achievements.
     """
-    if not current_learner:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
     learner_id = current_learner.learner_id
     profile = db.query(models.LearnerProfile).filter(
         models.LearnerProfile.learner_id == learner_id
@@ -163,6 +156,21 @@ async def get_progress_dashboard(
         "total_time_spent_min": total_time_min,
         "lessons_completed_today": completed_lessons
     }
+
+
+@router.get("/dashboard")
+async def get_progress_dashboard(
+    current_learner: Optional[models.Learner] = Depends(get_optional_current_learner),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns aggregated progress dashboard data for the authenticated learner.
+    Includes: skill scores, completion stats, recent activity, streak info.
+    """
+    if not current_learner:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    return build_learner_progress_snapshot(current_learner, db)
 
 
 @router.post("/complete-lesson")

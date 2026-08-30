@@ -37,6 +37,12 @@ def ensure_schema_migrations():
             if lp_cols and "completion_percentage" not in lp_cols:
                 conn.execute(text("ALTER TABLE learning_path ADD COLUMN completion_percentage FLOAT DEFAULT 0.0"))
 
+            rep_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(learning_report)")).fetchall()]
+            if rep_cols and "summary_json" not in rep_cols:
+                conn.execute(text("ALTER TABLE learning_report ADD COLUMN summary_json TEXT"))
+            if rep_cols and "narrative" not in rep_cols:
+                conn.execute(text("ALTER TABLE learning_report ADD COLUMN narrative TEXT"))
+
             # Phase 4: Recommendation table — make lesson_id nullable + add new columns
             rec_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(recommendation)")).fetchall()]
             if rec_cols and "priority" not in rec_cols:
@@ -305,7 +311,7 @@ app.add_middleware(
 )
 
 # Register Router Modules
-from app.routers import learners, admin
+from app.routers import learners, admin, reports
 
 app.include_router(auth.router)
 app.include_router(curriculum.router)
@@ -314,6 +320,7 @@ app.include_router(assessment.router)
 app.include_router(learning_path.router)
 app.include_router(progress.router)
 app.include_router(recommendation.router)
+app.include_router(reports.router)
 app.include_router(learners.router)
 app.include_router(admin.router)
 
