@@ -71,7 +71,7 @@ async def get_progress_dashboard(
                 "time_spent_min": prog.time_spent_min
             })
 
-    # Get recent pronunciation scores
+    # Get recent pronunciation scores with actual model field names
     recent_scores = db.query(models.PronunciationScore).join(
         models.VoiceSession
     ).filter(
@@ -85,9 +85,29 @@ async def get_progress_dashboard(
         voice_history.append({
             "score_id": s.score_id,
             "overall_score": s.overall_score,
-            "accuracy_score": s.accuracy_score,
-            "fluency_score": s.fluency_score,
-            "completeness_score": s.completeness_score
+            "phoneme_accuracy": s.phoneme_accuracy,
+            "syllable_score": s.syllable_score,
+            "recognized_text": s.recognized_text,
+            "created_at": str(s.created_at) if hasattr(s, "created_at") and s.created_at else None
+        })
+
+    # Query earned achievements
+    earned_achievements = db.query(models.LearnerAchievement).join(
+        models.Achievement
+    ).filter(
+        models.LearnerAchievement.learner_id == learner_id
+    ).order_by(
+        models.LearnerAchievement.earned_on.desc()
+    ).all()
+
+    achievements_list = []
+    for la in earned_achievements:
+        achievements_list.append({
+            "achievement_id": la.achievement.achievement_id if la.achievement else la.achievement_id,
+            "achievement_name": la.achievement.achievement_name if la.achievement else "Badge",
+            "description": la.achievement.description if la.achievement else "",
+            "criteria": la.achievement.criteria if la.achievement else "",
+            "earned_on": str(la.earned_on) if la.earned_on else None
         })
 
     # Calculate total time spent
@@ -102,10 +122,20 @@ async def get_progress_dashboard(
         if lang:
             lang_name = lang.lang_name
 
+    # Determine learner display name
+    learner_name = current_learner.username if hasattr(current_learner, "username") else "Learner"
+    if profile and (profile.first_name or profile.last_name):
+        learner_name = f"{profile.first_name or ''} {profile.last_name or ''}".strip()
+
+    streak_count = profile.streak_count if profile and profile.streak_count is not None else 0
+    total_points = profile.total_points if profile and profile.total_points is not None else 0
+
     return {
         "learner_id": learner_id,
-        "learner_name": current_learner.name,
+        "learner_name": learner_name,
         "language": lang_name,
+        "streak_count": streak_count,
+        "total_points": total_points,
         "profile": {
             "literacy_level": profile.literacy_level if profile else "FOUNDATIONAL",
             "reading_pct": profile.reading_pct if profile else 0.0,
@@ -113,7 +143,9 @@ async def get_progress_dashboard(
             "voice_pct": profile.voice_pct if profile else 0.0,
             "overall_pct": round(
                 ((profile.reading_pct or 0) + (profile.comprehension_pct or 0) + (profile.voice_pct or 0)) / 3, 1
-            ) if profile else 0.0
+            ) if profile else 0.0,
+            "streak_count": streak_count,
+            "total_points": total_points
         },
         "path_stats": {
             "path_id": path.path_id if path else None,
@@ -127,8 +159,9 @@ async def get_progress_dashboard(
         },
         "module_progress": module_progress,
         "voice_history": voice_history,
+        "achievements": achievements_list,
         "total_time_spent_min": total_time_min,
-        "lessons_completed_today": completed_lessons  # Simplified; in production, filter by date
+        "lessons_completed_today": completed_lessons
     }
 
 

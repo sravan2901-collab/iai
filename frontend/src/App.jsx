@@ -6,10 +6,11 @@ import InteractiveWritingCanvas from './components/InteractiveWritingCanvas';
 import ReadingStudioCard from './components/ReadingStudioCard';
 import LearningPath from './components/LearningPath';
 import LearnerProfileView from './components/LearnerProfileView';
+import ProgressDashboard from './components/ProgressDashboard';
 import ProficiencyBenchmarks from './components/ProficiencyBenchmarks';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
-import { BookOpen, Type, Sparkles, Feather, Award, CheckCircle, ArrowRight, Play, User, LogIn, Globe, Mic } from 'lucide-react';
+import { BookOpen, Type, Sparkles, Feather, Award, CheckCircle, ArrowRight, Play, User, LogIn, Globe, Mic, Activity } from 'lucide-react';
 import { getAuthToken, removeAuthToken, apiRequest } from './services/api';
 
 const LANG_MAP = {
@@ -502,18 +503,39 @@ export default function App() {
                 <span>Login / Create Account</span>
               </button>
             ) : (
-              <button
-                onClick={() => changeTab('dashboard')}
-                className="glass-button px-5 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 text-emerald-300"
-              >
-                <User size={18} />
-                <span>Learner Profile</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => changeTab('progress')}
+                  className={`glass-button px-4 py-2.5 rounded-xl font-semibold text-xs md:text-sm flex items-center gap-2 transition-all ${
+                    activeTab === 'progress' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-emerald-300 hover:text-white'
+                  }`}
+                >
+                  <Activity size={16} />
+                  <span>Progress Dashboard</span>
+                </button>
+                <button
+                  onClick={() => changeTab('dashboard')}
+                  className={`glass-button px-4 py-2.5 rounded-xl font-semibold text-xs md:text-sm flex items-center gap-2 transition-all ${
+                    activeTab === 'dashboard' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <User size={16} />
+                  <span>Profile</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Learner Profile Dashboard View */}
+        {/* Real Learner Progress Dashboard Analytics View */}
+        {activeTab === 'progress' && (
+          <ProgressDashboard 
+            learner={learner} 
+            onSelectLesson={(les) => { setActiveLesson(les); changeTab('catalog'); }} 
+          />
+        )}
+
+        {/* Learner Profile Edit & Preference View */}
         {activeTab === 'dashboard' && (
           <LearnerProfileView learner={learner} onProfileUpdate={handleProfileUpdate} />
         )}

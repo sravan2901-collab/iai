@@ -122,17 +122,31 @@ export default function Navbar({ activeTab, setActiveTab, learner, isNewRegistra
             </button>
 
             <button
-              onClick={() => handleTabClick('dashboard')}
+              onClick={() => handleTabClick('progress')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
-                activeTab === 'dashboard' 
-                  ? 'bg-emerald-600 text-white' 
+                activeTab === 'progress' 
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
                   : isNewRegistration 
                   ? 'text-slate-500 opacity-50 cursor-not-allowed' 
                   : 'text-slate-400 hover:text-white'
               }`}
             >
               {isNewRegistration && <Lock size={10} className="text-amber-400" />}
-              <span>Dashboard</span>
+              <span>Progress Dashboard</span>
+            </button>
+
+            <button
+              onClick={() => handleTabClick('dashboard')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
+                activeTab === 'dashboard' 
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
+                  : isNewRegistration 
+                  ? 'text-slate-500 opacity-50 cursor-not-allowed' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {isNewRegistration && <Lock size={10} className="text-amber-400" />}
+              <span>Learner Profile</span>
             </button>
 
             <button
