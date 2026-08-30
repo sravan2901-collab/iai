@@ -116,8 +116,13 @@ export default function App() {
       apiRequest('/auth/me')
         .then(data => {
           const userLang = resolveLangCode(data.native_lang_id || data.current_lang_id || data.preferred_lang);
+          const currentId = data.learner_id || data.id || null;
+          if (currentId) {
+            localStorage.setItem('aksharai_learner_id', String(currentId));
+          }
           setLearner({
             isLoggedIn: true,
+            learner_id: currentId,
             name: data.first_name || data.username || data.email || 'Learner',
             email: data.email || '',
             native_lang_id: data.native_lang_id || 2,
@@ -130,6 +135,7 @@ export default function App() {
         })
         .catch(() => {
           removeAuthToken();
+          localStorage.removeItem('aksharai_learner_id');
           setIsAuthOpen(true);
         });
     } else {
@@ -139,8 +145,13 @@ export default function App() {
 
   const handleAuthSuccess = (userData, authType = 'login') => {
     const userLang = resolveLangCode(userData.native_lang_id || userData.current_lang_id || userData.preferred_lang);
+    const currentId = userData.learner_id || userData.id || null;
+    if (currentId) {
+      localStorage.setItem('aksharai_learner_id', String(currentId));
+    }
     setLearner({
       isLoggedIn: true,
+      learner_id: currentId,
       name: userData.username || userData.first_name || 'Learner',
       email: userData.email || '',
       native_lang_id: userData.native_lang_id || 2,
@@ -642,6 +653,7 @@ export default function App() {
             ) : (
               <PronunciationCoach
                 lesson={activeLesson}
+                learnerId={learner.learner_id}
                 onScoreUpdate={async (score) => {
                   setLearner(prev => ({
                     ...prev,

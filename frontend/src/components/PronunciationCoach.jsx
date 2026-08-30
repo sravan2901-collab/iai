@@ -100,7 +100,7 @@ function computePronunciationScore(targetText, spokenText) {
   };
 }
 
-export default function PronunciationCoach({ lesson, onScoreUpdate }) {
+export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, onClose }) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [mediaStream, setMediaStream] = useState(null);
@@ -294,8 +294,9 @@ export default function PronunciationCoach({ lesson, onScoreUpdate }) {
               if (audioBlob.size > 0) {
                 formData.append('audio_file', audioBlob, 'recording.webm');
               }
-              formData.append('learner_id', '0');
-              formData.append('lesson_id', String(lesson.lesson_id));
+              const activeLearnerId = learnerId || localStorage.getItem('aksharai_learner_id') || lesson?.learner_id || '1';
+              formData.append('learner_id', String(activeLearnerId));
+              formData.append('lesson_id', String(lesson.lesson_id || lesson.id));
               formData.append('transcript', spokenText);
               formData.append('language_code', currentLangCode);
               

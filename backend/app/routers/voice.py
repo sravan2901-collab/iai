@@ -16,6 +16,7 @@ from gtts import gTTS
 
 from app.database import get_db
 from app import models
+from app.auth import get_optional_current_learner
 from app.services.sarvam_service import sarvam_service
 from app.services.phoneme_service import evaluate_pronunciation
 
@@ -33,18 +34,29 @@ def get_voice_engine_status():
 
 @router.post("/evaluate")
 async def evaluate_voice_session(
-    learner_id: int = Form(...),
     lesson_id: int = Form(...),
+    learner_id: Optional[int] = Form(None),
     audio_file: Optional[UploadFile] = File(None),
     transcript: Optional[str] = Form(None),
     language_code: Optional[str] = Form(None),
+    current_learner: Optional[models.Learner] = Depends(get_optional_current_learner),
     db: Session = Depends(get_db)
 ):
     """
     Receives user recorded audio file and/or live client speech recognition transcript.
     Evaluates pronunciation accuracy using multi-tiered STT (Sarvam Saaras v3 -> Web Speech -> SpeechRecognition)
-    and scores phoneme, syllable, and word alignment.
+    and scores phoneme, syllable, and word alignment attached to the authenticated learner.
     """
+    # Resolve real learner ID: Bearer token > Form param > first DB learner fallback
+    target_learner_id = None
+    if current_learner:
+        target_learner_id = current_learner.learner_id
+    elif learner_id and learner_id > 0:
+        target_learner_id = learner_id
+    else:
+        first_learner = db.query(models.Learner).first()
+        if first_learner:
+            target_learner_id = first_learner.learner_id
     # 1. Fetch lesson and infer target text & language code
     lesson = db.query(models.Lesson).filter(models.Lesson.lesson_id == lesson_id).first()
     
@@ -103,49 +115,50 @@ async def evaluate_voice_session(
         language_code=inferred_lang
     )
 
-    # 4. Save Voice Session in DB (if learner exists)
+    # 4. Save Voice Session in DB (if target learner exists)
     voice_session_id = None
     try:
-        learner_exists = db.query(models.Learner).filter(models.Learner.learner_id == learner_id).first()
-        if learner_exists:
-            voice_session = models.VoiceSession(
-                learner_id=learner_id,
-                lesson_id=lesson_id,
-                audio_url=f"/storage/audio/{filename}",
-                duration_sec=5
-            )
-            db.add(voice_session)
-            db.commit()
-            db.refresh(voice_session)
-            voice_session_id = voice_session.session_id
+        if target_learner_id:
+            learner_exists = db.query(models.Learner).filter(models.Learner.learner_id == target_learner_id).first()
+            if learner_exists:
+                voice_session = models.VoiceSession(
+                    learner_id=target_learner_id,
+                    lesson_id=lesson_id,
+                    audio_url=f"/storage/audio/{filename}",
+                    duration_sec=5
+                )
+                db.add(voice_session)
+                db.commit()
+                db.refresh(voice_session)
+                voice_session_id = voice_session.session_id
 
-            # Save Pronunciation Score
-            score_rec = models.PronunciationScore(
-                session_id=voice_session.session_id,
-                recognized_text=recognized_text,
-                phoneme_accuracy=eval_result["phoneme_accuracy"],
-                syllable_score=eval_result["syllable_score"],
-                word_feedback_json=str(eval_result["word_feedback"]),
-                overall_score=eval_result["overall_score"]
-            )
-            db.add(score_rec)
+                # Save Pronunciation Score
+                score_rec = models.PronunciationScore(
+                    session_id=voice_session.session_id,
+                    recognized_text=recognized_text,
+                    phoneme_accuracy=eval_result["phoneme_accuracy"],
+                    syllable_score=eval_result["syllable_score"],
+                    word_feedback_json=str(eval_result["word_feedback"]),
+                    overall_score=eval_result["overall_score"]
+                )
+                db.add(score_rec)
 
-            # Update learner points and voice_pct skill score
-            profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == learner_id).first()
-            if profile:
-                profile.total_points = (profile.total_points or 0) + int(eval_result["overall_score"] / 10)
-                new_voice_pct = float(eval_result["overall_score"])
-                if not profile.voice_pct or profile.voice_pct == 0.0:
-                    profile.voice_pct = round(new_voice_pct, 1)
-                else:
-                    profile.voice_pct = round((profile.voice_pct * 0.7) + (new_voice_pct * 0.3), 1)
+                # Update learner points and voice_pct skill score
+                profile = db.query(models.LearnerProfile).filter(models.LearnerProfile.learner_id == target_learner_id).first()
+                if profile:
+                    profile.total_points = (profile.total_points or 0) + int(eval_result["overall_score"] / 10)
+                    new_voice_pct = float(eval_result["overall_score"])
+                    if not profile.voice_pct or profile.voice_pct == 0.0:
+                        profile.voice_pct = round(new_voice_pct, 1)
+                    else:
+                        profile.voice_pct = round((profile.voice_pct * 0.7) + (new_voice_pct * 0.3), 1)
 
-            db.commit()
+                db.commit()
 
-            # Step 3.1: Trigger lesson completion if passing score >= 50.0
-            if eval_result["overall_score"] >= 50.0:
-                from app.routers.learning_path import complete_lesson_workflow
-                complete_lesson_workflow(learner_id, lesson_id, eval_result["overall_score"], db)
+                # Step 3.1: Trigger lesson completion if passing score >= 50.0
+                if eval_result["overall_score"] >= 50.0:
+                    from app.routers.learning_path import complete_lesson_workflow
+                    complete_lesson_workflow(target_learner_id, lesson_id, eval_result["overall_score"], db)
     except Exception as db_err:
         print(f"[VOICE ROUTER] Notice during database save: {db_err}")
 
