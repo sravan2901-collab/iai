@@ -182,13 +182,13 @@ class TestVoiceSTTPipeline(unittest.TestCase):
         res = client.post("/api/voice/evaluate", data=payload)
         self.assertEqual(res.status_code, 200)
         data = res.json()
-        self.assertEqual(data["language_code"], "te")
+        self.assertEqual(data["language_code"], "te-IN")
         print(f"  ✓ [REST API Telugu Practice] Evaluated in Telugu: language_code={data['language_code']}")
 
     def test_13_audio_bytes_saved_to_disk_and_served_via_endpoint(self):
-        """Verify uploaded audio bytes are physically written to disk and served via /api/voice/audio/{filename}."""
+        """Verify uploaded audio bytes are physically written to disk and served via /api/voice/audio/{path}."""
         # Create a small valid WAV byte array
-        import io, wave, struct, math
+        import io, wave, struct, math, os
         buf = io.BytesIO()
         with wave.open(buf, 'wb') as wf:
             wf.setnchannels(1)
@@ -198,18 +198,29 @@ class TestVoiceSTTPipeline(unittest.TestCase):
             wf.writeframes(struct.pack('<' + 'h'*len(samples), *samples))
         wav_bytes = buf.getvalue()
 
+        # Query or ensure a real DB learner & lesson exists
+        from app.database import get_db
+        from app import models
+        db = next(get_db())
+        learner = db.query(models.Learner).first()
+        target_lid = learner.learner_id if learner else 1
+        lesson = db.query(models.Lesson).first()
+        target_les_id = lesson.lesson_id if lesson else 1
+
         # Submit to voice evaluate with audio file
         files = {"audio_file": ("test_recording.wav", wav_bytes, "audio/wav")}
-        data = {"learner_id": 1, "lesson_id": 1, "transcript": "Hello world", "language_code": "en"}
+        data = {"learner_id": target_lid, "lesson_id": target_les_id, "transcript": "Hello world", "language_code": "en"}
         
         res = client.post("/api/voice/evaluate", data=data, files=files)
         self.assertEqual(res.status_code, 200)
         res_json = res.json()
         audio_url = res_json.get("audio_url")
-        self.assertTrue(bool(audio_url and audio_url.startswith("/api/voice/audio/")))
+        self.assertTrue(bool(audio_url and audio_url.startswith("backend/storage/audio/")))
+        self.assertTrue(os.path.exists(audio_url))
         
         # Verify physical retrieval of saved audio file from disk
-        stream_res = client.get(audio_url)
+        stream_url = f"/api/voice/audio/{audio_url.replace('backend/storage/audio/', '')}"
+        stream_res = client.get(stream_url)
         self.assertEqual(stream_res.status_code, 200)
         self.assertEqual(len(stream_res.content), len(wav_bytes))
         print(f"  ✓ [Audio Disk Persistence] Successfully saved & served audio from disk: {audio_url} ({len(stream_res.content)} bytes)")

@@ -3,7 +3,7 @@ Voice Router for AksharAI Multilingual Literacy Assistant.
 
 Provides REST endpoints for:
 1. POST /api/voice/evaluate — Speech-to-Text & Pronunciation Analysis (Sarvam Saaras v3 + Web Speech + SpeechRecognition)
-2. GET  /api/voice/audio/{filename} — Stream/Download recorded user audio files from disk
+2. GET  /api/voice/audio/{filepath:path} — Stream/Download recorded user audio files from disk
 3. GET  /api/voice/tts      — Text-to-Speech audio streaming (gTTS + Sarvam Bulbul v3)
 4. GET  /api/voice/status   — Speech engine status & active STT/TTS provider
 """
@@ -26,7 +26,7 @@ from app.services.phoneme_service import evaluate_pronunciation
 
 router = APIRouter(prefix="/api/voice", tags=["Voice Coach & Speech Analysis"])
 
-# Audio Storage Directory on disk
+# Audio Storage Directory on disk: backend/storage/audio
 AUDIO_STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "storage", "audio"))
 os.makedirs(AUDIO_STORAGE_DIR, exist_ok=True)
 
@@ -40,22 +40,23 @@ def get_voice_engine_status():
     return sarvam_service.get_service_status()
 
 
-@router.get("/audio/{filename}")
-def get_recorded_audio(filename: str):
+@router.get("/audio/{filepath:path}")
+def get_recorded_audio(filepath: str):
     """
     Retrieves and streams the stored audio recording file from disk.
+    Supports paths formatted as {learner_id}/{session_id}.wav or {filename}.
     """
-    # Sanitize filename to prevent directory traversal
-    clean_filename = os.path.basename(filename)
-    file_path = os.path.join(AUDIO_STORAGE_DIR, clean_filename)
+    clean_path = os.path.normpath(filepath).lstrip("\\/").replace("backend/storage/audio/", "").replace("storage/audio/", "")
+    file_path = os.path.join(AUDIO_STORAGE_DIR, clean_path)
     
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Audio recording file not found on server")
     
+    media_type = "audio/mpeg" if file_path.endswith(".mp3") else "audio/wav"
     return FileResponse(
         path=file_path,
-        media_type="audio/wav",
-        filename=clean_filename,
+        media_type=media_type,
+        filename=os.path.basename(file_path),
         headers={"Cache-Control": "public, max-age=86400"}
     )
 
@@ -72,8 +73,9 @@ async def evaluate_voice_session(
 ):
     """
     Receives user recorded audio file and/or live client speech recognition transcript.
-    Saves the physical audio file to disk, evaluates pronunciation accuracy using multi-tiered STT
-    (Sarvam Saaras v3 -> Web Speech -> SpeechRecognition), and attaches scores to the authenticated learner.
+    Saves the physical audio file to disk at backend/storage/audio/{learner_id}/{session_id}.<ext>,
+    evaluates pronunciation accuracy using Sarvam Saaras v3 STT in the lesson's native language,
+    and attaches scores to the authenticated learner.
     """
     # 1. Resolve real learner ID: Bearer token > Form param > first DB learner fallback
     target_learner_id = None
@@ -87,6 +89,7 @@ async def evaluate_voice_session(
             target_learner_id = first_learner.learner_id
 
     # 2. Fetch lesson and infer target text & language code
+    # Resolve real language via Lesson -> Module -> Curriculum -> Language.iso_code
     lesson = db.query(models.Lesson).filter(models.Lesson.lesson_id == lesson_id).first()
     
     target_text = "Hello, how are you today?"
@@ -103,7 +106,7 @@ async def evaluate_voice_session(
         except Exception:
             pass
 
-    # If language is still undetermined or default, detect directly from target_text script characters
+    # If language is still undetermined, detect directly from target_text script characters
     if not inferred_lang or inferred_lang in ("en", ""):
         inferred_lang = detect_script_language(target_text, fallback=inferred_lang or "en")
 
@@ -118,32 +121,31 @@ async def evaluate_voice_session(
 
     inferred_lang = inferred_lang or "en"
 
-    # 3. Read audio bytes and save physical file to disk
+    # 3. Read audio bytes if file was provided
     audio_bytes = None
-    saved_audio_url = ""
+    audio_filename = "recording.wav"
     calculated_duration = 3
 
     if audio_file:
         audio_bytes = await audio_file.read()
-        if audio_bytes and len(audio_bytes) > 0:
-            unique_filename = f"voice_l{target_learner_id or 0}_les{lesson_id}_{int(time.time())}_{uuid.uuid4().hex[:8]}.wav"
-            file_path = os.path.join(AUDIO_STORAGE_DIR, unique_filename)
-            with open(file_path, "wb") as fh:
-                fh.write(audio_bytes)
-            
-            saved_audio_url = f"/api/voice/audio/{unique_filename}"
+        if audio_file.filename:
+            audio_filename = audio_file.filename
+        if audio_bytes:
             calculated_duration = max(1, round(len(audio_bytes) / 32000))
 
     # 4. Multi-tier Speech-to-Text Transcription (Sarvam AI Saaras v3 -> Web Speech API -> Python SpeechRecognition)
+    # Spanish ('es') is guarded inside sarvam_service to skip Sarvam and use client transcript
     stt_result = await sarvam_service.transcribe_audio(
         audio_bytes=audio_bytes,
         language_code=inferred_lang,
         client_transcript=transcript,
-        target_text=target_text
+        target_text=target_text,
+        audio_filename=audio_filename
     )
 
     recognized_text = stt_result.get("transcript", "").strip()
     stt_provider = stt_result.get("provider", "none")
+    detected_lang = stt_result.get("language_code", inferred_lang)
 
     # 5. Evaluate Pronunciation & Phoneme Similarity
     eval_result = evaluate_pronunciation(
@@ -152,8 +154,10 @@ async def evaluate_voice_session(
         language_code=inferred_lang
     )
 
-    # 6. Save Voice Session in DB (if target learner exists)
+    # 6. Save Voice Session in DB and persist audio bytes to backend/storage/audio/{learner_id}/{session_id}.<ext>
     voice_session_id = None
+    saved_audio_url = ""
+
     try:
         if target_learner_id:
             learner_exists = db.query(models.Learner).filter(models.Learner.learner_id == target_learner_id).first()
@@ -161,13 +165,27 @@ async def evaluate_voice_session(
                 voice_session = models.VoiceSession(
                     learner_id=target_learner_id,
                     lesson_id=lesson_id,
-                    audio_url=saved_audio_url or f"/api/voice/audio/virtual_l{target_learner_id}_les{lesson_id}.wav",
+                    audio_url="",
                     duration_sec=calculated_duration
                 )
                 db.add(voice_session)
                 db.commit()
                 db.refresh(voice_session)
                 voice_session_id = voice_session.session_id
+
+                # Save physical audio file to backend/storage/audio/{target_learner_id}/{session_id}.<ext>
+                if audio_bytes and len(audio_bytes) > 0:
+                    ext = "mp3" if audio_filename.lower().endswith(".mp3") else "wav"
+                    learner_dir = os.path.join(AUDIO_STORAGE_DIR, str(target_learner_id))
+                    os.makedirs(learner_dir, exist_ok=True)
+                    stored_name = f"{voice_session_id}.{ext}"
+                    abs_file_path = os.path.join(learner_dir, stored_name)
+                    with open(abs_file_path, "wb") as fh:
+                        fh.write(audio_bytes)
+                    
+                    saved_audio_url = f"backend/storage/audio/{target_learner_id}/{stored_name}"
+                    voice_session.audio_url = saved_audio_url
+                    db.commit()
 
                 # Save Pronunciation Score
                 score_rec = models.PronunciationScore(
@@ -205,7 +223,7 @@ async def evaluate_voice_session(
         "recognized_text": recognized_text,
         "stt_provider": stt_provider,
         "target_text": target_text,
-        "language_code": inferred_lang,
+        "language_code": detected_lang,
         "phoneme_accuracy": eval_result["phoneme_accuracy"],
         "syllable_score": eval_result["syllable_score"],
         "overall_score": eval_result["overall_score"],

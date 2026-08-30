@@ -230,6 +230,7 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
     const spokenText = (explicitTranscript || recognizedText).trim();
 
     setIsProcessing(true);
+    setErrorMsg('');
 
     try {
       // 1. Submit audio and transcript to backend for Sarvam Saaras v3 STT & server evaluation
@@ -253,6 +254,7 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
         });
 
         if (backendRes && backendRes.overall_score !== undefined) {
+          // Authoritative backend evaluation result
           setEvaluation(backendRes);
           if (backendRes.recognized_text) {
             setRecognizedText(backendRes.recognized_text);
@@ -264,7 +266,8 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
         }
       }
     } catch (apiErr) {
-      console.warn("[Voice Coach] Server STT evaluation notice, using local scoring fallback:", apiErr);
+      console.error("[Voice Coach] Server STT evaluation failed:", apiErr);
+      setErrorMsg("Failed to check pronunciation with speech server. Please try again.");
     }
 
     // 2. Client-side evaluation fallback (if offline or backend unreachable)
@@ -459,7 +462,7 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
           }`}
         >
           {isProcessing ? (
-            <><Loader size={22} className="animate-spin" /><span>Analyzing your speech...</span></>
+            <><Loader size={22} className="animate-spin" /><span>Checking pronunciation…</span></>
           ) : isRecording ? (
             <><MicOff size={22} /><span>Stop Recording</span></>
           ) : (
