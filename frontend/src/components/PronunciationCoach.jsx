@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Mic, Volume2, RotateCcw, Sparkles, MicOff, Loader } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
-import { apiRequest } from '../services/api';
+import { apiRequest, API_BASE_URL } from '../services/api';
 import { playSynthesizedPhoneme } from '../utils/audioSynthesizer';
 import { PcmWavRecorder } from '../utils/audioRecorder';
 
@@ -145,8 +145,8 @@ export default function PronunciationCoach({ lesson, learnerId, onScoreUpdate, o
     setIsPlayingAudio(true);
 
     try {
-      // 1. Primary: High-Fidelity Local Backend Spoken Audio Endpoint (http://127.0.0.1:8000/api/voice/tts)
-      const backendTtsUrl = `http://127.0.0.1:8000/api/voice/tts?text=${encodeURIComponent(cleanText.slice(0, 250))}&lang=${langCode}`;
+      // 1. Primary: High-Fidelity Local Backend Spoken Audio Endpoint (/api/voice/tts)
+      const backendTtsUrl = `${API_BASE_URL}/voice/tts?text=${encodeURIComponent(cleanText.slice(0, 250))}&lang=${langCode}`;
       const audio = new Audio(backendTtsUrl);
       audio.playbackRate = rateMultiplier;
       

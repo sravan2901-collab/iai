@@ -3,6 +3,7 @@ import {
   Database, PlusCircle, Trash2, BookOpen, Layers, Globe, 
   CheckCircle2, AlertCircle, RefreshCw, FileText, Sparkles, Filter, Search 
 } from 'lucide-react';
+import { apiRequest } from '../services/api';
 
 export default function AdminPanel() {
   const [summary, setSummary] = useState(null);
@@ -40,21 +41,20 @@ export default function AdminPanel() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [sumRes, modRes, lesRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/api/admin/summary'),
-        fetch('http://127.0.0.1:8000/api/admin/modules'),
-        fetch('http://127.0.0.1:8000/api/admin/lessons')
+      const [sumData, modData, lesData] = await Promise.all([
+        apiRequest('/admin/summary'),
+        apiRequest('/admin/modules'),
+        apiRequest('/admin/lessons')
       ]);
 
-      if (sumRes.ok) setSummary(await sumRes.json());
-      if (modRes.ok) {
-        const modData = await modRes.json();
+      if (sumData) setSummary(sumData);
+      if (modData) {
         setModules(modData);
         if (modData.length > 0 && !lessonForm.module_id) {
           setLessonForm(prev => ({ ...prev, module_id: modData[0].module_id }));
         }
       }
-      if (lesRes.ok) setLessons(await lesRes.json());
+      if (lesData) setLessons(lesData);
     } catch (err) {
       console.error("Failed to fetch admin data:", err);
       setAlertMsg({ type: 'error', text: 'Could not connect to AksharAI backend server.' });
@@ -81,28 +81,22 @@ export default function AdminPanel() {
     }
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/admin/lessons', {
+      const data = await apiRequest('/admin/lessons', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(lessonForm)
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        setAlertMsg({ type: 'success', text: `Lesson "${lessonForm.title}" added successfully!` });
-        setLessonForm(prev => ({
-          ...prev,
-          title: '',
-          target_text: '',
-          phonetic_script: '',
-          content_url: ''
-        }));
-        fetchData();
-      } else {
-        setAlertMsg({ type: 'error', text: data.detail || 'Failed to add lesson.' });
-      }
+      setAlertMsg({ type: 'success', text: `Lesson "${lessonForm.title}" added successfully!` });
+      setLessonForm(prev => ({
+        ...prev,
+        title: '',
+        target_text: '',
+        phonetic_script: '',
+        content_url: ''
+      }));
+      fetchData();
     } catch (err) {
-      setAlertMsg({ type: 'error', text: 'Server connection failed.' });
+      setAlertMsg({ type: 'error', text: err.message || 'Server connection failed.' });
     }
   };
 
@@ -114,22 +108,16 @@ export default function AdminPanel() {
     }
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/admin/modules', {
+      const data = await apiRequest('/admin/modules', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(moduleForm)
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        setAlertMsg({ type: 'success', text: `Module "${moduleForm.module_name}" created successfully!` });
-        setModuleForm(prev => ({ ...prev, module_name: '' }));
-        fetchData();
-      } else {
-        setAlertMsg({ type: 'error', text: data.detail || 'Failed to create module.' });
-      }
+      setAlertMsg({ type: 'success', text: `Module "${moduleForm.module_name}" created successfully!` });
+      setModuleForm(prev => ({ ...prev, module_name: '' }));
+      fetchData();
     } catch (err) {
-      setAlertMsg({ type: 'error', text: 'Server connection failed.' });
+      setAlertMsg({ type: 'error', text: err.message || 'Server connection failed.' });
     }
   };
 
@@ -137,18 +125,14 @@ export default function AdminPanel() {
     if (!window.confirm(`Are you sure you want to delete lesson "${title}"?`)) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/lessons/${lessonId}`, {
+      await apiRequest(`/admin/lessons/${lessonId}`, {
         method: 'DELETE'
       });
 
-      if (res.ok) {
-        setAlertMsg({ type: 'success', text: `Lesson "${title}" deleted successfully.` });
-        fetchData();
-      } else {
-        setAlertMsg({ type: 'error', text: 'Failed to delete lesson.' });
-      }
+      setAlertMsg({ type: 'success', text: `Lesson "${title}" deleted successfully.` });
+      fetchData();
     } catch (err) {
-      setAlertMsg({ type: 'error', text: 'Server connection failed.' });
+      setAlertMsg({ type: 'error', text: err.message || 'Server connection failed.' });
     }
   };
 

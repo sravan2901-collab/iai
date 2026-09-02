@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen, Volume2, CheckCircle, Sparkles, Eye, ArrowLeft, ArrowRight, RefreshCw } from 'lucide-react';
+import { API_BASE_URL } from '../services/api';
 
 export default function ReadingStudioCard({ lesson, onClose }) {
   const targetText = lesson?.target_text || "Open, Closed, Exit, Stop";
@@ -34,7 +35,7 @@ export default function ReadingStudioCard({ lesson, onClose }) {
     try {
       const cleanText = (wordToSpeak || targetText).replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
       const encodedText = encodeURIComponent(cleanText.slice(0, 200));
-      const audioUrl = `http://127.0.0.1:8000/api/voice/tts?text=${encodedText}&lang=${lesson?.lang || 'te'}`;
+      const audioUrl = `${API_BASE_URL}/voice/tts?text=${encodedText}&lang=${lesson?.lang || 'te'}`;
       const audio = new Audio(audioUrl);
       audio.onended = () => setIsPlayingAudio(false);
       audio.onerror = () => setIsPlayingAudio(false);

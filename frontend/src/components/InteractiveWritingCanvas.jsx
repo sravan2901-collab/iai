@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { PenTool, RotateCcw, CheckCircle, Sparkles, Volume2, Eraser, Download, ArrowLeft } from 'lucide-react';
-import { apiRequest } from '../services/api';
+import { apiRequest, API_BASE_URL } from '../services/api';
 
 export default function InteractiveWritingCanvas({ lesson, onClose }) {
   const canvasRef = useRef(null);
@@ -230,7 +230,7 @@ export default function InteractiveWritingCanvas({ lesson, onClose }) {
     try {
       const cleanText = targetText.replace(/[.,!?;:'"\\\/\-_]/g, ' ').trim();
       const encodedText = encodeURIComponent(cleanText.slice(0, 200));
-      const audioUrl = `http://127.0.0.1:8000/api/voice/tts?text=${encodedText}&lang=${lesson?.lang || 'te'}`;
+      const audioUrl = `${API_BASE_URL}/voice/tts?text=${encodedText}&lang=${lesson?.lang || 'te'}`;
       const audio = new Audio(audioUrl);
       audio.onended = () => setIsPlayingAudio(false);
       audio.onerror = () => setIsPlayingAudio(false);
