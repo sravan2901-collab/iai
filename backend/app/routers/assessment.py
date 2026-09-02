@@ -940,8 +940,15 @@ def submit_initial_assessment(
                 db.commit()
                 db.refresh(db_q)
 
-        # 4. Write individual question result to AssessmentResult table
-        q_score = 12.0 if (idx == 8 and is_q_correct) else (11.0 if is_q_correct else 0.0)
+        # 4. Write individual question result to AssessmentResult table with deterministic, skill-calibrated weighting
+        skill_type = q_def.get("skill_type", "READ") if q_def else "READ"
+        # Reading: 3 questions * 11 = 33 | Writing: 3 questions * 11 = 33 | Voice: 2 questions * 11 + 1 question (difficulty 3/stage 9) * 12 = 34 | Total: 100
+        if skill_type == "SPEAK" and ((q_def and q_def.get("difficulty", 1) >= 3) or idx == 8):
+            q_weight = 12.0
+        else:
+            q_weight = 11.0
+
+        q_score = q_weight if is_q_correct else 0.0
 
         result_row = models.AssessmentResult(
             learner_id=learner_id,
@@ -961,23 +968,20 @@ def submit_initial_assessment(
             "question_id": q_id,
             "stage": q_def.get("stage", idx + 1) if q_def else (idx + 1),
             "difficulty": q_def.get("difficulty", idx + 1) if q_def else (idx + 1),
-            "skill_type": q_def.get("skill_type", "READ") if q_def else "READ",
+            "skill_type": skill_type,
             "question_title": q_def.get("question_title", f"Question {idx+1}/9") if q_def else f"Question {idx+1}/9",
             "question_text": q_def.get("question_text", "") if q_def else "",
             "user_answer": user_answer_str,
             "correct_answer": correct_answer_str,
-            "is_correct": is_q_correct
+            "is_correct": is_q_correct,
+            "score": q_score
         })
 
     db.commit()
 
-    read_correct = sum(1 for v in validated_details if v["skill_type"] == "READ" and v["is_correct"])
-    write_correct = sum(1 for v in validated_details if v["skill_type"] == "WRITE" and v["is_correct"])
-    speak_correct = sum(1 for v in validated_details if v["skill_type"] == "SPEAK" and v["is_correct"])
-
-    reading_score = min(33, read_correct * 11)
-    writing_score = min(33, write_correct * 11)
-    voice_score = 34 if speak_correct == 3 else (speak_correct * 11)
+    reading_score = int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "READ")))
+    writing_score = int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "WRITE")))
+    voice_score = int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "SPEAK")))
 
     total_score = reading_score + writing_score + voice_score
 
