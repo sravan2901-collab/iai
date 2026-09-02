@@ -311,7 +311,7 @@ app.add_middleware(
 )
 
 # Register Router Modules
-from app.routers import learners, admin, reports
+from app.routers import learners, admin, reports, recommendations
 
 app.include_router(auth.router)
 app.include_router(curriculum.router)
@@ -320,6 +320,7 @@ app.include_router(assessment.router)
 app.include_router(learning_path.router)
 app.include_router(progress.router)
 app.include_router(recommendation.router)
+app.include_router(recommendations.router)
 app.include_router(reports.router)
 app.include_router(learners.router)
 app.include_router(admin.router)
