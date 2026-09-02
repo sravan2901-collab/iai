@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app import models, schemas
+from app import models
 from typing import List, Optional
 from pydantic import BaseModel
 from app.auth import get_optional_current_learner
@@ -1033,7 +1033,7 @@ def submit_initial_assessment(
 
     # Trigger AI / Rule-Based Learning Path Engine
     try:
-        engine_path_id = generate_learning_path(learner_id, db=db)
+        generate_learning_path(learner_id, db=db)
         ai_active_path = get_active_path(learner_id, db=db)
     except Exception as e:
         print(f"[AI ENGINE NOTICE] Learning path engine notice: {e}")

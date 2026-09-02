@@ -303,7 +303,7 @@ class AICourseGenerator:
             }
         ]
 
-        ai_response, provider = await self._call_ai(messages)
+        ai_response, _provider = await self._call_ai(messages)
         if ai_response:
             clean_text = ai_response.strip()
             if clean_text.startswith("{") and clean_text.endswith("}"):

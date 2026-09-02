@@ -562,7 +562,14 @@ def trigger_adaptive_replanning(learner_id: int, path: models.LearningPath, db: 
     reason = f"Adaptive Re-Planning Triggered! Recent performance update: {new_weakest_skill} is now lowest ({new_weakest_score}%). Re-ordered upcoming locked lessons to prioritize {new_weakest_skill} mastery."
     return True, reason
 
-def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: Session, award_points: bool = True):
+def complete_lesson_workflow(
+    learner_id: int,
+    lesson_id: int,
+    score: float,
+    db: Session,
+    award_points: bool = True,
+    path_lesson_id: Optional[int] = None
+):
     lesson = db.query(models.Lesson).filter(models.Lesson.lesson_id == lesson_id).first()
     if not lesson:
         return None
@@ -576,10 +583,16 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
     if not path:
         return None
 
-    path_lesson = db.query(models.PathLesson).filter(
-        models.PathLesson.path_id == path.path_id,
-        models.PathLesson.lesson_id == lesson_id
-    ).first()
+    if path_lesson_id:
+        path_lesson = db.query(models.PathLesson).filter(
+            models.PathLesson.path_lesson_id == path_lesson_id,
+            models.PathLesson.path_id == path.path_id
+        ).first()
+    else:
+        path_lesson = db.query(models.PathLesson).filter(
+            models.PathLesson.path_id == path.path_id,
+            models.PathLesson.lesson_id == lesson_id
+        ).first()
 
     if path_lesson:
         path_lesson.status = "COMPLETED"

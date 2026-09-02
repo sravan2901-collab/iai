@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
 from app.services.content_repository import MultilingualContentRepository
-from typing import List, Optional
 
 router = APIRouter(prefix="/api/curriculum", tags=["Curriculum & Lessons"])
 

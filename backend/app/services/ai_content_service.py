@@ -7,8 +7,7 @@ falls back to rule-based logic if Ollama is offline or disabled.
 """
 
 import json
-import urllib.request
-import urllib.error
+from urllib import request as urllib_request
 from typing import Dict, List, Optional, Any
 from app.config import settings
 
@@ -22,8 +21,8 @@ def is_ai_available() -> bool:
 
     url = f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/version"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "AksharAI-Backend"})
-        with urllib.request.urlopen(req, timeout=2) as resp:
+        req = urllib_request.Request(url, headers={"User-Agent": "AksharAI-Backend"})
+        with urllib_request.urlopen(req, timeout=2) as resp:
             return resp.status == 200
     except Exception:
         return False
@@ -49,8 +48,8 @@ def _query_ollama_json(prompt: str, system_prompt: str = "") -> Optional[Any]:
     data = json.dumps(payload).encode("utf-8")
 
     try:
-        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-        with urllib.request.urlopen(req, timeout=settings.OLLAMA_TIMEOUT_SECONDS) as resp:
+        req = urllib_request.Request(url, data=data, headers=headers, method="POST")
+        with urllib_request.urlopen(req, timeout=settings.OLLAMA_TIMEOUT_SECONDS) as resp:
             if resp.status != 200:
                 return None
             res_body = resp.read().decode("utf-8")

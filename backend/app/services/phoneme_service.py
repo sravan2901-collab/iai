@@ -11,7 +11,7 @@ Implements:
 
 import re
 import unicodedata
-from typing import Dict, List, Any, Tuple, Optional
+from typing import Dict, List, Any
 
 # =====================================================================
 # 1. PANPHON ARTICULATORY FEATURE VECTORS (22 DISTINCTIVE FEATURES)
@@ -391,7 +391,7 @@ def evaluate_pronunciation(target_text: str, spoken_text: str, language_code: st
     total_sim = 0.0
     used_spoken = set()
 
-    for i, tw in enumerate(clean_target_words):
+    for tw in clean_target_words:
         best_sim = 0.0
         best_idx = -1
 

@@ -4,7 +4,6 @@ Handles lesson completion tracking, dashboard aggregation, and progress analytic
 """
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from app.database import get_db
 from app import models
 from app.auth import get_optional_current_learner
@@ -208,7 +207,8 @@ async def complete_lesson(
         learner_id=current_learner.learner_id,
         lesson_id=lesson_id,
         score=score,
-        db=db
+        db=db,
+        path_lesson_id=path_lesson_id
     )
 
     if not result:

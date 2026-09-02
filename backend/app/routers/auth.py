@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
@@ -9,7 +9,6 @@ from app.services.email_service import email_service
 from typing import Optional
 import random
 import os
-import json
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication & Learner Profile"])
 

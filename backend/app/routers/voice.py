@@ -9,8 +9,6 @@ Provides REST endpoints for:
 """
 
 import os
-import time
-import uuid
 from io import BytesIO
 from typing import Optional
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Response

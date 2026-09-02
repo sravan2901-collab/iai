@@ -11,7 +11,7 @@ DEFAULT_DB_PATH = os.path.join(BACKEND_DIR, "aksharai_dev.db")
 
 if not database_url.startswith("sqlite"):
     try:
-        import psycopg2
+        __import__("psycopg2")
         engine = create_engine(database_url, pool_pre_ping=True)
     except Exception:
         print(f"[DATABASE] PostgreSQL unavailable. Falling back to local SQLite database: {DEFAULT_DB_PATH}")

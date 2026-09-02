@@ -233,7 +233,7 @@ class PyTorchAIEngine:
         targets = torch.tensor(Y_labels, dtype=torch.long)
 
         final_loss = 0.0
-        for epoch in range(epochs):
+        for _epoch in range(epochs):
             optimizer.zero_grad()
             probs, _ = self.proficiency_net(inputs)
             loss = criterion(probs, targets)
