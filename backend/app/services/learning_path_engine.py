@@ -7,6 +7,7 @@ LLM generation via Ollama (ai_content_service) with immediate fallback to
 deterministic rule-based lesson selection.
 """
 
+import json
 from typing import Dict, Optional, Any, List
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
