@@ -43,13 +43,26 @@ class Settings(BaseSettings):
     GROQ_ENDPOINT: str = "https://api.groq.com/openai/v1/chat/completions"
     AI_PROVIDER: str = os.getenv("AI_PROVIDER", "auto")  # "auto" | "groq" | "ollama" | "none"
 
-    # CORS
+    # CORS Allowed Origins (Explicit domains only — no wildcard with credentials)
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
-        "http://localhost:3000",
         "http://127.0.0.1:5173",
-        "*"
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080"
     ]
+
+    @property
+    def cors_origins(self) -> list[str]:
+        raw = os.getenv("BACKEND_CORS_ORIGINS") or os.getenv("CORS_ORIGINS")
+        if raw:
+            parsed = [o.strip() for o in raw.split(",") if o.strip() and o.strip() != "*"]
+            if parsed:
+                return parsed
+        return [o for o in self.BACKEND_CORS_ORIGINS if o != "*"]
 
     model_config = SettingsConfigDict(
         env_file=".env",
