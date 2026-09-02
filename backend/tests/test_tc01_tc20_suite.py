@@ -206,7 +206,8 @@ class TestTC01ToTC20Matrix(unittest.TestCase):
     def test_14_TC14_get_proficiency_levels_for_learner(self):
         """TC14: Get proficiency levels for a learner (GET /api/learners/{learner_id}/proficiency)"""
         lid = TestTC01ToTC20Matrix.valid_user_id or 1
-        res = client.get(f"/api/learners/{lid}/proficiency")
+        headers = {"Authorization": f"Bearer {TestTC01ToTC20Matrix.valid_token}"}
+        res = client.get(f"/api/learners/{lid}/proficiency", headers=headers)
         self.assertEqual(res.status_code, 200, f"TC14 Failed: {res.text}")
         data = res.json()
         self.assertIsInstance(data, dict)
@@ -214,7 +215,8 @@ class TestTC01ToTC20Matrix(unittest.TestCase):
 
     def test_15_TC15_get_proficiency_fails_non_existent_learner(self):
         """TC15: Get proficiency fails for non-existent learner (GET /api/learners/{learner_id}/proficiency)"""
-        res = client.get("/api/learners/999999/proficiency")
+        headers = {"Authorization": f"Bearer {TestTC01ToTC20Matrix.valid_token}"}
+        res = client.get("/api/learners/999999/proficiency", headers=headers)
         self.assertEqual(res.status_code, 404, f"TC15 Failed: {res.text}")
         data = res.json()
         self.assertIn("Learner with ID 999999 not found", data.get("detail", ""))

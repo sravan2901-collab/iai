@@ -130,17 +130,12 @@ export default function LearningPath({ assessmentResult, onSelectLesson, onRetak
     const fetchPath = async () => {
       try {
         setLoading(true);
-        let data = null;
-        try {
-          data = await apiRequest(`/learning-path/active?lang=${selectedLang}`);
-        } catch (e1) {
-          data = await apiRequest(`/learners/100/learning-path?lang=${selectedLang}`);
-        }
-
+        const data = await apiRequest(`/learning-path/active?lang=${selectedLang}`);
         const formatted = formatPathDataWithMilestones(data);
         setPathData(formatted);
         setTimeout(() => setShowProgress(formatted?.completion_percentage || 15), 100);
       } catch (err) {
+        console.warn("Could not load active learning path from server:", err.message);
         // Fallback default path data if backend dropped connection
         const fallbackData = {
           path_id: 1,
