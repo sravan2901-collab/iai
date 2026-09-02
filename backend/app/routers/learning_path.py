@@ -345,7 +345,10 @@ async def generate_personalized_path(learner_id: int, lang_code: str, db: Sessio
     other_modules = [m for m in modules if not is_weak_module(m)]
     sorted_modules = weak_modules + other_modules
 
-    path = db.query(models.LearningPath).filter(models.LearningPath.learner_id == learner_id).first()
+    path = db.query(models.LearningPath).filter(
+        models.LearningPath.learner_id == learner_id,
+        models.LearningPath.status == "ACTIVE"
+    ).order_by(models.LearningPath.path_id.desc()).first()
     if not path:
         path = models.LearningPath(
             learner_id=learner_id,
@@ -566,7 +569,10 @@ def complete_lesson_workflow(learner_id: int, lesson_id: int, score: float, db: 
 
     module_id = lesson.module_id
 
-    path = db.query(models.LearningPath).filter(models.LearningPath.learner_id == learner_id).first()
+    path = db.query(models.LearningPath).filter(
+        models.LearningPath.learner_id == learner_id,
+        models.LearningPath.status == "ACTIVE"
+    ).order_by(models.LearningPath.path_id.desc()).first()
     if not path:
         return None
 

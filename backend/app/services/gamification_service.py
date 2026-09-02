@@ -169,8 +169,9 @@ def check_and_award_achievements(
 
     # 2. Query learner progress state
     path = db.query(models.LearningPath).filter(
-        models.LearningPath.learner_id == learner_id
-    ).first()
+        models.LearningPath.learner_id == learner_id,
+        models.LearningPath.status == "ACTIVE"
+    ).order_by(models.LearningPath.path_id.desc()).first()
 
     completed_lessons_count = 0
     if path:

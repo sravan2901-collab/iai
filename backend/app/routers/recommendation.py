@@ -59,8 +59,9 @@ async def get_recommendations(
 
     # 3. Count lesson progress
     path = db.query(models.LearningPath).filter(
-        models.LearningPath.learner_id == learner_id
-    ).first()
+        models.LearningPath.learner_id == learner_id,
+        models.LearningPath.status == "ACTIVE"
+    ).order_by(models.LearningPath.path_id.desc()).first()
 
     completed_lessons = 0
     total_lessons = 0

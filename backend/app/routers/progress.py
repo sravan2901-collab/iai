@@ -25,8 +25,9 @@ def build_learner_progress_snapshot(current_learner: models.Learner, db: Session
 
     # Get active learning path
     path = db.query(models.LearningPath).filter(
-        models.LearningPath.learner_id == learner_id
-    ).first()
+        models.LearningPath.learner_id == learner_id,
+        models.LearningPath.status == "ACTIVE"
+    ).order_by(models.LearningPath.path_id.desc()).first()
 
     # Count path lesson stats
     total_lessons = 0
@@ -239,8 +240,9 @@ async def get_module_progress(
 
     # Get path lessons for status
     path = db.query(models.LearningPath).filter(
-        models.LearningPath.learner_id == current_learner.learner_id
-    ).first()
+        models.LearningPath.learner_id == current_learner.learner_id,
+        models.LearningPath.status == "ACTIVE"
+    ).order_by(models.LearningPath.path_id.desc()).first()
 
     lesson_details = []
     for lesson in lessons:
@@ -288,8 +290,9 @@ async def get_learning_history(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     path = db.query(models.LearningPath).filter(
-        models.LearningPath.learner_id == current_learner.learner_id
-    ).first()
+        models.LearningPath.learner_id == current_learner.learner_id,
+        models.LearningPath.status == "ACTIVE"
+    ).order_by(models.LearningPath.path_id.desc()).first()
 
     if not path:
         return {"history": [], "total_completed": 0}
