@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Award, CheckCircle, Mic, ArrowRight, ArrowLeft, BookOpen, Edit3, Volume2, RefreshCw, AlertCircle, XCircle } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
 import { apiRequest } from '../services/api';
+import { PcmWavRecorder } from '../utils/audioRecorder';
 
 export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLang = 'en' }) {
   const [questions, setQuestions] = useState([]);
@@ -108,76 +109,159 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     'es': 'es-ES'
   };
 
-  // Voice recording & evaluation for SPEAK questions (Cross-browser supported)
+  const wavRecorderRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const recordingTimeoutRef = useRef(null);
+
+  const evaluateSpeechMatch = (targetText, spokenText) => {
+    if (!spokenText || !targetText) return false;
+    const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9\u0900-\u097F\u0C00-\u0C7F\u0B80-\u0BFF\u0980-\u09FF\u0C80-\u0CFF\u00C0-\u017F\s]/g, '').trim();
+    const target = normalize(targetText);
+    const speech = normalize(spokenText);
+    if (!speech || !target) return false;
+    if (speech === target) return true;
+
+    const targetWords = target.split(/\s+/).filter(w => w.length > 1);
+    const speechWords = speech.split(/\s+/).filter(w => w.length > 1);
+    if (targetWords.length === 0 || speechWords.length === 0) return false;
+
+    const matches = speechWords.filter(sw => targetWords.some(tw => tw.includes(sw) || sw.includes(tw)));
+    return (matches.length / targetWords.length) >= 0.5;
+  };
+
+  const stopVoiceRecording = async (transcriptHint = "") => {
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
+
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+    }
+
+    let wavBlob = null;
+    if (wavRecorderRef.current) {
+      try {
+        wavBlob = await wavRecorderRef.current.stop();
+      } catch (e) {
+        console.warn("WAV capture notice in diagnostic:", e);
+      }
+    }
+
+    setIsRecording(false);
+    const targetLang = DIAGNOSTIC_LANG_MAP[selectedLang] || 'en-IN';
+    const target = (currentQ?.target_text || "").trim();
+
+    let finalRecognizedText = transcriptHint || transcribedText || "";
+    let isMatch = false;
+
+    // Send audio to backend for server-side Sarvam Saaras v3 STT + phonetic evaluation
+    if (wavBlob && wavBlob.size > 0) {
+      try {
+        const formData = new FormData();
+        formData.append('audio_file', wavBlob, 'diagnostic_voice.wav');
+        formData.append('target_text', target);
+        formData.append('language_code', targetLang);
+        if (finalRecognizedText) {
+          formData.append('transcript', finalRecognizedText);
+        }
+        const activeLearnerId = localStorage.getItem('aksharai_learner_id') || '1';
+        formData.append('learner_id', String(activeLearnerId));
+
+        const backendRes = await apiRequest('/voice/evaluate', {
+          method: 'POST',
+          body: formData,
+          isFormData: true
+        });
+
+        if (backendRes && (backendRes.recognized_text !== undefined || backendRes.overall_score !== undefined)) {
+          if (backendRes.recognized_text) {
+            finalRecognizedText = backendRes.recognized_text.trim();
+          }
+          if (backendRes.overall_score !== undefined && backendRes.overall_score >= 50.0) {
+            isMatch = true;
+          } else {
+            isMatch = evaluateSpeechMatch(target, finalRecognizedText);
+          }
+        }
+      } catch (apiErr) {
+        console.error("Diagnostic speech evaluation API notice:", apiErr);
+      }
+    }
+
+    // Fallback if backend was unreachable but client recognition captured speech
+    if (!isMatch && finalRecognizedText) {
+      isMatch = evaluateSpeechMatch(target, finalRecognizedText);
+    }
+
+    // Update answer state — accurately record speech or empty string on silence (NEVER auto-pass!)
+    if (finalRecognizedText && finalRecognizedText.length > 0) {
+      setTranscribedText(finalRecognizedText);
+      setUserAnswers(prev => ({
+        ...prev,
+        [currentIdx]: {
+          stage: currentQ.stage || (currentIdx + 1),
+          skill_type: currentQ.skill_type,
+          spoken_text: finalRecognizedText,
+          is_correct: isMatch
+        }
+      }));
+    } else {
+      setTranscribedText("");
+      setUserAnswers(prev => ({
+        ...prev,
+        [currentIdx]: {
+          stage: currentQ.stage || (currentIdx + 1),
+          skill_type: currentQ.skill_type,
+          spoken_text: "",
+          is_correct: false
+        }
+      }));
+    }
+  };
+
+  // Voice recording & evaluation for SPEAK questions (Cross-browser supported on Chrome, Safari, Firefox, iOS, Android)
   const startVoiceRecording = async () => {
     try {
       const targetLang = DIAGNOSTIC_LANG_MAP[selectedLang] || 'en-IN';
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      setTranscribedText("");
+      setIsRecording(true);
 
+      // Start cross-browser 16kHz PCM WAV recorder (Safari / Firefox / Chrome)
+      const recorder = new PcmWavRecorder();
+      await recorder.start();
+      wavRecorderRef.current = recorder;
+      if (recorder.stream) {
+        setMediaStream(recorder.stream);
+      }
+
+      // Concurrently run Web Speech Recognition if supported for immediate live transcript hints
+      let liveTranscript = "";
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.lang = targetLang;
-        recognition.interimResults = false;
+        recognition.interimResults = true;
         recognition.maxAlternatives = 1;
-
-        setIsRecording(true);
-        recognition.start();
-
         recognition.onresult = (event) => {
-          const speechResult = event.results[0][0].transcript;
-          setTranscribedText(speechResult);
-          setIsRecording(false);
-
-          const target = (currentQ?.target_text || "").trim().toLowerCase();
-          const cleanSpeech = speechResult.trim().toLowerCase();
-          
-          // Verify speech match
-          const targetWords = target.split(' ').filter(w => w.length > 1);
-          const speechWords = cleanSpeech.split(' ').filter(w => w.length > 1);
-          const matches = speechWords.filter(sw => targetWords.some(tw => tw.includes(sw) || sw.includes(tw)));
-          const isMatch = (targetWords.length > 0 && (matches.length / targetWords.length) >= 0.5) || (cleanSpeech === target);
-
-          setUserAnswers(prev => ({
-            ...prev,
-            [currentIdx]: {
-              stage: currentQ.stage || (currentIdx + 1),
-              skill_type: currentQ.skill_type,
-              spoken_text: speechResult,
-              is_correct: isMatch
-            }
-          }));
+          const result = event.results[event.results.length - 1][0].transcript;
+          liveTranscript = result;
+          setTranscribedText(result);
         };
-
-        recognition.onerror = () => {
-          setIsRecording(false);
-        };
-        recognition.onend = () => {
-          setIsRecording(false);
-        };
-      } else {
-        // Microphone recording fallback for non-WebKit browsers (Safari/Firefox)
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
-        setMediaStream(stream);
-        setIsRecording(true);
-
-        setTimeout(() => {
-          setIsRecording(false);
-          if (stream) stream.getTracks().forEach(track => track.stop());
-          const target = (currentQ?.target_text || "").trim();
-          setTranscribedText(target);
-          setUserAnswers(prev => ({
-            ...prev,
-            [currentIdx]: {
-              stage: currentQ.stage || (currentIdx + 1),
-              skill_type: currentQ.skill_type,
-              spoken_text: target,
-              is_correct: true
-            }
-          }));
-        }, 2500);
+        recognition.onerror = () => {};
+        recognition.onend = () => {};
+        try { recognition.start(); } catch (e) {}
+        recognitionRef.current = recognition;
       }
+
+      // Record for 4 seconds then stop and evaluate real captured audio
+      recordingTimeoutRef.current = setTimeout(() => {
+        stopVoiceRecording(liveTranscript);
+      }, 4000);
+
     } catch (err) {
       setIsRecording(false);
+      console.error("Microphone access error:", err);
       alert("Microphone permission is required for voice assessment questions.");
     }
   };
