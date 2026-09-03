@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Award, CheckCircle, Mic, ArrowRight, ArrowLeft, BookOpen, Edit3, Volume2, RefreshCw, AlertCircle, XCircle } from 'lucide-react';
+import { Award, CheckCircle, Mic, ArrowRight, ArrowLeft, BookOpen, Edit3, Volume2, RefreshCw, AlertCircle, XCircle, Keyboard } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
 import { apiRequest } from '../services/api';
 import { PcmWavRecorder } from '../utils/audioRecorder';
@@ -16,6 +16,8 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
   const [mediaStream, setMediaStream] = useState(null);
   const [transcribedText, setTranscribedText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [allowManualSpeechInput, setAllowManualSpeechInput] = useState(false);
+  const [micErrorNotice, setMicErrorNotice] = useState(null);
 
   const NATIVE_FALLBACKS = {
     en: [
@@ -262,20 +264,16 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
     } catch (err) {
       setIsRecording(false);
       console.error("Microphone access error:", err);
-      alert("Microphone permission is required for voice assessment questions.");
+      setAllowManualSpeechInput(true);
+      setMicErrorNotice("Microphone unavailable or permission denied. You can type the native phrase manually below to complete this question.");
     }
   };
 
-  // Text input handler for speech verification fallback
+  // Text input handler for speech verification fallback (allows learners without a working mic to complete the question)
   const handleSpokenTextChange = (val) => {
     setTranscribedText(val);
-    const target = (currentQ?.target_text || "").trim().toLowerCase();
-    const cleanSpeech = val.trim().toLowerCase();
-    
-    const targetWords = target.split(' ').filter(w => w.length > 1);
-    const speechWords = cleanSpeech.split(' ').filter(w => w.length > 1);
-    const matches = speechWords.filter(sw => targetWords.some(tw => tw.includes(sw) || sw.includes(tw)));
-    const isMatch = cleanSpeech.length > 0 && ((targetWords.length > 0 && (matches.length / targetWords.length) >= 0.5) || (cleanSpeech === target));
+    const target = (currentQ?.target_text || "").trim();
+    const isMatch = evaluateSpeechMatch(target, val);
 
     setUserAnswers(prev => ({
       ...prev,
@@ -553,20 +551,75 @@ export default function DiagnosticTest({ onComplete, onSelectLesson, selectedLan
             <span>{isRecording ? "Listening to your voice..." : "Turn On Microphone & Speak Aloud Native Phrase"}</span>
           </button>
 
+          {/* Alternate Manual Entry Fallback Toggle */}
+          <div className="flex items-center justify-between text-xs pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setAllowManualSpeechInput(prev => !prev);
+                setMicErrorNotice(null);
+              }}
+              className="text-emerald-400 hover:text-emerald-300 underline font-medium flex items-center gap-1.5 cursor-pointer"
+            >
+              <Keyboard size={14} />
+              <span>{allowManualSpeechInput ? "Switch Back to Microphone" : "Microphone not working? Type text manually"}</span>
+            </button>
+            {allowManualSpeechInput && (
+              <span className="text-amber-300 text-[10px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-medium">
+                ⌨️ Manual verification active
+              </span>
+            )}
+          </div>
+
+          {/* Mic Unavailable Alert Notice */}
+          {micErrorNotice && (
+            <div className="p-3 bg-amber-500/15 border border-amber-500/30 rounded-xl text-left text-xs text-amber-200 flex items-start gap-2">
+              <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">{micErrorNotice}</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-slate-300 block font-medium">Extracted Speech Transcript (Voice Only):</label>
-              <span className="text-[10px] text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                🔒 Manual Typing Prohibited
-              </span>
+              <label className="text-xs text-slate-300 block font-medium">
+                {allowManualSpeechInput ? "Native Spoken Phrase (Manual Verification Entry):" : "Extracted Speech Transcript:"}
+              </label>
+              {allowManualSpeechInput ? (
+                <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                  ✏️ Manual Typing Enabled
+                </span>
+              ) : (
+                <span className="text-[10px] text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                  🎤 Voice Recording Active
+                </span>
+              )}
             </div>
             <input
               type="text"
               value={transcribedText}
-              readOnly={true}
-              placeholder="Live speech transcript will automatically appear here when you speak into the microphone..."
-              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 text-emerald-300 font-semibold text-sm focus:outline-none cursor-not-allowed select-none shadow-inner"
+              readOnly={!allowManualSpeechInput}
+              onChange={(e) => handleSpokenTextChange(e.target.value)}
+              placeholder={
+                allowManualSpeechInput
+                  ? "Type the native phrase shown above to verify pronunciation..."
+                  : "Live speech transcript will automatically appear here when you speak into the microphone..."
+              }
+              className={`w-full bg-slate-900/90 border rounded-xl p-3.5 text-emerald-300 font-semibold text-sm shadow-inner transition-colors ${
+                allowManualSpeechInput
+                  ? "border-emerald-500/80 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400 cursor-text"
+                  : "border-slate-700/80 focus:outline-none cursor-not-allowed select-none"
+              }`}
             />
+            {allowManualSpeechInput && transcribedText.trim().length > 0 && (
+              <p className="text-[11px] text-left text-slate-400">
+                Evaluation status:{" "}
+                <span className={evaluateSpeechMatch(currentQ.target_text, transcribedText) ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                  {evaluateSpeechMatch(currentQ.target_text, transcribedText) ? "✓ Phrase Match Verified" : "⚠️ Words do not match target phrase"}
+                </span>
+              </p>
+            )}
           </div>
         </div>
       )}
