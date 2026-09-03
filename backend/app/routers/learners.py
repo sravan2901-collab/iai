@@ -29,8 +29,18 @@ def _verify_learner_access(
 ) -> models.Learner:
     """
     Validates learner existence and ensures strict authentication and multi-tenant authorization.
-    Rejects unauthenticated callers (401) and unauthorized cross-tenant requests (403).
+    Enforces authentication FIRST (401) to prevent unauthenticated learner-ID enumeration (404 vs 401).
+    Then validates existence (404) and cross-tenant authorization (403).
     """
+    # 1. Authentication check FIRST — unauthenticated callers always receive 401,
+    # preventing enumeration of valid vs invalid learner IDs without logging in.
+    if not current_learner:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to access learner data."
+        )
+
+    # 2. Learner existence check
     target_learner = db.query(models.Learner).filter(models.Learner.learner_id == learner_id).first()
     if not target_learner:
         raise HTTPException(
@@ -38,12 +48,7 @@ def _verify_learner_access(
             detail=f"Learner with ID {learner_id} not found."
         )
 
-    if not current_learner:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required to access learner data."
-        )
-
+    # 3. Multi-tenant authorization check
     if current_learner.learner_id != learner_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -67,6 +67,11 @@ def run_learners_router_test():
     assert res1_unauth.status_code == 401, f"Expected 401, got {res1_unauth.status_code}"
     print(f"  -> HTTP {res1_unauth.status_code} [BLOCKED]")
 
+    print(f"\n[TEST 1.1b] GET /api/learners/{invalid_learner_id}/proficiency (Unauthenticated Non-Existent ID 401 - Anti-Enumeration)")
+    res1_unauth_inv = client.get(f"/api/learners/{invalid_learner_id}/proficiency")
+    assert res1_unauth_inv.status_code == 401, f"Expected 401 (anti-enumeration), got {res1_unauth_inv.status_code}"
+    print(f"  -> HTTP {res1_unauth_inv.status_code} [BLOCKED - ANTI-ENUMERATION VERIFIED]")
+
     print(f"\n[TEST 1.2] GET /api/learners/{valid_learner_id}/proficiency (Cross-Tenant IDOR 403)")
     res1_cross = client.get(f"/api/learners/{valid_learner_id}/proficiency", headers=other_headers)
     assert res1_cross.status_code == 403, f"Expected 403, got {res1_cross.status_code}"
