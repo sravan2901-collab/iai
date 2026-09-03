@@ -144,8 +144,18 @@ def generate_recommendations(
         # 4. Fetch learner and current language
         learner = db.query(models.Learner).filter(models.Learner.learner_id == learner_id).first()
         lang_id = learner.current_lang_id if (learner and learner.current_lang_id) else 2
+        learner_level = (learner.profile.literacy_level if (learner and learner.profile and learner.profile.literacy_level) else "FOUNDATIONAL").upper()
 
-        curriculum = db.query(models.Curriculum).filter(models.Curriculum.lang_id == lang_id).first()
+        curriculum = (
+            db.query(models.Curriculum)
+            .filter(
+                models.Curriculum.lang_id == lang_id,
+                models.Curriculum.level == learner_level
+            )
+            .first()
+        )
+        if not curriculum:
+            curriculum = db.query(models.Curriculum).filter(models.Curriculum.lang_id == lang_id).first()
         curr_id = curriculum.curriculum_id if curriculum else None
 
         new_rec_ids: List[int] = []

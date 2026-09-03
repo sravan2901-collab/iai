@@ -30,15 +30,19 @@ from app.services.ai_content_service import (
 LEVEL_ORDER = {
     "FOUNDATIONAL": 0,
     "BASIC": 1,
+    "FUNCTIONAL": 1,
     "INTERMEDIATE": 2,
-    "ADVANCED": 3,
+    "PROFICIENT": 3,
+    "ADVANCED": 4,
 }
 
 # Next level mapping for progressive literacy goals
 LEVEL_NEXT = {
-    "FOUNDATIONAL": "BASIC",
+    "FOUNDATIONAL": "FUNCTIONAL",
     "BASIC": "INTERMEDIATE",
+    "FUNCTIONAL": "PROFICIENT",
     "INTERMEDIATE": "ADVANCED",
+    "PROFICIENT": "PROFICIENT",
     "ADVANCED": "ADVANCED",
 }
 
@@ -87,10 +91,15 @@ def generate_learning_path(learner_id: int, target_lang: Optional[str] = None, d
             key=lambda s: LEVEL_ORDER.get(predictions.get(s, "FOUNDATIONAL"), 0)
         )
         weakest_level = predictions.get(weakest_skill, "FOUNDATIONAL")
-        target_level = LEVEL_NEXT.get(weakest_level, "BASIC")
 
-        # 3. Resolve Learner Language
+        # 3. Resolve Learner Language & Profile Context
         learner = db.query(models.Learner).filter(models.Learner.learner_id == learner_id).first()
+        if learner and learner.profile and learner.profile.literacy_level and all(p == "FOUNDATIONAL" for p in predictions.values()):
+            prof_level = learner.profile.literacy_level.upper().strip()
+            if prof_level in LEVEL_ORDER:
+                weakest_level = prof_level
+
+        target_level = LEVEL_NEXT.get(weakest_level, "FUNCTIONAL" if weakest_level == "FOUNDATIONAL" else "PROFICIENT")
         
         target_iso = (target_lang or "").strip().lower() if target_lang else None
         lang_obj = None
@@ -139,14 +148,36 @@ def generate_learning_path(learner_id: int, target_lang: Optional[str] = None, d
         db.commit()
         db.refresh(new_path)
 
-        # 6. Resolve Curriculum & Lessons
-        curriculum = db.query(models.Curriculum).filter(models.Curriculum.lang_id == lang_id).first()
+        # 6. Resolve Curriculum & Lessons matching the learner's assessed proficiency level
+        curr_level = weakest_level or "FOUNDATIONAL"
+        curriculum = (
+            db.query(models.Curriculum)
+            .filter(
+                models.Curriculum.lang_id == lang_id,
+                models.Curriculum.level == curr_level
+            )
+            .first()
+        )
+        if not curriculum:
+            # Fallback to target_level if available
+            curriculum = (
+                db.query(models.Curriculum)
+                .filter(
+                    models.Curriculum.lang_id == lang_id,
+                    models.Curriculum.level == target_level
+                )
+                .first()
+            )
+        if not curriculum:
+            # Fallback to any existing curriculum for this language
+            curriculum = db.query(models.Curriculum).filter(models.Curriculum.lang_id == lang_id).first()
+
         if not curriculum:
             curriculum = models.Curriculum(
                 lang_id=lang_id,
-                title=f"{lang_code.upper()} Literacy Curriculum",
-                level=weakest_level or "FOUNDATIONAL",
-                description=f"Personalized Literacy Curriculum for {lang_code.upper()}"
+                title=f"{lang_code.upper()} - {curr_level} Literacy Curriculum",
+                level=curr_level,
+                description=f"Personalized {curr_level} Literacy Curriculum for {lang_code.upper()}"
             )
             db.add(curriculum)
             db.commit()
