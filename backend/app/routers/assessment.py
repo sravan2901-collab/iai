@@ -942,11 +942,12 @@ def submit_initial_assessment(
 
         # 4. Write individual question result to AssessmentResult table with deterministic, skill-calibrated weighting
         skill_type = q_def.get("skill_type", "READ") if q_def else "READ"
-        # Reading: 3 questions * 11 = 33 | Writing: 3 questions * 11 = 33 | Voice: 2 questions * 11 + 1 question (difficulty 3/stage 9) * 12 = 34 | Total: 100
-        if skill_type == "SPEAK" and ((q_def and q_def.get("difficulty", 1) >= 3) or idx == 8):
-            q_weight = 12.0
-        else:
-            q_weight = 11.0
+        # Reading: 3 questions * 11 = 33 | Writing: 3 questions * 11 = 33 | Voice: 2 questions (Stages 3 & 6) * 11 + 1 question (Stage 9) * 12 = 34 | Total: 100
+        is_stage_9_speak = (skill_type == "SPEAK") and (
+            (q_def and (q_def.get("stage") == 9 or q_def.get("difficulty") == 9 or q_def.get("id") == 9))
+            or (not q_def and idx == 8)
+        )
+        q_weight = 12.0 if is_stage_9_speak else 11.0
 
         q_score = q_weight if is_q_correct else 0.0
 
@@ -979,11 +980,11 @@ def submit_initial_assessment(
 
     db.commit()
 
-    reading_score = int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "READ")))
-    writing_score = int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "WRITE")))
-    voice_score = int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "SPEAK")))
+    reading_score = min(33, int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "READ"))))
+    writing_score = min(33, int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "WRITE"))))
+    voice_score = min(34, int(round(sum(v["score"] for v in validated_details if v["skill_type"] == "SPEAK"))))
 
-    total_score = reading_score + writing_score + voice_score
+    total_score = min(100, reading_score + writing_score + voice_score)
 
     skill_breakdown = {
         "reading_score": reading_score,
