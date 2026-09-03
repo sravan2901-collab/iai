@@ -96,6 +96,33 @@ class TestAILearningPathGeneration(unittest.TestCase):
 
         print(f"  [OK] [AI Learning Path Engine] Generated path #{path_id} with AI lesson: '{first_lesson.title}' (phonetic_script: {first_lesson.phonetic_script})")
 
+    def test_generate_learning_path_with_new_curriculum_creation(self):
+        """Verify Curriculum creation succeeds when no Curriculum exists yet for a language (level NOT NULL constraint)."""
+        iso = "tst"
+        dummy_lang = self.db.query(models.Language).filter(models.Language.iso_code == iso).first()
+        if not dummy_lang:
+            dummy_lang = models.Language(iso_code=iso, lang_name="Test Language")
+            self.db.add(dummy_lang)
+            self.db.commit()
+            self.db.refresh(dummy_lang)
+
+        # Ensure no pre-existing curriculum for this language
+        self.db.query(models.Curriculum).filter(models.Curriculum.lang_id == dummy_lang.lang_id).delete(synchronize_session=False)
+        self.db.commit()
+
+        path_id = generate_learning_path(
+            learner_id=self.learner.learner_id,
+            target_lang=iso,
+            db=self.db
+        )
+        self.assertIsInstance(path_id, int)
+
+        created_curr = self.db.query(models.Curriculum).filter(models.Curriculum.lang_id == dummy_lang.lang_id).first()
+        self.assertIsNotNone(created_curr)
+        self.assertIsNotNone(created_curr.level)
+        self.assertGreater(len(created_curr.level), 0)
+        print(f"  [OK] [New Curriculum Creation] Created curriculum #{created_curr.curriculum_id} with level='{created_curr.level}'")
+
 
 if __name__ == '__main__':
     unittest.main()

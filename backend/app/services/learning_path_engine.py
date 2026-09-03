@@ -145,6 +145,7 @@ def generate_learning_path(learner_id: int, target_lang: Optional[str] = None, d
             curriculum = models.Curriculum(
                 lang_id=lang_id,
                 title=f"{lang_code.upper()} Literacy Curriculum",
+                level=weakest_level or "FOUNDATIONAL",
                 description=f"Personalized Literacy Curriculum for {lang_code.upper()}"
             )
             db.add(curriculum)
